@@ -4,7 +4,7 @@
 - It's VM design inspired by LUA and can only used on 64 bit machine.
 - The runtime provide `FAST FIELD ACCESS` and `FUNCTION INLINE CACHE` like V8.
 
-## Get Started
+## GET STARTED
 
 ### Basic Runtime Enveriment
 
@@ -26,7 +26,7 @@ scriptContext.Run()
 
 ```
 
-## Function Call
+## FUNCTION CALL
 
 Functions can be started by 'function', 'func' or '#', and can be used like JavaScript
 
@@ -44,7 +44,7 @@ func Hello() {
 Hello()
 ```
 
-## Primary Types
+## PRIMARY TYPES
 
 Just like JavaScript, TinyScript is a dynamic language, and it only provide very few built-in types;
 `Number`, `String`, `Bool`, `Array`, `Map`, `Object`
@@ -62,4 +62,21 @@ var e = new Example('Big')
 println(e.name)
 ```
 
-## To be continued ...
+## USING MUTI-FILES
+
+In the script files, you can use `#import "..."` to include other files.
+
+> ALL FILES IMPORTED SHARE THE SAME SCRIPT CONTEXT
+
+## CONTRIBUTE GUID
+
+Any one with any kind of contributions are welcomed, so please help to impove this project.
+
+- Compiler
+- Runtime
+- Interpreter
+- Documents
+- Test Cases
+- Examples
+
+## TO BE CONTINUED
