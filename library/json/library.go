@@ -78,7 +78,14 @@ func init() {
                         break
                     }
 
-                    sa.(script.Array).Push(r.Set(scanValue()))
+                    if s.TokenText() == "]" {
+                        break arrayParserLoop
+                    }
+
+                    nextValue := scanValue()
+                    if nextValue != nil {
+                        sa.(script.Array).Push(r.Set(nextValue))
+                    }
 
                     if s.Scan() == scanner.EOF {
                         break
@@ -90,7 +97,8 @@ func init() {
                     case ",":
                         continue arrayParserLoop
                     default:
-                        panic(fmt.Errorf("Json.Decode Excepting , or ] not %v", s.TokenText()))
+                        token := s.TokenText()
+                        panic(fmt.Errorf("Json.Decode Excepting , or ] not %v", token))
                     }
                 }
                 return sa

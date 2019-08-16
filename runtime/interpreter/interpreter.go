@@ -1154,6 +1154,12 @@ func (impl *Component) invoke(f interface{}) {
                             switch pc_.GetType() {
                             case script.ValueTypeInterface:
                                 switch vc_ := pc_.GetInterface().(type) {
+                                case script.String:
+                                    if vc_.GetScriptTypeId() == script.ScriptTypeNull {
+                                        pa_.SetBool(false)
+                                    } else {
+                                        pa_.SetBool(vb_ == vc_)
+                                    }
                                 case script.Object:
                                     if vc_.GetScriptTypeId() == script.ScriptTypeNull {
                                         pa_.SetBool(false)
