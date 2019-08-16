@@ -44,6 +44,16 @@ func Hello() {
 Hello()
 ```
 
+## LAMBDA FUNCTION
+
+Just like the javascript, the lamdba function don't have it's own context, so it's really usefull for callback
+
+```
+(a) => {
+    return a + 10
+}
+```
+
 ## PRIMARY TYPES
 
 Just like JavaScript, TinyScript is a dynamic language, and it only provide very few built-in types;
@@ -64,11 +74,11 @@ println(e.name)
 
 ## USING MUTI-FILES
 
-In the script files, you can use `#import "..."` to include other files.
+In the script files, you can use `#import "<relative path to this file>"` to include other files.
 
 > ALL FILES IMPORTED SHARE THE SAME SCRIPT CONTEXT
 
-## CONTRIBUTE GUID
+## CONTRIBUTE GUIDE
 
 Any one with any kind of contributions are welcomed, so please help to impove this project.
 
