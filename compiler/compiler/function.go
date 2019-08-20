@@ -25,12 +25,17 @@ type compilerFunction struct {
     asm              interface{}
     name             string
     breakList        list.List
+    continueList     list.List
     isScope          bool
     allocatedRegList *list.List
     sourceFile       string
     captureThis      bool
     registerList     list.List
     maxRegisterCount int
+}
+
+func (impl *compilerFunction) GetContinueList() *list.List {
+    return &impl.continueList
 }
 
 func (impl *compilerFunction) GetMaxRegisterCount() int {

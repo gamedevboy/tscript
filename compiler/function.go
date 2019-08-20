@@ -29,6 +29,7 @@ type Function interface {
     PushBreakList()
     PopBreakList()
     GetBreakList() *list.List
+    GetContinueList() *list.List
     PushBlock()
     PopBlock()
     CheckLocalVar(name string) bool

@@ -60,8 +60,9 @@ func (impl *Component) Compile(f interface{}) *list.Element {
         impl.step.(ast.Statement).Compile(f)
     }
 
-    _func.AddInstructionABx(opcode.Jump, opcode.Flow, compiler.NewSmallIntOperand(-1),
-        compiler.NewIntOperand(script.Int(start.Value.(*ast.Instruction).Index)))
+    startPos := script.Int(start.Value.(*ast.Instruction).Index)
+
+    _func.AddInstructionABx(opcode.Jump, opcode.Flow, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(startPos))
 
     end := _func.AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(0))
 
@@ -71,6 +72,10 @@ func (impl *Component) Compile(f interface{}) *list.Element {
 
     for it := _func.GetBreakList().Front(); it != nil; it = it.Next() {
         it.Value.(*ast.Instruction).GetABx().B = breakPos
+    }
+
+    for it := _func.GetContinueList().Front(); it != nil; it = it.Next() {
+        it.Value.(*ast.Instruction).GetABx().B = startPos
     }
 
     _func.PopBreakList()

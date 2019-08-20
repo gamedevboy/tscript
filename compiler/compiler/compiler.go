@@ -111,6 +111,9 @@ func (impl *Component) visitForFunctionScan(astNode, asm interface{}) {
         impl.visitForFunctionScan(target.GetInit(), asm)
         impl.visitForFunctionScan(target.GetStep(), asm)
         impl.visitForFunctionScan(target.GetBody(), asm)
+    case statement.While:
+        impl.visitForFunctionScan(target.GetCondition(), asm)
+        impl.visitForFunctionScan(target.GetBody(), asm)
     case statement.Switch:
         for it := target.GetCaseList().Front(); it != nil; it = it.Next() {
             impl.visitForFunctionScan(it.Value.(statement.Case).GetBlock(), asm)

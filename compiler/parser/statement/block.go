@@ -10,6 +10,7 @@ import (
     "tklibs/script/compiler/ast/statement"
     "tklibs/script/compiler/ast/statement/block"
     _break "tklibs/script/compiler/ast/statement/break"
+    _continue "tklibs/script/compiler/ast/statement/continue"
     "tklibs/script/compiler/ast/statement/decl"
     "tklibs/script/compiler/ast/statement/expression"
     "tklibs/script/compiler/ast/statement/for"
@@ -74,6 +75,12 @@ func (impl *BlockStatementParserComponent) ParseStatement(tokenIt *list.Element)
             }{}
             b.Component = _break.NewBreak(b)
             return b, tokenIt.Next()
+        case "continue":
+            c := &struct {
+                *_continue.Component
+            }{}
+            c.Component = _continue.NewContinue(c)
+            return c, tokenIt.Next()
         case "switch":
             s := &struct {
                 *_switch.Component

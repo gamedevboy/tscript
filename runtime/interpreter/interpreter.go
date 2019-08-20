@@ -1360,7 +1360,7 @@ func (impl *Component) invoke(f interface{}) {
                             context.PopRegisters()
                         }
                     default:
-                        panic("")
+                        panic(fmt.Errorf("Can't call null as a function "))
                     }
                 default:
                     panic("")

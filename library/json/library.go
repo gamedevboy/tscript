@@ -78,7 +78,8 @@ func init() {
                         break
                     }
 
-                    if s.TokenText() == "]" {
+                    if s.Peek() == ']' {
+                        s.Scan()
                         break arrayParserLoop
                     }
 
@@ -118,6 +119,7 @@ func init() {
                         if s.Scan() == scanner.EOF { // skip ":"
                             break mapParserLoop
                         }
+
                         if s.TokenText() != ":" {
                             panic(fmt.Errorf("excepting : not %v", s.TokenText()))
                         }
