@@ -11,8 +11,8 @@ import (
 )
 
 type library struct {
-    context interface{}
-    Break   native.FunctionType
+    context    interface{}
+    Breakpoint native.FunctionType
 }
 
 func (*library) GetName() string {
@@ -26,7 +26,7 @@ func (l *library) SetScriptContext(context interface{}) {
 var Library = &library{}
 
 func init() {
-    Library.Break = func(this interface{}, args ...interface{}) interface{} {
+    Library.Breakpoint = func(this interface{}, args ...interface{}) interface{} {
         ctx := Library.context.(runtime.ScriptContext)
         frame := ctx.GetCurrentFrame().(stack.Frame)
         rf := frame.GetFunction().(runtime.Function)
@@ -76,6 +76,7 @@ func init() {
         }
 
         runtime2.Breakpoint()
+
         return script.Null
     }
 }

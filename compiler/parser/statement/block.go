@@ -2,6 +2,7 @@ package statement
 
 import (
     "container/list"
+    "fmt"
 
     "tklibs/script"
     "tklibs/script/compiler/ast/expression/class"
@@ -15,6 +16,7 @@ import (
     "tklibs/script/compiler/ast/statement/if"
     "tklibs/script/compiler/ast/statement/return"
     _switch "tklibs/script/compiler/ast/statement/switch"
+    "tklibs/script/compiler/ast/statement/while"
     "tklibs/script/compiler/parser"
     "tklibs/script/compiler/token"
 )
@@ -49,7 +51,15 @@ func (impl *BlockStatementParserComponent) ParseStatement(tokenIt *list.Element)
             f.SetFilePath(t.GetFilePath())
             return f, impl.GetOwner().(parser.ForParser).ParseFor(f, tokenIt.Next())
         case "foreach":
+            panic(fmt.Errorf("Not supported yet ! "))
         case "while":
+            ws := &struct {
+                *while.Component
+            }{}
+            ws.Component = while.NewWhileStatementComponent(ws)
+            ws.SetLine(t.GetLine())
+            ws.SetFilePath(t.GetFilePath())
+            return ws, impl.GetOwner().(parser.WhileParser).ParseWhile(ws, tokenIt.Next())
         case "if":
             is := &struct {
                 *_if.Component

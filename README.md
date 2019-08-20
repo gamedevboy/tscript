@@ -1,4 +1,4 @@
-# TinyScript
+# Tiny Script
 
 - TinyScript is a register based fast script language written by golang.
 - It's VM design inspired by LUA and can only used on 64 bit machine.
