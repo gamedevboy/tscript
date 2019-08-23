@@ -49,6 +49,13 @@ func (impl *Component) Foreach(f func(key, value interface{}) bool) script.Int {
         i++
     }
 
+    typeInfo := impl.GetRuntimeTypeInfo().(runtime.TypeInfo)
+    for i, key := range typeInfo.GetFieldNames() {
+        if !f(script.String(key), impl.GetByIndex(i).Get()) {
+            break
+        }
+    }
+
     return i
 }
 
