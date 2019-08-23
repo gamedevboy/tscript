@@ -22,7 +22,9 @@ func (impl *Component) GetStatementList() *list.List {
 
 func (impl *Component) Compile(f interface{}) *list.Element {
     _func := f.(compiler.Function)
+
     _func.PushBlock()
+    defer _func.PopBlock()
 
     var start *list.Element
     stringConstPool := _func.GetAssembly().(script.Assembly).GetStringConstPool()
@@ -45,8 +47,6 @@ func (impl *Component) Compile(f interface{}) *list.Element {
 
         _func.ReleaseAllRegisters()
     }
-
-    _func.PopBlock()
 
     return start
 }

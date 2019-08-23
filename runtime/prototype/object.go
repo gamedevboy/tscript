@@ -29,6 +29,15 @@ func (impl *Object) Init() {
             return script.String(fmt.Sprint(this))
         }
     }).ToValue(impl.GetOwner()))
+
+    obj.ScriptSet("setPrototype", native.FunctionType(func(this interface{}, args ...interface{}) interface{} {
+        this.(runtime.Object).SetPrototype(script.InterfaceToValue(args[0]))
+        return this
+    }).ToValue(impl.GetOwner()))
+
+    obj.ScriptSet("getPrototype", native.FunctionType(func(this interface{}, _ ...interface{}) interface{} {
+        return this.(runtime.Object).GetPrototype()
+    }).ToValue(impl.GetOwner()))
 }
 
 func NewObjectPrototype(ctx interface{}) *Object {

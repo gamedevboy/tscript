@@ -2,6 +2,7 @@ package expression
 
 import (
     "container/list"
+    "fmt"
 
     "tklibs/script"
     "tklibs/script/compiler/ast/expression"
@@ -72,7 +73,7 @@ func (impl *FunctionExpressionParserComponent) ParseFunction(f interface{}, toke
             case 0:
                 _func.SetName(t.GetValue())
             default:
-                panic("function excepting (")
+                panic(fmt.Errorf("%v: %v ==> function excepting (", t.GetFilePath(), t.GetLine()))
             }
         }
 

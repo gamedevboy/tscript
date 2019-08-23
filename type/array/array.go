@@ -35,7 +35,7 @@ func (impl *Component) Pop() interface{} {
     lastIndex := len(impl.elements) - 1
     ret := impl.elements[lastIndex]
     impl.elements = impl.elements[:lastIndex]
-    return ret
+    return ret.Get()
 }
 
 func (*Component) GetScriptTypeId() script.ScriptTypeId {

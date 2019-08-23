@@ -135,18 +135,24 @@ func (impl *Component) FinishMethod() {
             *member.Component
         }{}
 
-        p.Component = member.NewMember(p, rv, "prototype")
+        p.Component = member.NewMember(p, rv, "setPrototype")
 
-        b := &struct {
-            *binary.Component
+        a := &struct {
+            *arglist.Component
         }{}
-        b.Component = binary.NewBinary(b, p, impl.GetParent(), token.TokenTypeASSIGN)
+        a.Component = arglist.NewArgList(a)
+        a.GetExpressionList().PushBack(impl.GetParent())
+
+        c := &struct {
+            *call.Component
+        }{}
+        c.Component = call.NewCall(c, p, a)
 
         es := &struct {
             *expression2.Component
         }{}
         es.Component = expression2.NewExpressionStatement(es)
-        es.SetExpression(b)
+        es.SetExpression(c)
 
         _block.GetStatementList().PushBack(es)
     }
