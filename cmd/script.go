@@ -87,7 +87,7 @@ func main() {
         scriptContext := &struct {
             *context.Component
         }{}
-        scriptContext.Component = context.NewScriptContext(scriptContext, executeAsm)
+        scriptContext.Component = context.NewScriptContext(scriptContext, executeAsm, 4096)
 
         defer func() {
             if err := recover(); err != nil {

@@ -17,7 +17,8 @@ type library struct {
     ToInt,
     ToFloat,
     Print,
-    Println native.FunctionType
+    Println,
+    TypeOf native.FunctionType
 }
 
 func (l *library) SetScriptContext(context interface{}) {
@@ -67,5 +68,33 @@ func init() {
 
     Library.SetPrototype = func(this interface{}, args ...interface{}) interface{} {
         return script.NullValue
+    }
+
+    Library.TypeOf = func(_ interface{}, args ...interface{}) interface{} {
+        if len(args) < 1 {
+            return script.String("")
+        }
+
+        this := args[0]
+
+        if this == script.Null {
+            return script.String("null")
+        }
+
+        switch this.(type) {
+        case script.String:
+            return script.String("string")
+        case script.Bool:
+            return script.String("boolean")
+        case script.Int,
+            script.Int64,
+            script.Float,
+            script.Float64:
+            return script.String("number")
+        case script.Object:
+            return script.String("object")
+        default:
+            return script.String("Unknown type")
+        }
     }
 }

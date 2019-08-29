@@ -71,8 +71,8 @@ func (impl *Component) AddChild(fieldName string) interface{} {
 }
 
 func (impl *Component) RemoveChild(fieldName string) interface{} {
-    fieldName = "-" + fieldName
-    if v, ok := impl.children[fieldName]; ok {
+    newFieldName := "-" + fieldName
+    if v, ok := impl.children[newFieldName]; ok {
         return v
     }
 
@@ -80,7 +80,7 @@ func (impl *Component) RemoveChild(fieldName string) interface{} {
         *Component
     }{}
     newTypeInfo.Component = NewTypeComponent(newTypeInfo)
-    newTypeInfo.fieldName = fieldName
+    newTypeInfo.fieldName = newFieldName
     newTypeInfo.parent = impl.GetOwner()
 
     for index, fn := range impl.fields {
@@ -92,7 +92,7 @@ func (impl *Component) RemoveChild(fieldName string) interface{} {
         }
     }
 
-    impl.children[fieldName] = newTypeInfo
+    impl.children[newFieldName] = newTypeInfo
 
     return newTypeInfo
 }

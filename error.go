@@ -28,7 +28,7 @@ func (e *scriptError) Error() string {
 var _ error = &scriptError{}
 var _ Error = &scriptError{}
 
-func MakeError(filePath string, line int, format string, args ...interface{}) error {
+func MakeError(filePath string, line int, format string, args ...interface{}) Error {
     return &scriptError{
         line:     line,
         filePath: filePath,

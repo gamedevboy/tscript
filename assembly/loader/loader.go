@@ -18,7 +18,7 @@ func LoadAssembly(assembly interface{}, files ...string) error {
     scriptCompiler.Component = compiler.NewCompiler(scriptCompiler)
     for _, file := range files {
         // check binary file type
-        filePath := file + ".bin"
+        filePath := file + ".tsb"
 
         _, err := os.Stat(filePath)
         if err == nil {
@@ -30,7 +30,7 @@ func LoadAssembly(assembly interface{}, files ...string) error {
             return err
         } else {
             // check source file type
-            filePath = file + ".script"
+            filePath = file + ".tsc"
             _, err = os.Stat(filePath)
             if err == nil {
                 scriptCompiler.AddFile(filePath)

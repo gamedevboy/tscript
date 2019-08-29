@@ -140,7 +140,11 @@ func init() {
                 switch val := scanValue().(type) {
                 case script.Int:
                     return -val
+                case script.Int64:
+                    return -val
                 case script.Float:
+                    return -val
+                case script.Float64:
                     return -val
                 default:
                     panic("unknow type")

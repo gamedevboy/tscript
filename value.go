@@ -39,6 +39,8 @@ func (value Value) Get() interface{} {
 
 func (value *Value) Set(v interface{}) Value {
     switch val := v.(type) {
+    case bool:
+        value.SetBool(Bool(val))
     case int:
         value.SetInt(Int(val))
     case int64:
@@ -51,6 +53,8 @@ func (value *Value) Set(v interface{}) Value {
         value.SetInt(Int(val))
     case uint8:
         value.SetInt(Int(val))
+    case string:
+        value.SetInterface(String(val))
     case Int:
         value.SetInt(val)
     case Float:

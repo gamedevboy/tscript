@@ -13,6 +13,23 @@ type Component struct {
     values map[script.Value]script.Value
 }
 
+func (impl *Component) Set(key, value interface{}) {
+    k, v := script.Value{}, script.Value{}
+    k.Set(key)
+    v.Set(v)
+    impl.values[k] = v
+}
+
+func (impl *Component) Get(key interface{}) interface{} {
+    k := script.Value{}
+    k.Set(key)
+    if ret, ok := impl.values[k]; ok {
+        return ret.Get()
+    }
+
+    return script.Null
+}
+
 var _ script.Object = &Component{}
 var _ script.Map = &Component{}
 
@@ -28,7 +45,7 @@ func (impl *Component) Delete(key script.Value) {
 }
 
 func (impl *Component) Len() script.Int {
-    return script.Int(len(impl.values))
+    return script.Int(len(impl.values) + len(impl.GetRuntimeTypeInfo().(runtime.TypeInfo).GetFieldNames()))
 }
 
 func (impl *Component) ContainsKey(value script.Value) script.Bool {
