@@ -48,6 +48,7 @@ type contentState struct {
     line, column int
     content      []rune
     file         string
+    stringStack  []rune
 }
 
 func skipWhitespacesAndLines(cs *contentState) bool {
@@ -166,25 +167,35 @@ func parseToken(cs *contentState) token.Token {
 
 scanLoop:
     for ; i < length; i++ {
+        curRune := parseContent[i]
+
         switch {
         case currentTokenType == token.TokenTypeSTRING:
-            switch parseContent[i] {
-            case '"':
-                fallthrough
-            case '\'':
-                i++
-                break scanLoop
+            switch curRune {
+            case '"', '\'':
+                topStringRune := cs.stringStack[len(cs.stringStack)-1]
+                if topStringRune == curRune {
+                    cs.stringStack = cs.stringStack[:len(cs.stringStack)-1]
+                    if 0 == len(cs.stringStack) {
+                        i++
+                        break scanLoop
+                    }
+                } else {
+                    //cs.stringStack = append(cs.stringStack, curRune)
+                    continue
+                }
             default:
                 continue
             }
-        case parseContent[i] == '"' || parseContent[i] == '\'':
+        case curRune == '"' || curRune == '\'':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeSTRING
+                cs.stringStack = append(cs.stringStack, curRune)
             default:
                 break scanLoop
             }
-        case parseContent[i] == '#' || parseContent[i] == '_' || parseContent[i] == '$':
+        case curRune == '#' || curRune == '_' || curRune == '$':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeIDENT
@@ -193,77 +204,77 @@ scanLoop:
             default:
                 break scanLoop
             }
-        case parseContent[i] == '[':
+        case curRune == '[':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeLBRACK
             default:
                 break scanLoop
             }
-        case parseContent[i] == '(':
+        case curRune == '(':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeLPAREN
             default:
                 break scanLoop
             }
-        case parseContent[i] == '{':
+        case curRune == '{':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeLBRACE
             default:
                 break scanLoop
             }
-        case parseContent[i] == ']':
+        case curRune == ']':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeRBRACK
             default:
                 break scanLoop
             }
-        case parseContent[i] == ')':
+        case curRune == ')':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeRPAREN
             default:
                 break scanLoop
             }
-        case parseContent[i] == '}':
+        case curRune == '}':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeRBRACE
             default:
                 break scanLoop
             }
-        case parseContent[i] == ',':
+        case curRune == ',':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeCOMMA
             default:
                 break scanLoop
             }
-        case parseContent[i] == '?':
+        case curRune == '?':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeQUES
             default:
                 break scanLoop
             }
-        case parseContent[i] == ':':
+        case curRune == ':':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeCOLON
             default:
                 break scanLoop
             }
-        case parseContent[i] == ';':
+        case curRune == ';':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeSEMICOLON
             default:
                 break scanLoop
             }
-        case parseContent[i] == '+':
+        case curRune == '+':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeADD
@@ -272,7 +283,7 @@ scanLoop:
             default:
                 break scanLoop
             }
-        case parseContent[i] == '-':
+        case curRune == '-':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeSUB
@@ -281,7 +292,7 @@ scanLoop:
             default:
                 break scanLoop
             }
-        case parseContent[i] == '*':
+        case curRune == '*':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeMUL
@@ -313,7 +324,7 @@ scanLoop:
             default:
                 break scanLoop
             }
-        case parseContent[i] == '/':
+        case curRune == '/':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeDIV
@@ -340,14 +351,14 @@ scanLoop:
             default:
                 break scanLoop
             }
-        case parseContent[i] == '%':
+        case curRune == '%':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeREM
             default:
                 break scanLoop
             }
-        case parseContent[i] == '>':
+        case curRune == '>':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeGREATER
@@ -358,7 +369,7 @@ scanLoop:
             default:
                 break scanLoop
             }
-        case parseContent[i] == '<':
+        case curRune == '<':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeLESS
@@ -367,7 +378,7 @@ scanLoop:
             default:
                 break scanLoop
             }
-        case parseContent[i] == '&':
+        case curRune == '&':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeAND
@@ -376,7 +387,7 @@ scanLoop:
             default:
                 break scanLoop
             }
-        case parseContent[i] == '|':
+        case curRune == '|':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeOR
@@ -385,21 +396,21 @@ scanLoop:
             default:
                 break scanLoop
             }
-        case parseContent[i] == '!':
+        case curRune == '!':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeLNOT
             default:
                 break scanLoop
             }
-        case parseContent[i] == '^':
+        case curRune == '^':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeXOR
             default:
                 break scanLoop
             }
-        case parseContent[i] == '=':
+        case curRune == '=':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypeASSIGN
@@ -434,7 +445,7 @@ scanLoop:
             default:
                 break scanLoop
             }
-        case parseContent[i] == '.':
+        case curRune == '.':
             switch currentTokenType {
             case token.TokenTypeUnknown:
                 currentTokenType = token.TokenTypePERIOD
@@ -450,14 +461,14 @@ scanLoop:
             default:
                 break scanLoop
             }
-        case parseContent[i] == 'x':
+        case curRune == 'x':
             switch currentTokenType {
             case token.TokenTypeINT:
                 continue
             }
             fallthrough
-        case unicode.IsLetter(parseContent[i]) || parseContent[i] == '_' || parseContent[i] == '$':
-            if parseContent[i] == '_' {
+        case unicode.IsLetter(curRune) || curRune == '_' || curRune == '$':
+            if curRune == '_' {
                 runtime.Breakpoint()
             }
             switch currentTokenType {
@@ -472,7 +483,7 @@ scanLoop:
             default:
                 break scanLoop
             }
-        case unicode.IsDigit(parseContent[i]):
+        case unicode.IsDigit(curRune):
             switch currentTokenType {
             case token.TokenTypeUnknown, token.TokenTypeSUB:
                 currentTokenType = token.TokenTypeINT

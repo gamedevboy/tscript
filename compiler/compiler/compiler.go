@@ -124,7 +124,7 @@ func (impl *Component) visitForFunctionScan(astNode, asm interface{}) {
         impl.visitForFunctionScan(target.GetExpression(), asm)
     case statement.Return:
         impl.visitForFunctionScan(target.GetExpression(), asm)
-    case expression.Map:
+    case expression.Object:
         for _, e := range target.GetKeyValueMap() {
             impl.visitForFunctionScan(e, asm)
         }

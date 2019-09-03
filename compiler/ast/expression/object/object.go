@@ -1,4 +1,4 @@
-package _map
+package object
 
 import (
     "tklibs/script"
@@ -17,10 +17,10 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
     _func := f.(compiler.Function)
     if r == nil {
         r = compiler.NewRegisterOperand(_func.AllocRegister(""))
-        _func.AddInstructionABx(opcode.Map, opcode.Memory, r, compiler.NewIntOperand(script.Int(len(impl.values))))
+        _func.AddInstructionABx(opcode.Object, opcode.Memory, r, compiler.NewIntOperand(script.Int(len(impl.values))))
     } else {
         n := compiler.NewRegisterOperand(_func.AllocRegister(""))
-        _func.AddInstructionABx(opcode.Map, opcode.Memory, n, compiler.NewIntOperand(script.Int(len(impl.values))))
+        _func.AddInstructionABx(opcode.Object, opcode.Memory, n, compiler.NewIntOperand(script.Int(len(impl.values))))
         _func.AddInstructionABx(opcode.Move, opcode.Memory, r, n)
     }
 
@@ -41,9 +41,9 @@ func (impl *Component) GetKeyValueMap() map[string]interface{} {
     return impl.values
 }
 
-var _ expression.Map = &Component{}
+var _ expression.Object = &Component{}
 
-func NewMap(owner interface{}) *Component {
+func NewObject(owner interface{}) *Component {
     return &Component{
         ComponentType: script.MakeComponentType(owner),
         values:        make(map[string]interface{}),

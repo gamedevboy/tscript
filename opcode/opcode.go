@@ -43,7 +43,7 @@ const (
     StoreField
     LoadElement
     StoreElement
-    Map
+    Object
     Array
 )
 

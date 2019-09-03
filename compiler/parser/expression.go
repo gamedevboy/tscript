@@ -5,8 +5,8 @@ import (
 )
 
 type (
-    MapParser interface {
-        ParseMap(interface{}, *list.Element) *list.Element
+    ObjectParser interface {
+        ParseObject(interface{}, *list.Element) *list.Element
     }
 
     ArgListParser interface {

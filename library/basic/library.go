@@ -46,6 +46,15 @@ func init() {
         switch value := args[0].(type) {
         case script.Int:
             return value
+        case script.Float:
+            return script.Int(value)
+        case script.Float64:
+            return script.Int(value)
+        case script.Bool:
+            if value {
+                return script.Int(1)
+            }
+            return script.Int(0)
         case script.String:
             val, err := strconv.ParseInt(string(value), 10, 64)
             if err != nil {

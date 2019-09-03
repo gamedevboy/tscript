@@ -3,6 +3,7 @@ package math
 import (
     "math/rand"
     "strconv"
+    "time"
 
     "tklibs/script"
     "tklibs/script/runtime/function/native"
@@ -49,6 +50,6 @@ func init() {
     }
 
     Library.Rand = func(this interface{}, args ...interface{}) interface{} {
-        return script.Float(rand.Float32())
+        return script.Float(rand.New(rand.NewSource(time.Now().UnixNano())).Float32())
     }
 }

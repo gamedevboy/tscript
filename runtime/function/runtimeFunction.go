@@ -147,8 +147,8 @@ func (impl *Component) DumpString() string {
             switch il.Code {
             case opcode.Move:
                 instStr = fmt.Sprintf("MOVE \t%v, \t%v", ra, rb)
-            case opcode.Map:
-                instStr = fmt.Sprintf("MAP \t%v, \t%v", ra, rb)
+            case opcode.Object:
+                instStr = fmt.Sprintf("OBJ \t%v, \t%v", ra, rb)
             case opcode.Array:
                 instStr = fmt.Sprintf("ARRAY \t%v, \t%v", ra, rb)
             case opcode.LoadField:

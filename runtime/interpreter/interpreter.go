@@ -258,13 +258,13 @@ func (impl *Component) invoke(f interface{}) {
                     case script.Array:
                         target.SetElement(pb_.ToInt(), *pc_)
                     case script.Object:
-                        target.ScriptSet(string(pb_.GetInterface().(script.String)), *pc_)
+                        target.ScriptSet(string(util.ToScriptString(pb_.Get())), *pc_)
                     }
                 default:
                     panic("")
                 }
-            case opcode.Map:
-                pa_.SetInterface(context.NewScriptMap(int(pb_.GetInt())))
+            case opcode.Object:
+                pa_.SetInterface(context.NewScriptObject(int(pb_.GetInt())))
             case opcode.Array:
                 pa_.SetInterface(context.NewScriptArray(int(pb_.GetInt())))
             }
@@ -1358,6 +1358,29 @@ func (impl *Component) invoke(f interface{}) {
                             context.PushRegisters(regStart, 1)
                             registers[regStart] = runtimeFunc.NativeCall(registers[regStart+1].Get(), value.ToInterfaceSlice(args)...)
                             context.PopRegisters()
+                        }
+                    case script.Object:
+                        callMethod := callFunc.ScriptGet("()").Get()
+                        if callFunc, ok := callMethod.(script.Function); ok {
+                            regStart := pb_.GetInt()
+                            count := pc_.GetInt()
+                            switch runtimeFunc := callFunc.GetRuntimeFunction().(type) {
+                            case runtime.Function:
+                                registers = context.PushRegisters(regStart,
+                                    runtimeFunc.GetMaxRegisterCount()+
+                                        len(runtimeFunc.GetArguments())+
+                                        len(runtimeFunc.GetLocalVars())+
+                                        2)
+                                impl.invoke(callFunc)
+                                context.PopRegisters()
+                            case native.Function:
+                                impl.currentPC = pc
+                                impl.currentRegisters = registers[:regStart]
+                                args := registers[regStart+2 : regStart+2+count]
+                                context.PushRegisters(regStart, 1)
+                                registers[regStart] = runtimeFunc.NativeCall(registers[regStart+1].Get(), value.ToInterfaceSlice(args)...)
+                                context.PopRegisters()
+                            }
                         }
                     default:
                         panic(fmt.Errorf("Can't call null as a function "))

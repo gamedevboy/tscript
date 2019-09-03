@@ -2,7 +2,7 @@ package expression
 
 import "tklibs/script/compiler/ast"
 
-type Map interface {
+type Object interface {
     ast.Expression
     GetKeyValueMap() map[string]interface{}
 }

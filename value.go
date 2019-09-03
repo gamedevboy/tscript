@@ -44,15 +44,19 @@ func (value *Value) Set(v interface{}) Value {
     case int:
         value.SetInt(Int(val))
     case int64:
-        value.SetInt(Int(val))
+        value.SetInt64(Int64(val))
     case int32:
         value.SetInt(Int(val))
     case uint32:
-        value.SetInt(Int(val))
+        value.SetInt64(Int64(val))
     case int8:
         value.SetInt(Int(val))
     case uint8:
         value.SetInt(Int(val))
+    case float32:
+        value.SetFloat(Float(val))
+    case float64:
+        value.SetFloat64(Float64(val))
     case string:
         value.SetInterface(String(val))
     case Int:

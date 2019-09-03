@@ -38,8 +38,9 @@ type Component struct {
     *prototype.Number
     *prototype.Object
     *prototype.String
-    *prototype.Array
-    *prototype.Map
+
+    arrayPrototype    *prototype.Array
+    mapPrototype      *prototype.Map
 
     frames          []interface{}
     scopes          []interface{}
@@ -49,9 +50,17 @@ type Component struct {
     registerList    [][]script.Value
 }
 
+func (impl *Component) GetArrayPrototype() interface{} {
+    return impl.arrayPrototype
+}
+
+func (impl *Component) GetMapPrototype() interface{} {
+    return impl.mapPrototype
+}
+
 func (impl *Component) ReloadAssembly(assembly script.Assembly) error {
     asm := impl.assembly.(script.Assembly)
-    
+
     if len(asm.GetFunctions()) != len(assembly.GetFunctions()) {
         return fmt.Errorf("Can't reload assembly due to mismatch function count ")
     }
@@ -173,7 +182,7 @@ func (impl *Component) GetAssembly() interface{} {
 }
 
 func (impl *Component) Run() interface{} {
-    ret := impl.Invoke(impl.GetOwner())
+    ret := impl.functionComponent.Invoke(impl.GetOwner())
     rf := impl.functionComponent.GetRuntimeFunction().(runtime.Function)
     for i, localName := range rf.GetLocalVars() {
         impl.ScriptSet(localName, impl.registers[2+len(rf.GetArguments()):][i])
@@ -245,8 +254,8 @@ func NewScriptContext(owner, asm interface{}, stackSize int) *Component {
     context.Bool = prototype.NewBoolPrototype(context)
     context.Number = prototype.NewNumberPrototype(context)
     context.String = prototype.NewStringPrototype(context)
-    context.Array = prototype.NewArrayPrototype(context)
-    context.Map = prototype.NewMapPrototype(context)
+    context.arrayPrototype = prototype.NewArrayPrototype(context)
+    context.mapPrototype = prototype.NewMapPrototype(context)
 
     context.functionComponent = function.NewScriptFunction(owner, asm.(script.Assembly).GetEntry(), context)
     context.interpreterComponent = interpreter.NewScriptInterpreter(owner, context)

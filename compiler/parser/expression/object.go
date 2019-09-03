@@ -9,20 +9,20 @@ import (
     "tklibs/script/compiler/token"
 )
 
-type MapExpressionParserComponent struct {
+type ObjectExpressionParserComponent struct {
     script.ComponentType
 }
 
-func NewMapExpressionParser(owner interface{}) *MapExpressionParserComponent {
-    return &MapExpressionParserComponent{script.MakeComponentType(owner)}
+func NewObjectExpressionParser(owner interface{}) *ObjectExpressionParserComponent {
+    return &ObjectExpressionParserComponent{script.MakeComponentType(owner)}
 }
 
-func (p *MapExpressionParserComponent) ParseMap(m interface{}, tokenIt *list.Element) *list.Element {
+func (p *ObjectExpressionParserComponent) ParseObject(m interface{}, tokenIt *list.Element) *list.Element {
     if tokenIt == nil {
         return nil
     }
 
-    map_ := m.(expression.Map)
+    object := m.(expression.Object)
 
     for {
         t := tokenIt.Value.(token.Token)
@@ -48,7 +48,7 @@ func (p *MapExpressionParserComponent) ParseMap(m interface{}, tokenIt *list.Ele
             }
 
             e, next := p.GetOwner().(parser.ExpressionParser).ParseExpression(tokenIt.Next()) // parse expression
-            map_.GetKeyValueMap()[varName] = e
+            object.GetKeyValueMap()[varName] = e
             tokenIt = next
         default:
             panic("")

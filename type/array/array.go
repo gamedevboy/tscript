@@ -38,6 +38,21 @@ func (impl *Component) Pop() interface{} {
     return ret.Get()
 }
 
+func (impl *Component) Shift() interface{} {
+    if len(impl.elements) < 1 {
+        return script.Null
+    }
+
+    ret := impl.elements[0]
+    impl.elements = impl.elements[1:]
+    return ret.Get()
+}
+
+func (impl *Component) Unshift(args ...script.Value) interface{} {
+    impl.elements = append(args, impl.elements...)
+    return impl.GetOwner()
+}
+
 func (*Component) GetScriptTypeId() script.ScriptTypeId {
     return script.ScriptTypeArray
 }

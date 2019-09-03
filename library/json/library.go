@@ -123,7 +123,7 @@ func init() {
                         if s.TokenText() != ":" {
                             panic(fmt.Errorf("excepting : not %v", s.TokenText()))
                         }
-                        sm.(script.Object).ScriptSet(strings.Replace(val, "\"", "", -1), r.Set(scanValue()))
+                        sm.(script.Map).Set(script.String(strings.Replace(val, "\"", "", -1)), scanValue())
                     default:
                         switch val {
                         case "}":

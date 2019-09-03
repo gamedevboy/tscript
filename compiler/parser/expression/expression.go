@@ -12,8 +12,8 @@ import (
     "tklibs/script/compiler/ast/expression/call"
     "tklibs/script/compiler/ast/expression/const"
     function2 "tklibs/script/compiler/ast/expression/function"
-    _map "tklibs/script/compiler/ast/expression/map"
     "tklibs/script/compiler/ast/expression/member"
+    "tklibs/script/compiler/ast/expression/object"
     "tklibs/script/compiler/ast/expression/unary"
     "tklibs/script/compiler/parser"
     "tklibs/script/compiler/token"
@@ -154,11 +154,11 @@ parseLoop:
                 break parseLoop
             }
 
-            m := &struct {
-                *_map.Component
+            obj := &struct {
+                *object.Component
             }{}
-            m.Component = _map.NewMap(m)
-            currentExpression, tokenIt = m, p.GetOwner().(parser.MapParser).ParseMap(m, tokenIt.Next())
+            obj.Component = object.NewObject(obj)
+            currentExpression, tokenIt = obj, p.GetOwner().(parser.ObjectParser).ParseObject(obj, tokenIt.Next())
         case token.TokenTypeLBRACK: // [
             if opList.Len() < expressionList.Len() {
                 e := expressionList.Front().Value

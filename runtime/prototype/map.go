@@ -4,21 +4,56 @@ import (
     "tklibs/script"
     "tklibs/script/runtime"
     "tklibs/script/runtime/function/native"
+    "tklibs/script/type/object"
 )
 
 type Map struct {
-    prototype interface{}
+    *object.Component
+    context interface{}
 }
 
-func (impl *Map) GetMapPrototype() interface{} {
-    return impl.prototype
+func (impl *Map) Invoke(this interface{}, _ ...interface{}) interface{} {
+    return this
+}
+
+func (impl *Map) SetThis(script.Value) {
+}
+
+func (impl *Map) GetThis() script.Value {
+    return script.Value{}
+}
+
+func (impl *Map) GetRuntimeFunction() interface{} {
+    return impl
+}
+
+func (impl *Map) GetRefList() []*script.Value {
+    return nil
+}
+
+func (impl *Map) GetFieldByMemberIndex(obj interface{}, index script.Int) script.Value {
+    return script.Value{}
+}
+
+func (impl *Map) SetFieldByMemberIndex(obj interface{}, index script.Int, value script.Value) {
+}
+
+var _ native.Type = &Map{}
+var _ script.Function = &Map{}
+
+func (impl *Map) New(args ...interface{}) interface{} {
+    capSize := 0
+    if len(args) > 0 {
+        capSize = int(args[0].(script.Int))
+    }
+    return impl.context.(runtime.ScriptContext).NewScriptMap(capSize)
 }
 
 func NewMapPrototype(ctx interface{}) *Map {
-    ret := &Map{}
-    ret.prototype = ctx.(runtime.ScriptContext).NewScriptObject(0)
-
-    obj := ret.prototype.(script.Object)
+    obj := &Map{
+        context: ctx,
+    }
+    obj.Component = object.NewScriptObject(obj, ctx, 0)
 
     obj.ScriptSet("forEach", native.FunctionType(func(this interface{}, args ...interface{}) interface{} {
         f := args[0].(script.Function)
@@ -67,5 +102,5 @@ func NewMapPrototype(ctx interface{}) *Map {
         return this
     }).ToValue(ctx))
 
-    return ret
+    return obj
 }

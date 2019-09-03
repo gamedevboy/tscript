@@ -96,7 +96,7 @@ func NewScriptObject(owner, ctx interface{}, fieldCap int) *Component {
     ret := &Component{
         ComponentType:   script.MakeComponentType(owner),
         runtimeTypeInfo: ctx.(runtime.ScriptContext).GetRootRuntimeType(),
-        fields:          make([]script.Value, 0, fieldCap+1),
+        fields:          make([]script.Value, 0, fieldCap),
     }
     ret.SetPrototype(script.InterfaceToValue(ctx.(runtime.ScriptContext).GetObjectPrototype()))
     return ret
