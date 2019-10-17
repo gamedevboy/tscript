@@ -46,4 +46,5 @@ type Function interface {
     PushRegisters()
     PopRegisters()
     GetMaxRegisterCount() int
+
 }

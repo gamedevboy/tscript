@@ -58,20 +58,6 @@ func (impl *Component) GetMapPrototype() interface{} {
     return impl.mapPrototype
 }
 
-func (impl *Component) ReloadAssembly(assembly script.Assembly) error {
-    asm := impl.assembly.(script.Assembly)
-
-    if len(asm.GetFunctions()) != len(assembly.GetFunctions()) {
-        return fmt.Errorf("Can't reload assembly due to mismatch function count ")
-    }
-
-    for i, f := range assembly.GetFunctions() {
-        asm.GetFunctions()[i].(runtime.Function).SetInstructionList(f.(runtime.Function).GetInstructionList())
-    }
-
-    return nil
-}
-
 var _ runtime.ScriptContext = &Component{}
 
 func (impl *Component) PushRegisters(regStart script.Int, length int) []script.Value {
@@ -183,11 +169,8 @@ func (impl *Component) GetAssembly() interface{} {
 
 func (impl *Component) Run() interface{} {
     ret := impl.functionComponent.Invoke(impl.GetOwner())
-    rf := impl.functionComponent.GetRuntimeFunction().(runtime.Function)
-    for i, localName := range rf.GetLocalVars() {
-        impl.ScriptSet(localName, impl.registers[2+len(rf.GetArguments()):][i])
-    }
-    return ret
+    impl.registers[0].SetNull()
+    return ret;
 }
 
 func (impl *Component) RegisterLibrary(library library.RuntimeLibrary) {
@@ -267,14 +250,15 @@ func NewScriptContext(owner, asm interface{}, stackSize int) *Component {
     context.ScriptSet("Array", script.InterfaceToValue(context.GetArrayPrototype()))
     context.ScriptSet("String", script.InterfaceToValue(context.GetStringPrototype()))
     context.ScriptSet("Map", script.InterfaceToValue(context.GetMapPrototype()))
+    context.ScriptSet("Number", script.InterfaceToValue(context.GetNumberPrototype()))
 
     context.ScriptSet("$G", script.InterfaceToValue(context))
 
-    context.RegisterLibrary(basic.Library)
-    context.RegisterLibrary(json.Library)
-    context.RegisterLibrary(io.Library)
-    context.RegisterLibrary(math.Library)
-    context.RegisterLibrary(debug.Library)
+    context.RegisterLibrary(basic.NewLibrary())
+    context.RegisterLibrary(json.NewLibrary())
+    context.RegisterLibrary(io.NewLibrary())
+    context.RegisterLibrary(math.NewLibrary())
+    context.RegisterLibrary(debug.NewLibrary())
 
     return context
 }

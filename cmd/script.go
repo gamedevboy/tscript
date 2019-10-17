@@ -67,7 +67,7 @@ func main() {
         for _, inst := range executeAsm.GetFunctions() {
             _func := inst.(runtime.Function)
 
-            fmt.Printf("%v \"%v\", local: %v, args: %v, refs: %v, members: %v",
+            fmt.Printf("%v \"%v\", local: %v, args: %v, refs: %v, members: %v\n",
                 "Func:",
                 _func.GetName(),
                 fmt.Sprint(len(_func.GetLocalVars())),
@@ -75,10 +75,12 @@ func main() {
                 fmt.Sprint(len(_func.GetRefVars())),
                 fmt.Sprint(len(_func.GetMembers())))
 
-            println()
 
-            print(_func.DumpString())
-            println()
+            //for i, name := range _func.GetMembers() {
+            //    fmt.Printf("[%v]Member: %v\n", i, name)
+            //}
+
+            fmt.Println(_func.DumpString())
         }
     }
 

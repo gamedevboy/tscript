@@ -23,10 +23,14 @@ func (l *library) SetScriptContext(context interface{}) {
     l.context = context
 }
 
-var Library = &library{}
+func NewLibrary() *library {
+    ret := &library{}
+    ret.init()
+    return ret
+}
 
-func init() {
-    Library.ToInt = func(this interface{}, args ...interface{}) interface{} {
+func (l *library) init() {
+    l.ToInt = func(this interface{}, args ...interface{}) interface{} {
         if len(args) < 1 {
             return script.Null
         }
@@ -49,7 +53,7 @@ func init() {
         }
     }
 
-    Library.Rand = func(this interface{}, args ...interface{}) interface{} {
+    l.Rand = func(this interface{}, args ...interface{}) interface{} {
         return script.Float(rand.New(rand.NewSource(time.Now().UnixNano())).Float32())
     }
 }

@@ -75,7 +75,6 @@ func NewArrayPrototype(ctx interface{}) *Array {
         return this.(script.Array).Shift()
     }).ToValue(ctx))
 
-
     obj.ScriptSet("length", native.FunctionType(func(this interface{}, _ ...interface{}) interface{} {
         return script.Int(this.(script.Array).Len())
     }).ToValue(ctx))
@@ -149,8 +148,7 @@ func NewArrayPrototype(ctx interface{}) *Array {
     }).ToValue(ctx))
 
     obj.ScriptSet("join", native.FunctionType(func(this interface{}, args ...interface{}) interface{} {
-        if len(args) < 1 {
-            return script.String("")
+        if len(args) < 1 {            return script.String("")
         }
 
         array := this.(script.Array)

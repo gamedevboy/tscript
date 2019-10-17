@@ -27,10 +27,14 @@ func (l *library) SetScriptContext(context interface{}) {
     l.context = context
 }
 
-var Library = &library{}
+func NewLibrary() *library {
+    ret := &library{}
+    ret.init()
+    return ret
+}
 
-func init() {
-    Library.Encode = func(this interface{}, args ...interface{}) interface{} {
+func (l *library) init() {
+    l.Encode = func(this interface{}, args ...interface{}) interface{} {
         if len(args) < 1 {
             return ""
         }
@@ -42,7 +46,7 @@ func init() {
             return script.String(value.ToJsonString(script.InterfaceToValue(val)))
         }
     }
-    Library.Decode = func(this interface{}, args ...interface{}) interface{} {
+    l.Decode = func(this interface{}, args ...interface{}) interface{} {
         r := script.Value{}
 
         if len(args) < 1 {
@@ -70,7 +74,7 @@ func init() {
             val := s.TokenText()
             switch val {
             case "[":
-                sa := Library.context.(runtime.ScriptContext).NewScriptArray(0)
+                sa := l.context.(runtime.ScriptContext).NewScriptArray(0)
 
             arrayParserLoop:
                 for {
@@ -104,7 +108,7 @@ func init() {
                 }
                 return sa
             case "{":
-                sm := Library.context.(runtime.ScriptContext).NewScriptMap(0)
+                sm := l.context.(runtime.ScriptContext).NewScriptMap(0)
             mapParserLoop:
                 for {
                     tokenType := s.Scan()

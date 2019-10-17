@@ -3,6 +3,7 @@ package compiler
 import (
     "container/list"
     "fmt"
+    "sort"
 
     "tklibs/script"
     "tklibs/script/assembly"
@@ -12,7 +13,6 @@ import (
     "tklibs/script/compiler/ast/expression"
     "tklibs/script/compiler/ast/statement"
     "tklibs/script/compiler/ast/statement/block"
-    "tklibs/script/compiler/debug"
     "tklibs/script/compiler/lexer"
     "tklibs/script/compiler/parser"
     parserComponent "tklibs/script/compiler/parser/parser"
@@ -77,7 +77,11 @@ func (impl *Component) Compile() (interface{}, *list.List, error) {
     asm.Component = assemblyImpl.NewScriptAssemblyWithFunctions(asm, functions)
 
     for _, f := range impl.funcMap {
-        functions[*f.(compiler.Function).GetFunctionIndexPointer()] = impl.compile(f)
+        functions[*f.(compiler.Function).GetFunctionIndexPointer()] = f
+    }
+
+    for i, f := range functions {
+        functions[i] = impl.compile(f)
     }
 
     return asm, tokenList, nil
@@ -105,10 +109,12 @@ func (impl *Component) visitForFunctionScan(astNode, asm interface{}) {
         impl.visitForFunctionScan(target.GetExpression(), asm)
         impl.visitForFunctionScan(target.GetArgList(), asm)
     case statement.If:
+        impl.visitForFunctionScan(target.GetCondition(), asm)
         impl.visitForFunctionScan(target.GetBody(), asm)
         impl.visitForFunctionScan(target.GetElseBody(), asm)
     case statement.For:
         impl.visitForFunctionScan(target.GetInit(), asm)
+        impl.visitForFunctionScan(target.GetCondition(), asm)
         impl.visitForFunctionScan(target.GetStep(), asm)
         impl.visitForFunctionScan(target.GetBody(), asm)
     case statement.While:
@@ -125,8 +131,18 @@ func (impl *Component) visitForFunctionScan(astNode, asm interface{}) {
     case statement.Return:
         impl.visitForFunctionScan(target.GetExpression(), asm)
     case expression.Object:
-        for _, e := range target.GetKeyValueMap() {
-            impl.visitForFunctionScan(e, asm)
+        keys := make([]string, len(target.GetKeyValueMap()))
+
+        idx := 0
+        for name := range target.GetKeyValueMap() {
+            keys[idx] = name
+            idx++
+        }
+
+        sort.Strings(keys)
+
+        for _, name := range keys {
+            impl.visitForFunctionScan(target.GetKeyValueMap()[name], asm)
         }
     case expression.Array:
         impl.visitForFunctionScan(target.GetArgListExpression(), asm)
@@ -140,14 +156,14 @@ func (impl *Component) visitForFunctionScan(astNode, asm interface{}) {
         _func := _f.(compiler.Function)
         _func.SetCaptureThis(target.GetCaptureThis())
         _func.SetBlockStatement(target.GetBlock())
-        debugInfo := target.(debug.Info)
+        //debugInfo := target.(debug.Info)
         *_func.GetFunctionIndexPointer() = impl.funcIndex
         switch target.GetName() {
         case "":
             if impl.funcStack.Len() > 0 {
                 topFuncName := impl.funcStack.Back().Value.(compiler.Function).GetName()
-                line := debugInfo.GetLine()
-                _func.SetName(fmt.Sprintf("%v.%v", topFuncName, line))
+                //line := debugInfo.GetLine()
+                _func.SetName(fmt.Sprintf("%v.%v", topFuncName, impl.funcIndex))
             }
         default:
             _func.SetName(target.GetName())

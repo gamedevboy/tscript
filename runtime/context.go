@@ -35,5 +35,4 @@ type ScriptContext interface {
     GetRegisters() []script.Value
     PushRegisters(regStart script.Int, length int) []script.Value
     PopRegisters()
-    ReloadAssembly(assembly script.Assembly) error
 }

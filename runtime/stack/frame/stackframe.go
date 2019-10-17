@@ -1,6 +1,8 @@
 package frame
 
 import (
+    "sync"
+
     "tklibs/script"
     "tklibs/script/runtime/stack"
 )
@@ -15,22 +17,21 @@ func (c *Component) GetFunction() interface{} {
 }
 
 var _ stack.Frame = &Component{}
-var pool = make([]*Component, 0, 1)
+
+var pool = sync.Pool{
+    New: func() interface{} {
+        return &Component{}
+    },
+}
 
 func FreeStackFrame(c *Component) {
-    pool = append(pool, c)
+    pool.Put(c)
 }
 
 func NewStackFrame(owner, f interface{}) *Component {
-    if len(pool) > 0 {
-        ret := pool[len(pool)-1]
-        pool = pool[:len(pool)-1]
-        ret.function = f
-        return ret
-    }
+    ret := pool.Get().(*Component)
+    ret.ComponentType = script.MakeComponentType(owner)
+    ret.function = f
 
-    return &Component{
-        ComponentType: script.MakeComponentType(owner),
-        function:      f,
-    }
+    return ret
 }

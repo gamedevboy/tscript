@@ -6,11 +6,18 @@ import (
     "encoding/binary"
 
     "tklibs/script"
+    "tklibs/script/assembly"
 )
 
 type Int struct {
     pool list.List
 }
+
+func (cp *Int) CopyFrom(constPool assembly.ConstPool) {
+
+}
+
+var _ assembly.ConstPool = &Int{}
 
 func (cp *Int) Get(index int) interface{} {
     i := 0

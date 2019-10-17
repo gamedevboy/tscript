@@ -45,7 +45,7 @@ func TestValue_WithNative(t *testing.T) {
 
     v.ScriptSet("Test", new(script.Value).Set(2000))
 
-    fmt.Println(v.ScriptGet("Init").Get())
+    fmt.Println(v.ScriptGet("init").Get())
 
     fmt.Println(f.Test)
 }

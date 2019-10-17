@@ -58,6 +58,9 @@ func (*Component) GetScriptTypeId() script.ScriptTypeId {
 }
 
 func (impl *Component) GetElement(index script.Int) script.Value {
+    if index < 0 || int(index) >= len(impl.elements) {
+        return script.NullValue
+    }
     return impl.elements[index]
 }
 

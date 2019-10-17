@@ -7,7 +7,6 @@ import (
 
 type Function interface {
     GetInstructionList() []instruction.Instruction
-    SetInstructionList([]instruction.Instruction)
     GetDebugInfoList() []debug.Info
     DumpString() string
     GetArguments() []string
@@ -19,4 +18,5 @@ type Function interface {
     GetSourceNames() []string
     IsCaptureThis() bool
     GetMaxRegisterCount() int
+    CopyFrom(src  Function)
 }

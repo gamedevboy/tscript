@@ -23,11 +23,15 @@ func (l *library) SetScriptContext(context interface{}) {
     l.context = context
 }
 
-var Library = &library{}
+func NewLibrary() *library {
+    ret := &library{}
+    ret.init()
+    return ret
+}
 
-func init() {
-    Library.Breakpoint = func(this interface{}, args ...interface{}) interface{} {
-        ctx := Library.context.(runtime.ScriptContext)
+func (l *library) init() {
+    l.Breakpoint = func(this interface{}, args ...interface{}) interface{} {
+        ctx := l.context.(runtime.ScriptContext)
         frame := ctx.GetCurrentFrame().(stack.Frame)
         rf := frame.GetFunction().(runtime.Function)
 

@@ -2,6 +2,7 @@ package scope
 
 import (
     "container/list"
+    "sync"
 
     "tklibs/script"
     "tklibs/script/runtime"
@@ -37,29 +38,24 @@ func (impl *Component) AddToRefList(value *script.Value, valuePtr **script.Value
 }
 
 var _ runtime.Scope = &Component{}
-var pool = make([]*Component, 0, 1)
+var pool = sync.Pool{New: func() interface{} {
+    return &Component{}
+}}
 
 func FreeScope(c *Component) {
-    pool = append(pool, c)
+    pool.Put(c)
 }
 
 func NewScope(owner, function interface{}, argList, localVarList []script.Value) *Component {
-    if len(pool) > 0 {
-        ret := pool[len(pool)-1]
-        pool = pool[:len(pool)-1]
-        ret.function = function
-        ret.argList = argList
-        ret.localVarList = localVarList
-        ret.refListMap = make(map[*script.Value]*list.List)
-        return ret
-    }
-    return &Component{
-        ComponentType: script.MakeComponentType(owner),
-        function:      function,
-        argList:       argList,
-        localVarList:  localVarList,
-        refListMap:    make(map[*script.Value]*list.List),
-    }
+    var comp = pool.Get().(*Component)
+
+    comp.ComponentType = script.MakeComponentType(owner)
+    comp.function = function
+    comp.argList = argList
+    comp.localVarList = localVarList
+    comp.refListMap = make(map[*script.Value]*list.List)
+
+    return comp
 }
 
 func (impl *Component) GetFunction() interface{} {

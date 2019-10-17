@@ -23,14 +23,18 @@ func (l *library) SetScriptContext(context interface{}) {
     l.context = context
 }
 
-var Library = &library{}
+func NewLibrary() *library {
+    ret := &library{}
+    ret.init()
+    return ret
+}
 
-func init() {
-    Library.UnixNow = func(_ interface{}, _ ...interface{}) interface{} {
+func (l *library) init() {
+    l.UnixNow = func(_ interface{}, _ ...interface{}) interface{} {
         return script.Int64(time.Now().UTC().UnixNano() / 1000000)
     }
 
-    Library.ReadAll = func(this interface{}, args ...interface{}) interface{} {
+    l.ReadAll = func(this interface{}, args ...interface{}) interface{} {
         if len(args) < 1 {
             return script.String("")
         }

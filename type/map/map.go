@@ -29,7 +29,7 @@ var _ script.Object = &Component{}
 var _ script.Map = &Component{}
 
 func (impl *Component) Delete(key script.Value) {
-    delete(impl.values, key)
+    delete(impl.values, key.Get())
 }
 
 func (impl *Component) Len() script.Int {

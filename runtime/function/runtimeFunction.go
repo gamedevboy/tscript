@@ -27,8 +27,17 @@ type Component struct {
     maxRegisterCount int
 }
 
-func (impl *Component) SetInstructionList(instructions []instruction.Instruction) {
-    impl.instructions = instructions
+func (impl *Component) CopyFrom(src runtime.Function) {
+    impl.instructions = src.GetInstructionList()
+    impl.debugInfos = src.GetDebugInfoList()
+    impl.arguments = src.GetArguments()
+    impl.localVars = src.GetLocalVars()
+    impl.refVars = src.GetRefVars()
+    impl.members = src.GetMembers()
+    impl.sourceNames = src.GetSourceNames()
+    impl.isScope = src.IsScope()
+    impl.captureThis = src.IsCaptureThis()
+    impl.maxRegisterCount = src.GetMaxRegisterCount()
 }
 
 func (impl *Component) GetMaxRegisterCount() int {

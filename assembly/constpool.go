@@ -9,4 +9,5 @@ type ConstPool interface {
     Get(int) interface{}
     Write(writer *bufio.Writer)
     Read(reader *bufio.Reader)
+    CopyFrom(constPool ConstPool)
 }

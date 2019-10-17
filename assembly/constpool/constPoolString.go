@@ -4,12 +4,16 @@ import (
     "bufio"
     "container/list"
     "encoding/binary"
+
+    "tklibs/script/assembly"
 )
 
 type String struct {
     arrayPool []interface{}
     pool      list.List
 }
+
+var _ assembly.ConstPool = &String{}
 
 func (cp *String) Get(index int) interface{} {
     if int(index) < len(cp.arrayPool) {
@@ -52,6 +56,11 @@ func (cp *String) Write(writer *bufio.Writer) {
         writer.WriteString(it.Value.(string))
         writer.WriteByte(0)
     }
+}
+
+func (cp *String) CopyFrom(constPool assembly.ConstPool) {
+    src := constPool.(*String)
+    cp.arrayPool = src.arrayPool
 }
 
 func (cp *String) Read(reader *bufio.Reader) {

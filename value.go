@@ -259,3 +259,7 @@ func (value Value) ToString() string {
 func (value Value) IsNull() bool {
     return value.pointer == nil
 }
+
+func (value *Value) SetNull() {
+    value.pointer = nil
+}

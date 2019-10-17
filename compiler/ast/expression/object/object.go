@@ -1,6 +1,8 @@
 package object
 
 import (
+    "sort"
+
     "tklibs/script"
     "tklibs/script/compiler"
     "tklibs/script/compiler/ast"
@@ -24,7 +26,18 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
         _func.AddInstructionABx(opcode.Move, opcode.Memory, r, n)
     }
 
-    for varName, v := range impl.values {
+    keys := make([]string, len(impl.values))
+
+    idx := 0
+    for varName := range impl.values {
+        keys[idx] = varName
+        idx++
+    }
+
+    sort.Strings(keys)
+
+    for _, varName := range keys {
+        v := impl.values[varName]
         index := _func.GetIndexOfMemberList(varName)
         if index == -1 {
             index = _func.GetMemberList().Len()

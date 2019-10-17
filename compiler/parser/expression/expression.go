@@ -338,11 +338,21 @@ parseLoop:
             } else {
                 // check for lambda function
                 it := tokenIt
+                count := 0
+            parenLoop:
                 for ; it != nil; it = it.Next() { // scan token list until ')'
-                    if it.Value.(token.Token).GetType() == token.TokenTypeRPAREN {
-                        break
+                    switch it.Value.(token.Token).GetType() {
+                    case token.TokenTypeLPAREN:
+                        count++
+                    case token.TokenTypeRPAREN:
+                        count--
+
+                        if count == 0 {
+                            break parenLoop
+                        }
                     }
                 }
+                
                 // check the next symbol '=>'
                 if it != nil && it.Next() != nil && it.Next().Value.(token.Token).GetType() == token.TokenTypeLAMBDA {
                     f := &struct {

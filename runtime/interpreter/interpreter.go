@@ -90,6 +90,13 @@ func (impl *Component) invoke(f interface{}) {
     _func := sf.GetRuntimeFunction().(runtime.Function)
     context := impl.context.(runtime.ScriptContext)
     registers := context.GetRegisters()
+    registers[0].SetNull()
+
+    defer func() {
+       for i := 1; i <len(registers); i++ {
+           registers[i].SetNull()
+       }
+    }()
 
     if _func.IsCaptureThis() {
         registers[1] = sf.GetThis()
@@ -100,6 +107,14 @@ func (impl *Component) invoke(f interface{}) {
     if instCount == 0 {
         registers[0].SetInterface(nil)
         return
+    }
+
+    if sf.GetRuntimeFunction() == context.GetAssembly().(script.Assembly).GetEntry() {
+        defer func() {
+           for i, name := range _func.GetLocalVars() {
+               context.(script.Object).ScriptSet(name, registers[i+2])
+           }
+        }()
     }
 
     _frame := frame.NewStackFrame(nil, _func)
@@ -122,38 +137,39 @@ func (impl *Component) invoke(f interface{}) {
 
     defer func() {
         if err := recover(); err != nil {
+            debugInfo := _func.GetDebugInfoList()
+            debugInfoLen := len(debugInfo)
+
+            sourceIndex := -1
+            line := -1
+            for i, d := range debugInfo {
+                if d.PC > uint32(pc) {
+                    if i > 0 {
+                        line = int(debugInfo[i-1].Line)
+                        sourceIndex = int(debugInfo[i-1].SourceIndex)
+                    } else {
+                        line = int(d.Line)
+                        sourceIndex = int(d.SourceIndex)
+                    }
+                    break
+                }
+            }
+
+            if line == -1 {
+                line = int(debugInfo[debugInfoLen-1].Line)
+            }
+
+            if sourceIndex == -1 {
+                sourceIndex = int(debugInfo[debugInfoLen-1].SourceIndex)
+            }
+
+            fileName := _func.GetSourceNames()[sourceIndex]
+
             switch e := err.(type) {
             case script.Error:
-                panic(e)
+                panic(script.MakeError(fileName, line, "%v @ %v: %v", e, fileName, line))
             default:
-                debugInfo := _func.GetDebugInfoList()
-                debugInfoLen := len(debugInfo)
-
-                sourceIndex := -1
-                line := -1
-                for i, d := range debugInfo {
-                    if d.PC > uint32(pc) {
-                        if i > 0 {
-                            line = int(debugInfo[i-1].Line)
-                            sourceIndex = int(debugInfo[i-1].SourceIndex)
-                        } else {
-                            line = int(d.Line)
-                            sourceIndex = int(d.SourceIndex)
-                        }
-                        break
-                    }
-                }
-
-                if line == -1 {
-                    line = int(debugInfo[debugInfoLen-1].Line)
-                }
-
-                if sourceIndex == -1 {
-                    sourceIndex = int(debugInfo[debugInfoLen-1].SourceIndex)
-                }
-
-                fileName := _func.GetSourceNames()[sourceIndex]
-                panic(script.MakeError(fileName, line, "script runtime error: line[%v] in %v: %v", line, fileName, err))
+                panic(script.MakeError(fileName, line, "script runtime error: line[%v] in %v: %v @ %v", line, fileName, err, _func.GetName()))
             }
         }
     }()
@@ -298,7 +314,7 @@ func (impl *Component) invoke(f interface{}) {
                     f.SetThis(registers[1])
                 }
             case opcode.LoadNil:
-                pa_.SetInterface(script.Null)
+                *pa_ = script.NullValue
             }
         case opcode.Math:
             switch il.Code {
@@ -1086,7 +1102,11 @@ func (impl *Component) invoke(f interface{}) {
                         case script.Float64:
                             pa_.SetBool(script.Float64(pb_.GetInt()) == vc_)
                         default:
-                            panic("")
+                            if pc_.IsNull() || vc_ == script.Null {
+                                pa_.SetBool(false)
+                            } else {
+                                panic("")
+                            }
                         }
                     default:
                         panic("")

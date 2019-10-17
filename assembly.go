@@ -15,4 +15,5 @@ type Assembly interface {
     Save(writer *bufio.Writer)
     GetFunctionByMetaIndex(Int) interface{}
     GetFunctions() []interface{}
+    Reload(assembly Assembly) error
 }

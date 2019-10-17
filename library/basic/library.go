@@ -29,20 +29,24 @@ func (*library) GetName() string {
     return ""
 }
 
-var Library = &library{}
+func NewLibrary() *library {
+    ret := &library{}
+    ret.init()
+    return ret
+}
 
-func init() {
-    Library.Print = func(this interface{}, args ...interface{}) interface{} {
+func (l *library) init() {
+    l.Print = func(this interface{}, args ...interface{}) interface{} {
         fmt.Print(args...)
         return this
     }
 
-    Library.Println = func(this interface{}, args ...interface{}) interface{} {
+    l.Println = func(this interface{}, args ...interface{}) interface{} {
         fmt.Println(args...)
         return this
     }
 
-    Library.ToInt = func(this interface{}, args ...interface{}) interface{} {
+    l.ToInt = func(this interface{}, args ...interface{}) interface{} {
         switch value := args[0].(type) {
         case script.Int:
             return value
@@ -71,15 +75,15 @@ func init() {
         }
     }
 
-    Library.ToFloat = func(this interface{}, args ...interface{}) interface{} {
+    l.ToFloat = func(this interface{}, args ...interface{}) interface{} {
         return util.ToScriptFloat(this)
     }
 
-    Library.SetPrototype = func(this interface{}, args ...interface{}) interface{} {
+    l.SetPrototype = func(this interface{}, args ...interface{}) interface{} {
         return script.NullValue
     }
 
-    Library.TypeOf = func(_ interface{}, args ...interface{}) interface{} {
+    l.TypeOf = func(_ interface{}, args ...interface{}) interface{} {
         if len(args) < 1 {
             return script.String("")
         }

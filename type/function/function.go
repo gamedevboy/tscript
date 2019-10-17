@@ -52,14 +52,22 @@ func (impl *Component) GetRefList() []*script.Value {
 func (impl *Component) getFieldCache(obj interface{}, index script.Int) *fieldCache {
     switch runtimeObj := obj.(type) {
     case runtime.Object:
-        for it := impl.memberCaches[index].Front(); it != nil; it = it.Next() {
-            if it.Value.(*fieldCache).cacheType == runtimeObj.GetRuntimeTypeInfo() {
-                return it.Value.(*fieldCache)
+        if int(index) < len(impl.memberCaches) {
+            for it := impl.memberCaches[index].Front(); it != nil; it = it.Next() {
+                if it.Value.(*fieldCache).cacheType == runtimeObj.GetRuntimeTypeInfo() {
+                    return it.Value.(*fieldCache)
+                }
+            }
+        } else {
+            impl.memberCaches = make([]*list.List, len(impl.getMemberNames()))
+
+            for i := range impl.memberCaches {
+                impl.memberCaches[i] = list.New()
             }
         }
 
         rt := runtimeObj.GetRuntimeTypeInfo().(runtime.TypeInfo)
-        offset := rt.GetFieldIndexByName(impl.memberNames[int(index)])
+        offset := rt.GetFieldIndexByName(impl.getMemberNames()[int(index)])
         mc := &fieldCache{rt, offset}
 
         impl.memberCaches[index].PushBack(mc)
@@ -82,20 +90,20 @@ func (impl *Component) GetFieldByMemberIndex(obj interface{}, index script.Int) 
         return impl.GetFieldByMemberIndex(impl.scriptContext.(runtime.ScriptContext).GetStringPrototype(), index)
     case script.Map:
         key := script.Value{}
-        key.Set(script.String(impl.memberNames[index]))
+        key.Set(script.String(impl.getMemberNames()[index]))
 
         if target.ContainsKey(key) {
             return target.GetValue(key)
         }
 
-        return obj.(script.Object).ScriptGet(impl.memberNames[index])
+        return obj.(script.Object).ScriptGet(impl.getMemberNames()[index])
     case script.Object:
         offset := impl.getFieldCache(obj, index).offset
         if offset > -1 {
             return obj.(runtime.Object).GetByIndex(offset)
         }
 
-        return target.ScriptGet(impl.memberNames[index])
+        return target.ScriptGet(impl.getMemberNames()[index])
     }
 
     return script.NullValue
@@ -105,14 +113,14 @@ func (impl *Component) SetFieldByMemberIndex(obj interface{}, index script.Int, 
     switch target := obj.(type) {
     case script.Map:
         k := script.Value{}
-        k.Set(script.String(impl.memberNames[index]))
+        k.Set(script.String(impl.getMemberNames()[index]))
         target.SetValue(k, value)
     default:
         offset := impl.getFieldCache(obj, index).offset
         if offset > - 1 {
             obj.(runtime.Object).SetByIndex(offset, value)
         } else {
-            obj.(script.Object).ScriptSet(impl.memberNames[index], value)
+            obj.(script.Object).ScriptSet(impl.getMemberNames()[index], value)
         }
     }
 }
@@ -154,6 +162,10 @@ func (impl *Component) init() *Component {
     return impl
 }
 
+func (impl *Component) getMemberNames() []string {
+    return impl.runtimeFunction.(runtime.Function).GetMembers()
+}
+
 func NewScriptFunction(owner, runtimeFunction, ctx interface{}) *Component {
     ret := &Component{
         ComponentType:   script.MakeComponentType(owner),
@@ -166,7 +178,7 @@ func NewScriptFunction(owner, runtimeFunction, ctx interface{}) *Component {
     switch f := runtimeFunction.(type) {
     case runtime.Function:
         ret.refs = make([]*script.Value, len(f.GetRefVars()))
-        ret.memberNames = f.GetMembers()
+
         ret.memberCaches = make([]*list.List, len(ret.memberNames))
 
         for i := range ret.memberCaches {
