@@ -1,7 +1,6 @@
 package context
 
 import (
-    "fmt"
     "reflect"
     "unicode"
 
@@ -80,7 +79,7 @@ func (impl *Component) GetRegisters() []script.Value {
     return impl.registers
 }
 
-func (impl *Component) GetRefByName(name string, valuePtr **script.Value) {
+func (impl *Component) GetRefByName(name string, valuePtr **script.Value)  {
     for i := len(impl.scopes) - 1; i >= 0; i-- {
         scope := impl.scopes[i].(runtime.Scope)
         f := scope.GetFunction().(script.Function)
@@ -101,12 +100,16 @@ func (impl *Component) GetRefByName(name string, valuePtr **script.Value) {
         }
     }
 
-    ref := impl.GetOwner().(script.Object).ScriptGet(name)
-    if ref.GetInterface() == script.Null {
-        panic(fmt.Errorf("Can not find '%v' as a reference ! ", name))
+    fieldIndex := impl.GetRuntimeTypeInfo().(runtime.TypeInfo).GetFieldIndexByName(name)
+
+    if fieldIndex < 0 {
+        impl.ScriptSet(name, script.NullValue)
+        fieldIndex = impl.GetRuntimeTypeInfo().(runtime.TypeInfo).GetFieldIndexByName(name)
     }
 
-    *valuePtr = &ref
+    *valuePtr = impl.GetByIndex(fieldIndex)
+
+    return
 }
 
 func (impl *Component) NewScriptObject(fieldCap int) interface{} {

@@ -31,6 +31,10 @@ func (impl *Component) String() string {
     return fmt.Sprint("(", impl.left, impl.opType, impl.right, ")")
 }
 
+func (impl *Component) GetOpType() token.TokenType {
+    return impl.opType
+}
+
 func (impl *Component) compileStore(f, left interface{}, r *compiler.Operand) {
     _func := f.(compiler.Function)
     m := left.(expression.Member)
@@ -70,8 +74,11 @@ func (impl *Component) compileStoreByString(m expression.Member, _func compiler.
         } else if index = _func.GetIndexOfRefList(varName); index != -1 {
             _func.AddInstructionABx(opcode.Move, opcode.Memory, compiler.NewRefOperand(int16(index)), r)
         } else {
-            index = _func.GetRefList().Len()
-            _func.GetRefList().PushBack(varName)
+            index = _func.GetIndexOfRefList(varName)
+            if index < 0 {
+                index = _func.GetRefList().Len()
+                _func.GetRefList().PushBack(varName)
+            }
             _func.AddInstructionABx(opcode.Move, opcode.Memory, compiler.NewRefOperand(int16(index)), r)
         }
     }

@@ -28,10 +28,11 @@ func (impl *Component) Compile(f interface{}) *list.Element {
 
     var start *list.Element
     stringConstPool := _func.GetAssembly().(script.Assembly).GetStringConstPool()
-    
+
     for it := impl.statementList.Front(); it != nil; it = it.Next() {
-        statement := it.Value.(ast.Statement)
-        debugInfo := statement.(debug.Info)
+        statementItem := it.Value.(ast.Statement)
+
+        debugInfo := statementItem.(debug.Info)
 
         stringConstPool.Insert(debugInfo.GetFilePath())
 
@@ -41,7 +42,7 @@ func (impl *Component) Compile(f interface{}) *list.Element {
             SourceIndex: uint32(_func.AddSourceFile(debugInfo.GetFilePath())),
         })
 
-        if p := statement.Compile(f); start == nil {
+        if p := statementItem.Compile(f); start == nil {
             start = p
         }
 

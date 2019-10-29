@@ -81,8 +81,12 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
                         return r
                     }
                 } else {
-                    index = _func.GetRefList().Len()
-                    _func.GetRefList().PushBack(varName)
+                    index = _func.GetIndexOfRefList(varName)
+                    if index < 0 {
+                        index = _func.GetRefList().Len()
+                        _func.GetRefList().PushBack(varName)
+                    }
+
                     if r == nil {
                         return compiler.NewRefOperand(int16(index))
                     } else {

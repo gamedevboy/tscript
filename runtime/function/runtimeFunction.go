@@ -211,6 +211,10 @@ func (impl *Component) DumpString() string {
                 instStr = fmt.Sprintf("LEQ \t%v, \t%v, \t%v", ra, rb, rc)
             case opcode.GreateOrEqual:
                 instStr = fmt.Sprintf("GEQ \t%v, \t%v, \t%v", ra, rb, rc)
+            case opcode.LogicOr:
+                instStr = fmt.Sprintf("LOR \t%v, \t%v, \t%v", ra, rb, rc)
+            case opcode.LogicAnd:
+                instStr = fmt.Sprintf("LAND \t%v, \t%v, \t%v", ra, rb, rc)
             }
         case opcode.Flow:
             switch il.Code {

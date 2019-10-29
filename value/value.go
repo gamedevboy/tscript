@@ -86,7 +86,7 @@ func ToJsonString(value script.Value) string {
             sb.WriteRune('{')
             names := v.GetRuntimeTypeInfo().(runtime.TypeInfo).GetFieldNames()
             for i, name := range names {
-                obj := v.GetByIndex(i)
+                obj := *v.GetByIndex(i)
                 switch obj.Get().(type) {
                 case script.Function:
                 default:

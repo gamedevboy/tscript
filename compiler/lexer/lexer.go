@@ -32,13 +32,6 @@ func (c *Component) ReadFile(fileName string) error {
         return err
     }
 
-    // remove all ';'
-    for i, b := range buf {
-        if b == ';' {
-            buf[i] = ' '
-        }
-    }
-
     c.content = string(buf)
 
     return nil

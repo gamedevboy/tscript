@@ -8,6 +8,7 @@ import (
     "tklibs/script/compiler"
     "tklibs/script/compiler/ast"
     "tklibs/script/compiler/debug"
+    "tklibs/script/opcode"
 )
 
 var _ ast.Statement = &Component{}
@@ -32,7 +33,13 @@ func (impl *Component) SetExpression(expression interface{}) {
 
 func (impl *Component) Compile(f interface{}) *list.Element {
     cur := f.(compiler.Function).GetInstructionList().Back()
-    impl.expression.(ast.Expression).Compile(f, nil)
+
+    if impl.expression != nil {
+        impl.expression.(ast.Expression).Compile(f, nil)
+    } else {
+        return f.(compiler.Function).AddInstructionABC(opcode.None, opcode.None, compiler.NewSmallIntOperand(0),
+            compiler.NewSmallIntOperand(0), compiler.NewSmallIntOperand(0))
+    }
 
     if cur == nil {
         return cur

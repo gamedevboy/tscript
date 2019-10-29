@@ -100,7 +100,7 @@ func (impl *Component) GetFieldByMemberIndex(obj interface{}, index script.Int) 
     case script.Object:
         offset := impl.getFieldCache(obj, index).offset
         if offset > -1 {
-            return obj.(runtime.Object).GetByIndex(offset)
+            return *obj.(runtime.Object).GetByIndex(offset)
         }
 
         return target.ScriptGet(impl.getMemberNames()[index])
@@ -130,11 +130,11 @@ func (impl *Component) GetRuntimeFunction() interface{} {
 }
 
 func (impl *Component) Invoke(this interface{}, args ...interface{}) interface{} {
-    return impl.init().scriptContext.(runtime.ScriptInterpreter).InvokeFunction(impl.GetOwner(), this, args...)
+    return impl.Init().scriptContext.(runtime.ScriptInterpreter).InvokeFunction(impl.GetOwner(), this, args...)
 }
 
 func (impl *Component) New(args ...interface{}) interface{} {
-    impl.init()
+    impl.Init()
     switch runtimeFunction := impl.runtimeFunction.(type) {
     case runtime.Function:
         for index, value := range impl.refs {
@@ -149,7 +149,7 @@ func (impl *Component) New(args ...interface{}) interface{} {
     return impl.scriptContext.(runtime.ScriptInterpreter).InvokeNew(impl.GetOwner(), args...)
 }
 
-func (impl *Component) init() *Component {
+func (impl *Component) Init() *Component {
     if atomic.CompareAndSwapInt32(&impl.initialized, 0, 1) {
         runtimeFunction := impl.runtimeFunction.(runtime.Function)
         scriptContext := impl.scriptContext.(runtime.ScriptContext)

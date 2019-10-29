@@ -92,6 +92,7 @@ const (
 const (
     Jump uint8 = iota
     JumpWhenFalse
+    JumpWhenTrue
     Call
     NewCall
     Ret

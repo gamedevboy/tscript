@@ -8,7 +8,7 @@ import (
 
 type Component struct {
     script.ComponentType
-    fields          []script.Value
+    fields          []*script.Value
     runtimeTypeInfo interface{}
     prototype       script.Value
 }
@@ -24,12 +24,13 @@ func (impl *Component) SetPrototype(value script.Value) {
 var _ script.Object = &Component{}
 var _ runtime.Object = &Component{}
 
-func (impl *Component) GetByIndex(index int) script.Value {
+func (impl *Component) GetByIndex(index int) *script.Value {
     return impl.fields[index]
 }
 
-func (impl *Component) SetByIndex(index int, value script.Value) {
-    impl.fields[index] = value
+func (impl *Component) SetByIndex(index int, value script.Value) *script.Value {
+    impl.fields[index] = &value
+    return &value
 }
 
 func (*Component) GetScriptTypeId() script.ScriptTypeId {
@@ -49,7 +50,7 @@ func (impl *Component) ScriptSet(fieldName string, value script.Value) {
             }
             impl.fields = append(impl.fields[:index], impl.fields[index+1:]...)
         } else {
-            impl.fields[index] = value
+            impl.fields[index] = &value
         }
     } else {
         if rt.GetName() == "-"+fieldName && parent != nil {
@@ -57,7 +58,7 @@ func (impl *Component) ScriptSet(fieldName string, value script.Value) {
         } else {
             impl.runtimeTypeInfo = rt.AddChild(fieldName)
         }
-        impl.fields = append(impl.fields, value)
+        impl.fields = append(impl.fields, &value)
     }
 }
 
@@ -86,7 +87,7 @@ func (impl *Component) ScriptGet(fieldName string) script.Value {
 func (impl *Component) get(s string) script.Value {
     index := impl.runtimeTypeInfo.(runtime.TypeInfo).GetFieldIndexByName(s)
     if index > -1 {
-        return impl.fields[index]
+        return *impl.fields[index]
     }
 
     return script.Value{}
@@ -96,7 +97,7 @@ func NewScriptObject(owner, ctx interface{}, fieldCap int) *Component {
     ret := &Component{
         ComponentType:   script.MakeComponentType(owner),
         runtimeTypeInfo: ctx.(runtime.ScriptContext).GetRootRuntimeType(),
-        fields:          make([]script.Value, 0, fieldCap),
+        fields:          make([]*script.Value, 0, fieldCap),
     }
     ret.SetPrototype(script.InterfaceToValue(ctx.(runtime.ScriptContext).GetObjectPrototype()))
     return ret
@@ -106,7 +107,7 @@ func NewScriptObjectWithRuntimePrototype(owner, runtimeType, prototype interface
     ret := &Component{
         ComponentType:   script.MakeComponentType(owner),
         runtimeTypeInfo: runtimeType,
-        fields:          make([]script.Value, 0, fieldCap),
+        fields:          make([]*script.Value, 0, fieldCap),
     }
     ret.SetPrototype(script.InterfaceToValue(prototype))
     return ret

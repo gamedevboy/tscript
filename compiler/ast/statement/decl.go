@@ -6,5 +6,8 @@ type Decl interface {
 
     GetExpression() interface{}
     SetExpression(interface{})
+
+    IsGlobal() bool
+    SetGlobal(bool)
 }
 

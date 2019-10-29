@@ -43,6 +43,15 @@ func (impl *BlockStatementParserComponent) ParseStatement(tokenIt *list.Element)
             ds.SetLine(t.GetLine())
             ds.SetFilePath(t.GetFilePath())
             return ds, impl.GetOwner().(parser.DeclParser).ParseDecl(ds, tokenIt.Next())
+        case "global":
+            ds := &struct {
+                *decl.Component
+            }{}
+            ds.Component = decl.NewDecl(ds)
+            ds.SetGlobal(true)
+            ds.SetLine(t.GetLine())
+            ds.SetFilePath(t.GetFilePath())
+            return ds, impl.GetOwner().(parser.DeclParser).ParseDecl(ds, tokenIt.Next())
         case "for":
             f := &struct {
                 *_for.Component

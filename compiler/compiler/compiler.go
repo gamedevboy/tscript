@@ -20,14 +20,19 @@ import (
 
 type Component struct {
     script.ComponentType
-    fileList  list.List
-    funcMap   map[uint32]interface{}
-    funcStack list.List
-    funcIndex uint32
+    fileList    list.List
+    sourceList list.List
+    funcMap    map[uint32]interface{}
+    funcStack  list.List
+    funcIndex  uint32
 }
 
 func (impl *Component) AddFile(fileName string) {
     impl.fileList.PushBack(fileName)
+}
+
+func (impl *Component) AddSource(code string) {
+    impl.sourceList.PushBack(code)
 }
 
 func (impl *Component) Compile() (interface{}, *list.List, error) {
@@ -39,6 +44,7 @@ func (impl *Component) Compile() (interface{}, *list.List, error) {
     p := parserComponent.NewParser()
 
     tokenList := list.New()
+
     for it := impl.fileList.Front(); it != nil; it = it.Next() {
         fileName := it.Value.(string)
 
@@ -49,6 +55,11 @@ func (impl *Component) Compile() (interface{}, *list.List, error) {
 
         tokenList = tl
     }
+
+    for it := impl.sourceList.Front(); it != nil; it = it.Next() {
+        tokenList = l.ParseFromRunes("[SOURCE]", []rune(it.Value.(string)), tokenList)
+    }
+
     asm := &struct {
         *assemblyImpl.Component
     }{}
@@ -126,7 +137,14 @@ func (impl *Component) visitForFunctionScan(astNode, asm interface{}) {
         }
         impl.visitForFunctionScan(target.GetDefaultCase(), asm)
     case statement.Decl:
-        curFunc.(compiler.Function).GetLocalList().PushBack(target.GetName())
+        if impl.funcStack.Len() == 1 {
+            target.SetGlobal(true)
+        }
+
+        if !target.IsGlobal() {
+            curFunc.(compiler.Function).GetLocalList().PushBack(target.GetName())
+        }
+
         impl.visitForFunctionScan(target.GetExpression(), asm)
     case statement.Return:
         impl.visitForFunctionScan(target.GetExpression(), asm)

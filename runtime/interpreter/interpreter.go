@@ -92,12 +92,6 @@ func (impl *Component) invoke(f interface{}) {
     registers := context.GetRegisters()
     registers[0].SetNull()
 
-    defer func() {
-       for i := 1; i <len(registers); i++ {
-           registers[i].SetNull()
-       }
-    }()
-
     if _func.IsCaptureThis() {
         registers[1] = sf.GetThis()
     }
@@ -109,23 +103,8 @@ func (impl *Component) invoke(f interface{}) {
         return
     }
 
-    if sf.GetRuntimeFunction() == context.GetAssembly().(script.Assembly).GetEntry() {
-        defer func() {
-           for i, name := range _func.GetLocalVars() {
-               context.(script.Object).ScriptSet(name, registers[i+2])
-           }
-        }()
-    }
-
-    _frame := frame.NewStackFrame(nil, _func)
-    context.PushFrame(_frame)
-    defer func() { frame.FreeStackFrame(context.PopFrame().(*frame.Component)) }()
-
     if _func.IsScope() {
-        s := scope.NewScope(nil, f, registers[2:], registers[ 2+len(_func.GetArguments()):])
-
-        context.PushScope(s)
-        defer func() { scope.FreeScope(context.PopScope().(*scope.Component)) }()
+        context.PushScope(scope.NewScope(nil, f, registers[2:], registers[ 2+len(_func.GetArguments()):]))
     }
 
     var vb, vc script.Value
@@ -169,11 +148,12 @@ func (impl *Component) invoke(f interface{}) {
             case script.Error:
                 panic(script.MakeError(fileName, line, "%v @ %v: %v", e, fileName, line))
             default:
-                panic(script.MakeError(fileName, line, "script runtime error: line[%v] in %v: %v @ %v", line, fileName, err, _func.GetName()))
+                panic(script.MakeError(fileName, line, "script runtime error: [%v] @ %v:%v in %v", err, fileName, line, _func.GetName()))
             }
         }
     }()
 
+vm_loop:
     for pc < instCount {
         il := (*instruction.Instruction)(unsafe.Pointer(ilStart + uintptr(pc*8)))
 
@@ -307,9 +287,7 @@ func (impl *Component) invoke(f interface{}) {
                     context)
                 pa_.SetInterface(f)
                 rf := f.GetRuntimeFunction().(runtime.Function)
-                for i := 0; i < len(rf.GetRefVars()); i++ {
-                    context.GetRefByName(rf.GetRefVars()[i], &f.GetRefList()[i])
-                }
+                f.Init()
                 if rf.IsCaptureThis() {
                     f.SetThis(registers[1])
                 }
@@ -1355,6 +1333,11 @@ func (impl *Component) invoke(f interface{}) {
                     pc = int(pb_.GetInt())
                     continue
                 }
+            case opcode.JumpWhenTrue:
+                if pa_.GetBool() {
+                    pc = int(pb_.GetInt())
+                    continue
+                }
             case opcode.Call:
                 switch pa_.GetType() {
                 case script.ValueTypeInterface:
@@ -1375,9 +1358,12 @@ func (impl *Component) invoke(f interface{}) {
                             impl.currentPC = pc
                             impl.currentRegisters = registers[:regStart]
                             args := registers[regStart+2 : regStart+2+count]
+                            _frame := frame.NewStackFrame(nil, _func)
+                            context.PushFrame(_frame)
                             context.PushRegisters(regStart, 1)
                             registers[regStart] = runtimeFunc.NativeCall(registers[regStart+1].Get(), value.ToInterfaceSlice(args)...)
                             context.PopRegisters()
+                            frame.FreeStackFrame(context.PopFrame().(*frame.Component))
                         }
                     case script.Object:
                         callMethod := callFunc.ScriptGet("()").Get()
@@ -1435,11 +1421,27 @@ func (impl *Component) invoke(f interface{}) {
                     panic("can not new with native function")
                 }
             case opcode.Ret:
-                return
+                break vm_loop
             }
         }
 
         pc++
+    }
+
+    //do clean up here
+    if _func.IsScope() {
+        scope.FreeScope(context.PopScope().(*scope.Component))
+    }
+
+    regPtr := uintptr(unsafe.Pointer(&registers[0]))
+
+    len := _func.GetMaxRegisterCount()+
+       len(_func.GetArguments())+
+       len(_func.GetLocalVars())+
+       2
+
+    for i := 1; i < len; i++ {
+       *(**interface{})(unsafe.Pointer(regPtr + uintptr(i*8))) = nil
     }
 }
 

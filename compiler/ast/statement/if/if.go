@@ -6,8 +6,10 @@ import (
     "tklibs/script"
     "tklibs/script/compiler"
     "tklibs/script/compiler/ast"
+    "tklibs/script/compiler/ast/expression"
     "tklibs/script/compiler/ast/statement"
     "tklibs/script/compiler/debug"
+    "tklibs/script/compiler/token"
     "tklibs/script/opcode"
 )
 
@@ -33,15 +35,71 @@ func (impl *Component) SetElseBody(value interface{}) {
     impl.elseBody = value
 }
 
+func (impl *Component) expandConditionExpression(e interface{}, conditionList *list.List) {
+    switch val := e.(type) {
+    case expression.Binary:
+        switch val.GetOpType() {
+        case token.TokenTypeLAND:
+            impl.expandConditionExpression(val.GetLeft(), conditionList)
+            conditionList.PushBack(true)
+            impl.expandConditionExpression(val.GetRight(), conditionList)
+        case token.TokenTypeLOR:
+            impl.expandConditionExpression(val.GetLeft(), conditionList)
+            conditionList.PushBack(false)
+            impl.expandConditionExpression(val.GetRight(), conditionList)
+        default:
+            conditionList.PushBack(e)
+        }
+    default:
+        conditionList.PushBack(e)
+    }
+}
+
 func (impl *Component) Compile(f interface{}) *list.Element {
     _func := f.(compiler.Function)
 
     ret := _func.GetInstructionList().Back()
 
-    jump := _func.AddInstructionABx(opcode.JumpWhenFalse, opcode.Flow, impl.condition.(ast.Expression).Compile(f, nil),
-        compiler.NewIntOperand(0))
+    jumpList := list.New()
+    skipJumpList := list.New()
 
-    impl.body.(ast.Statement).Compile(f)
+    conditionList := list.New()
+    conditionList.PushBack(true)
+
+    impl.expandConditionExpression(impl.condition, conditionList)
+
+    r := compiler.NewRegisterOperand(_func.AllocRegister(""))
+
+    for it := conditionList.Front(); it != nil; {
+        if it.Value.(bool) {
+            it.Next().Value.(ast.Expression).Compile(f, r)
+
+            next := it.Next().Next()
+            if next != nil && next.Value.(bool) {
+                jumpList.PushBack(_func.AddInstructionABx(opcode.JumpWhenFalse, opcode.Flow, r,
+                    compiler.NewIntOperand(0)))
+            }
+        } else {
+            skipJumpList.PushBack(_func.AddInstructionABx(opcode.JumpWhenTrue, opcode.Flow, r,
+                compiler.NewIntOperand(0)))
+            next := it.Next().Value.(ast.Expression).Compile(f, nil)
+            _func.AddInstructionABC(opcode.LogicOr, opcode.Logic, r, r, next)
+            jumpList.PushBack(_func.AddInstructionABx(opcode.JumpWhenFalse, opcode.Flow, r,
+                compiler.NewIntOperand(0)))
+        }
+
+        it = it.Next().Next()
+    }
+
+    jumpList.PushBack(_func.AddInstructionABx(opcode.JumpWhenFalse, opcode.Flow, r,
+       compiler.NewIntOperand(0)))
+
+    bodyStart := impl.body.(ast.Statement).Compile(f)
+
+    for it := skipJumpList.Front(); it != nil; it= it.Next() {
+        it.Value.(*list.Element).Value.(*ast.Instruction).GetABx().B = script.Int(bodyStart.Value.(*ast.Instruction).Index)
+    }
+
     endJmp := _func.AddInstructionABx(opcode.Jump, opcode.Flow, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(0))
 
     jumpTarget := _func.AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(0))
@@ -52,7 +110,10 @@ func (impl *Component) Compile(f interface{}) *list.Element {
 
     endTarget := _func.AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(0))
 
-    jump.Value.(*ast.Instruction).GetABx().B = script.Int(jumpTarget.Value.(*ast.Instruction).Index + 1)
+    for it := jumpList.Front(); it != nil; it = it.Next() {
+        it.Value.(*list.Element).Value.(*ast.Instruction).GetABx().B = script.Int(jumpTarget.Value.(*ast.Instruction).Index + 1)
+    }
+
     endJmp.Value.(*ast.Instruction).GetABx().B = script.Int(endTarget.Value.(*ast.Instruction).Index + 1)
 
     return ret

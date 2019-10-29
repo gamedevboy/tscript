@@ -1,9 +1,13 @@
 package expression
 
-import "tklibs/script/compiler/ast"
+import (
+    "tklibs/script/compiler/ast"
+    "tklibs/script/compiler/token"
+)
 
 type Binary interface {
     ast.Expression
     GetLeft() interface{}
     GetRight() interface{}
+    GetOpType() token.TokenType
 }
