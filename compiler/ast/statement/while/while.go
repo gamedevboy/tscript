@@ -51,6 +51,10 @@ func (impl *Component) Compile(f interface{}) *list.Element {
     _func := f.(compiler.Function)
 
     _func.PushBreakList()
+    defer _func.PopBreakList()
+
+    _func.PushContinueList()
+    defer _func.PopContinueList()
 
     start := _func.GetInstructionList().Back()
 
@@ -128,8 +132,6 @@ func (impl *Component) Compile(f interface{}) *list.Element {
     for it := _func.GetContinueList().Front(); it != nil; it = it.Next() {
         it.Value.(*ast.Instruction).GetABx().B = startPos
     }
-
-    _func.PopBreakList()
 
     return start
 }

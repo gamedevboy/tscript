@@ -49,7 +49,12 @@ func (impl *Component) expandConditionExpression(e interface{}, conditionList *l
 
 func (impl *Component) Compile(f interface{}) *list.Element {
     _func := f.(compiler.Function)
+
     _func.PushBreakList()
+    defer _func.PopBreakList()
+
+    _func.PushContinueList()
+    defer _func.PopContinueList()
 
     if impl.init != nil {
         impl.init.(ast.Statement).Compile(f)
@@ -110,8 +115,11 @@ func (impl *Component) Compile(f interface{}) *list.Element {
         it.Value.(*list.Element).Value.(*ast.Instruction).GetABx().B = script.Int(bodyStart.Value.(*ast.Instruction).Index)
     }
 
+    continuePos := -1
+
     if impl.step != nil {
-        impl.step.(ast.Statement).Compile(f)
+        continueInst := impl.step.(ast.Statement).Compile(f)
+        continuePos = continueInst.Value.(*ast.Instruction).Index
     }
 
     startPos := script.Int(start.Value.(*ast.Instruction).Index)
@@ -133,10 +141,12 @@ func (impl *Component) Compile(f interface{}) *list.Element {
     }
 
     for it := _func.GetContinueList().Front(); it != nil; it = it.Next() {
-        it.Value.(*ast.Instruction).GetABx().B = startPos
+        if continuePos == -1 {
+            it.Value.(*ast.Instruction).GetABx().B = startPos
+        } else {
+            it.Value.(*ast.Instruction).GetABx().B = script.Int(continuePos)
+        }
     }
-
-    _func.PopBreakList()
 
     return start
 }

@@ -34,8 +34,16 @@ type compilerFunction struct {
     maxRegisterCount int
 }
 
+func (impl *compilerFunction) PushContinueList() {
+    impl.continueList.PushBack(list.New())
+}
+
+func (impl *compilerFunction) PopContinueList() {
+    impl.continueList.Remove(impl.continueList.Back())
+}
+
 func (impl *compilerFunction) GetContinueList() *list.List {
-    return &impl.continueList
+    return impl.continueList.Back().Value.(*list.List)
 }
 
 func (impl *compilerFunction) GetMaxRegisterCount() int {

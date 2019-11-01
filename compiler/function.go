@@ -29,6 +29,8 @@ type Function interface {
     PushBreakList()
     PopBreakList()
     GetBreakList() *list.List
+    PushContinueList()
+    PopContinueList()
     GetContinueList() *list.List
     PushBlock()
     PopBlock()

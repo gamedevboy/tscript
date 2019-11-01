@@ -2,7 +2,6 @@ package expression
 
 import (
     "container/list"
-    "fmt"
 
     "tklibs/script"
     "tklibs/script/compiler/ast/expression"
@@ -61,7 +60,7 @@ func (impl *ArgListExpressionParserComponent) ParseArgList(a interface{}, tokenI
                     return tokenIt.Next()
                 }
             default:
-                panic(fmt.Errorf("unexcept token: %v @ %v:%v", t.GetValue(), t.GetFilePath(), t.GetLine()))
+                return tokenIt.Next()
             }
         }
     }

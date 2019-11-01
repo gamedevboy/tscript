@@ -326,7 +326,7 @@ parseLoop:
                     *arglist.Component
                 }{}
                 a.Component = arglist.NewArgList(a)
-                argList, next := a, p.GetOwner().(parser.ArgListParser).ParseArgList(a, tokenIt.Next())
+                argList, end := a, p.GetOwner().(parser.ArgListParser).ParseArgList(a, tokenIt.Next())
 
                 c := &struct {
                     *call.Component
@@ -334,7 +334,7 @@ parseLoop:
                 c.Component = call.NewCall(c, expressionList.Front().Value, argList)
                 expressionList.Remove(expressionList.Front())
 
-                currentExpression, tokenIt = c, next
+                currentExpression, tokenIt = c, end
             } else {
                 // check for lambda function
                 it := tokenIt
