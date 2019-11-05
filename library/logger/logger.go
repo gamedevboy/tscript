@@ -31,83 +31,68 @@ func SetScriptLogger(l Logger) {
 }
 
 var (
-	defaultLogger = &DefaultLogger{Logger: log.New(os.Stdout, "[tscript]", log.LstdFlags),debug:true}
-	discardLogger = &DefaultLogger{Logger: log.New(ioutil.Discard, "", 0)}
-	scriptLogger = Logger(defaultLogger)
+	_defaultLogger = &defaultLogger{Logger: log.New(os.Stdout, "[tscript]", log.LstdFlags)}
+	discardLogger  = &defaultLogger{Logger: log.New(ioutil.Discard, "", 0)}
+	scriptLogger   = Logger(_defaultLogger)
 )
 
 const (
 	callDepth = 2
 )
 
-// DefaultLogger is a default implementation of the Logger interface.
-type DefaultLogger struct {
-	*log.Logger
-	debug bool
-}
-
-func (l *DefaultLogger) EnableTimestamps() {
-	l.SetFlags(l.Flags() | log.Ldate | log.Ltime)
-}
-
-func (l *DefaultLogger) EnableDebug() {
-	l.debug = true
-}
+// defaultLogger is a default implementation of the Logger interface.
+type defaultLogger struct { *log.Logger}
 
 func prefix(lvl, msg string) string {
 	return fmt.Sprintf("%s: %s", lvl, msg)
 }
 
-func (l *DefaultLogger) Debug(v ...interface{}) {
-	if l.debug {
-		_ = l.Output(callDepth, prefix("DEBUG", fmt.Sprint(v...)))
-	}
+func (l *defaultLogger) Debug(v ...interface{}) {
+	_ = l.Output(callDepth, prefix("DEBUG", fmt.Sprint(v...)))
 }
 
-func (l *DefaultLogger) Debugf(format string, v ...interface{}) {
-	if l.debug {
-		_ = l.Output(callDepth, prefix("DEBUG", fmt.Sprintf(format, v...)))
-	}
+func (l *defaultLogger) Debugf(format string, v ...interface{}) {
+	_ = l.Output(callDepth, prefix("DEBUG", fmt.Sprintf(format, v...)))
 }
 
-func (l *DefaultLogger) Info(v ...interface{}) {
+func (l *defaultLogger) Info(v ...interface{}) {
 	_ = l.Output(callDepth, prefix("INFO", fmt.Sprint(v...)))
 }
 
-func (l *DefaultLogger) Infof(format string, v ...interface{}) {
+func (l *defaultLogger) Infof(format string, v ...interface{}) {
 	_ = l.Output(callDepth, prefix("INFO", fmt.Sprintf(format, v...)))
 }
 
-func (l *DefaultLogger) Error(v ...interface{}) {
+func (l *defaultLogger) Error(v ...interface{}) {
 	_ = l.Output(callDepth, prefix("ERROR", fmt.Sprint(v...)))
 }
 
-func (l *DefaultLogger) Errorf(format string, v ...interface{}) {
+func (l *defaultLogger) Errorf(format string, v ...interface{}) {
 	_ = l.Output(callDepth, prefix("ERROR", fmt.Sprintf(format, v...)))
 }
 
-func (l *DefaultLogger) Warning(v ...interface{}) {
+func (l *defaultLogger) Warning(v ...interface{}) {
 	_ = l.Output(callDepth, prefix("WARN", fmt.Sprint(v...)))
 }
 
-func (l *DefaultLogger) Warningf(format string, v ...interface{}) {
+func (l *defaultLogger) Warningf(format string, v ...interface{}) {
 	_ = l.Output(callDepth, prefix("WARN", fmt.Sprintf(format, v...)))
 }
 
-func (l *DefaultLogger) Fatal(v ...interface{}) {
+func (l *defaultLogger) Fatal(v ...interface{}) {
 	_ = l.Output(callDepth, prefix("FATAL", fmt.Sprint(v...)))
 	os.Exit(1)
 }
 
-func (l *DefaultLogger) Fatalf(format string, v ...interface{}) {
+func (l *defaultLogger) Fatalf(format string, v ...interface{}) {
 	_ = l.Output(callDepth, prefix("FATAL", fmt.Sprintf(format, v...)))
 	os.Exit(1)
 }
 
-func (l *DefaultLogger) Panic(v ...interface{}) {
+func (l *defaultLogger) Panic(v ...interface{}) {
 	l.Logger.Panic(v...)
 }
 
-func (l *DefaultLogger) Panicf(format string, v ...interface{}) {
+func (l *defaultLogger) Panicf(format string, v ...interface{}) {
 	l.Logger.Panicf(format, v...)
 }
