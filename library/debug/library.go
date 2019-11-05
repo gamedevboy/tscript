@@ -10,6 +10,43 @@ import (
     "tklibs/script/runtime/stack"
 )
 
+type CallInfo struct {
+    FilePath string
+    Line int
+    FuncName string
+}
+
+func GetCallInfo(sc runtime.ScriptContext) *CallInfo{
+    frame := sc.GetCurrentFrame().(stack.Frame)
+    rf := frame.GetFunction().(runtime.Function)
+    pc := sc.(runtime.ScriptInterpreter).GetPC()
+    debugInfo := rf.GetDebugInfoList()
+    debugInfoLen := len(debugInfo)
+    sourceIndex := -1
+    line := -1
+    for i, d := range debugInfo {
+        if d.PC > uint32(pc) {
+            if i > 0 {
+                line = int(debugInfo[i-1].Line)
+                sourceIndex = int(debugInfo[i-1].SourceIndex)
+            } else {
+                line = int(d.Line)
+                sourceIndex = int(d.SourceIndex)
+            }
+            break
+        }
+    }
+
+    if line == -1 {
+        line = int(debugInfo[debugInfoLen-1].Line)
+    }
+
+    if sourceIndex == -1 {
+        sourceIndex = int(debugInfo[debugInfoLen-1].SourceIndex)
+    }
+    return &CallInfo{FilePath: rf.GetSourceNames()[sourceIndex],Line:line,FuncName:rf.GetName()}
+}
+
 type library struct {
     context    interface{}
     Breakpoint native.FunctionType
@@ -32,29 +69,9 @@ func NewLibrary() *library {
 func (l *library) init() {
     l.Breakpoint = func(this interface{}, args ...interface{}) interface{} {
         ctx := l.context.(runtime.ScriptContext)
-        frame := ctx.GetCurrentFrame().(stack.Frame)
-        rf := frame.GetFunction().(runtime.Function)
-
         i := ctx.(runtime.ScriptInterpreter)
 
-        pc := i.GetPC()
-        line := -1
-
-        debugInfo := rf.GetDebugInfoList()
-        for i, d := range debugInfo {
-            if d.PC > uint32(pc) {
-                if i > 0 {
-                    line = int(debugInfo[i-1].Line)
-                } else {
-                    line = int(d.Line)
-                }
-                break
-            }
-        }
-
-        if line == -1 {
-            line = int(debugInfo[len(debugInfo)-1].Line)
-        }
+        _ = GetCallInfo(ctx)
 
         println()
         //fmt.Printf("SCRIPT BREAKPOINT %q, PC: %v, Line: %v", rf.GetSourceName(), pc, line)
