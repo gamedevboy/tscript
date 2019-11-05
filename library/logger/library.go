@@ -49,44 +49,87 @@ func extract(args []interface{}) (format string, ok1 bool) {
 	return
 }
 
-func logFunc(withFmt bool, log func(v ...interface{}), logf func(fmt string, v ...interface{})) func(this interface{}, args ...interface{}) interface{} {
-	if withFmt {
-		return func(this interface{}, args ...interface{}) interface{} {
-			if format, ok := extract(args); ok {
-				logf(format, args[1:]...)
-			} else {
-				log(args...)
-			}
-			return this
-		}
-	}
-	return func(this interface{}, args ...interface{}) interface{} {
-		log(args...)
-		return this
-	}
-}
-
 func (l *library) init() {
 	// todo the logger implementer need 'runtime.ScriptContext' to get CallInfo
 	_ = func(context interface{}) *debug.CallInfo {
 		return debug.GetCallInfo(context.(runtime.ScriptContext))
 	}
 
-	l.Debug = logFunc(false, ScriptLogger().Debug, ScriptLogger().Debugf)
-	l.Debugf = logFunc(true, ScriptLogger().Debug, ScriptLogger().Debugf)
+	l.Debug = func(this interface{}, args ...interface{}) interface{} {
+		ScriptLogger().Debug(args...)
+		return this
+	}
+	l.Debugf = func(this interface{}, args ...interface{}) interface{} {
+		if format, ok := extract(args); ok {
+			ScriptLogger().Debugf(format, args[1:]...)
+		} else {
+			ScriptLogger().Debug(args...)
+		}
+		return this
+	}
 
-	l.Info = logFunc(false, ScriptLogger().Info, ScriptLogger().Infof)
-	l.Infof = logFunc(true, ScriptLogger().Info, ScriptLogger().Infof)
+	l.Info = func(this interface{}, args ...interface{}) interface{} {
+		ScriptLogger().Info(args...)
+		return this
+	}
+	l.Infof = func(this interface{}, args ...interface{}) interface{} {
+		if format, ok := extract(args); ok {
+			ScriptLogger().Infof(format, args[1:]...)
+		} else {
+			ScriptLogger().Info(args...)
+		}
+		return this
+	}
 
-	l.Warning = logFunc(false, ScriptLogger().Warning, ScriptLogger().Warningf)
-	l.Warningf = logFunc(true, ScriptLogger().Warning, ScriptLogger().Warningf)
+	l.Warning = func(this interface{}, args ...interface{}) interface{} {
+		ScriptLogger().Warning(args...)
+		return this
+	}
+	l.Warningf = func(this interface{}, args ...interface{}) interface{} {
+		if format, ok := extract(args); ok {
+			ScriptLogger().Warningf(format, args[1:]...)
+		} else {
+			ScriptLogger().Warning(args...)
+		}
+		return this
+	}
 
-	l.Error = logFunc(false, ScriptLogger().Error, ScriptLogger().Errorf)
-	l.Errorf = logFunc(true, ScriptLogger().Error, ScriptLogger().Errorf)
+	l.Error = func(this interface{}, args ...interface{}) interface{} {
+		ScriptLogger().Error(args...)
+		return this
+	}
+	l.Errorf = func(this interface{}, args ...interface{}) interface{} {
+		if format, ok := extract(args); ok {
+			ScriptLogger().Errorf(format, args[1:]...)
+		} else {
+			ScriptLogger().Error(args...)
+		}
+		return this
+	}
 
-	l.Fatal = logFunc(false, ScriptLogger().Fatal, ScriptLogger().Fatalf)
-	l.Fatalf = logFunc(true, ScriptLogger().Fatal, ScriptLogger().Fatalf)
+	l.Fatal = func(this interface{}, args ...interface{}) interface{} {
+		ScriptLogger().Fatal(args...)
+		return this
+	}
+	l.Fatalf = func(this interface{}, args ...interface{}) interface{} {
+		if format, ok := extract(args); ok {
+			ScriptLogger().Fatalf(format, args[1:]...)
+		} else {
+			ScriptLogger().Fatal(args...)
+		}
+		return this
+	}
 
-	l.Panic = logFunc(false, ScriptLogger().Panic, ScriptLogger().Panicf)
-	l.Panicf = logFunc(true, ScriptLogger().Panic, ScriptLogger().Panicf)
+	l.Panic = func(this interface{}, args ...interface{}) interface{} {
+		ScriptLogger().Panic(args...)
+		return this
+	}
+	l.Panicf = func(this interface{}, args ...interface{}) interface{} {
+		if format, ok := extract(args); ok {
+			ScriptLogger().Panicf(format, args[1:]...)
+		} else {
+			ScriptLogger().Panic(args...)
+		}
+		return this
+	}
 }
