@@ -53,8 +53,6 @@ func (impl *Component) Foreach(f func(key, value interface{}) bool) script.Int {
     return i
 }
 
-var _ script.Map = &Component{}
-
 func (impl *Component) SetValue(key, value script.Value) {
     impl.values[key.Get()] = value.Get()
 }
