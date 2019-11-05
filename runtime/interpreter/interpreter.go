@@ -65,7 +65,7 @@ func (impl *Component) InvokeFunction(function, this interface{}, args ...interf
     switch _func := sf.GetRuntimeFunction().(type) {
     case runtime.Function:
         if len(args) < len(_func.GetArguments()) {
-            panic("") //todo not enough arguments
+            panic(fmt.Sprintf("not enough arguments,get:%d excepted:%d",len(args),len(_func.GetArguments()))) //todo not enough arguments
         }
         context := impl.context.(runtime.ScriptContext)
         context.PushRegisters(0, _func.GetMaxRegisterCount()+len(_func.GetLocalVars())+len(_func.GetArguments())+2)
