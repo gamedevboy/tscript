@@ -30,7 +30,7 @@ type ScriptContext interface {
     GetAssembly() interface{}
 
     Run() interface{}
-    Reload() interface{}
+    Reload(interface{}) interface{}
 
     GetRefByName(name string, valuePtr **script.Value)
     GetRegisters() []script.Value

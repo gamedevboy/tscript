@@ -3,12 +3,10 @@ package math_test
 import (
 	"fmt"
 	"math"
-	"strings"
 	"testing"
 	"tklibs/script"
-	"tklibs/script/assembly/assembly"
-	"tklibs/script/assembly/loader"
 	"tklibs/script/runtime/context"
+	"tklibs/script/testing2"
 )
 
 var scriptTest = `
@@ -20,24 +18,10 @@ function toInt(val) {
 }
 `
 
-var gScriptContext *context.Component
+var cc *context.Component
 
 func init() {
-	scriptAssembly := &struct {
-		*assembly.Component
-	}{}
-
-	scriptAssembly.Component = assembly.NewScriptAssembly(scriptAssembly)
-	if err := loader.LoadAssemblySourceFromBuffer(scriptAssembly, strings.NewReader(scriptTest)); err != nil {
-		panic(err)
-	}
-
-	scriptContext := &struct {
-		*context.Component
-	}{}
-	scriptContext.Component = context.NewScriptContext(scriptContext, scriptAssembly, 64)
-	gScriptContext = scriptContext.Component
-	scriptContext.Run()
+	cc = testing2.MustInitWithSourceAndRun(scriptTest)
 }
 
 func checkEnv(t *testing.T, cc *context.Component, fName string, invoker func(script.Function) interface{}) interface{} {
@@ -56,7 +40,7 @@ func checkEnv(t *testing.T, cc *context.Component, fName string, invoker func(sc
 
 func TestMathMax32(t *testing.T) {
 	f := "maxInt32"
-	ret := checkEnv(t, gScriptContext, f, func(tf script.Function) interface{} {
+	ret := checkEnv(t, cc, f, func(tf script.Function) interface{} {
 		return tf.Invoke(nil)
 	})
 	if ret != nil && int32(ret.(script.Int)) != math.MaxInt32 {
@@ -69,7 +53,7 @@ func TestToInt(t *testing.T) {
 	f := "toInt"
 	{
 		t1 := 101
-		ret := checkEnv(t, gScriptContext, f, func(tf script.Function) interface{} {
+		ret := checkEnv(t, cc, f, func(tf script.Function) interface{} {
 			return tf.Invoke(nil, fmt.Sprintf("%d", t1))
 		})
 		if ret != nil && int(ret.(script.Int)) != t1 {
@@ -80,7 +64,7 @@ func TestToInt(t *testing.T) {
 	{
 		t1 := true
 		t1Int := 1
-		ret := checkEnv(t, gScriptContext, f, func(tf script.Function) interface{} {
+		ret := checkEnv(t, cc, f, func(tf script.Function) interface{} {
 			return tf.Invoke(nil, t1)
 		})
 		if ret != nil && int(ret.(script.Int)) != t1Int {
@@ -91,7 +75,7 @@ func TestToInt(t *testing.T) {
 	{
 		t1 := "1000001"
 		t1Int := 1000001
-		ret := checkEnv(t, gScriptContext, f, func(tf script.Function) interface{} {
+		ret := checkEnv(t, cc, f, func(tf script.Function) interface{} {
 			return tf.Invoke(nil, t1)
 		})
 		if ret != nil && int(ret.(script.Int)) != t1Int {
