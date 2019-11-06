@@ -25,6 +25,7 @@ func main() {
     showToken := flag.Bool("token", false, "show token")
     noExecute := flag.Bool("n", false, "no execute")
     write := flag.String("w", "", "write binary code to a file")
+    useBinary := flag.Bool("b", false, "read binary code from a file")
 
     flag.Parse()
     files := flag.Args()
@@ -41,24 +42,33 @@ func main() {
     }{}
     executeAsm.Component = assembly.NewScriptAssembly(executeAsm)
 
-    scriptCompiler := &struct {
-        *compiler.Component
-    }{}
-    scriptCompiler.Component = compiler.NewCompiler(scriptCompiler)
-    for _, file := range files {
-        scriptCompiler.AddFile(file)
+    if !*useBinary {
+        scriptCompiler := &struct {
+            *compiler.Component
+        }{}
+        scriptCompiler.Component = compiler.NewCompiler(scriptCompiler)
+        for _, file := range files {
+            scriptCompiler.AddFile(file)
+        }
+        asm, tokenList, _ := scriptCompiler.Compile()
+        asm.(script.Assembly).Save(bufio.NewWriter(buffer))
+
+        if *showToken {
+            for it := tokenList.Front(); it != nil; it = it.Next() {
+                fmt.Println(it.Value)
+            }
+        }
+    } else {
+        buf, err := ioutil.ReadFile(files[0])
+        if err != nil {
+            fmt.Println("io error: ", err)
+            return
+        }
+        buffer = bytes.NewBuffer(buf)
     }
-    asm, tokenList, _ := scriptCompiler.Compile()
-    asm.(script.Assembly).Save(bufio.NewWriter(buffer))
 
     if len(*write) > 0 {
         ioutil.WriteFile(*write, buffer.Bytes(), os.ModePerm)
-    }
-
-    if *showToken {
-        for it := tokenList.Front(); it != nil; it = it.Next() {
-            fmt.Println(it.Value)
-        }
     }
 
     executeAsm.Load(bufio.NewReader(buffer))
