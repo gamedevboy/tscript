@@ -1,6 +1,7 @@
 package context
 
 import (
+    "fmt"
     "reflect"
     "unicode"
 
@@ -176,7 +177,15 @@ func (impl *Component) Run() interface{} {
     return ret;
 }
 
-func (impl *Component) Reload() interface{} {
+func (impl *Component) Reload(assembly interface{}) interface{} {
+    if assembly != nil {
+        if _, ok := assembly.(script.Assembly); !ok {
+            panic(fmt.Errorf("incorrect assembly type with assembly param"))
+        }
+
+        impl.assembly = assembly
+    }
+
     parent := impl.functionComponent
     impl.functionComponent = function.NewScriptFunction(impl.GetOwner(), impl.assembly.(script.Assembly).GetEntry(), impl)
     impl.functionComponent.SetPrototype(script.InterfaceToValue(parent))
