@@ -177,7 +177,9 @@ func (impl *Component) Run() interface{} {
 }
 
 func (impl *Component) Reload() interface{} {
+    parent := impl.functionComponent
     impl.functionComponent = function.NewScriptFunction(impl.GetOwner(), impl.assembly.(script.Assembly).GetEntry(), impl)
+    impl.functionComponent.SetPrototype(script.InterfaceToValue(parent))
     return impl.Run()
 }
 
