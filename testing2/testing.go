@@ -41,8 +41,8 @@ func MustCompileToTemp(sources ...string) string{
 		*compiler.Component
 	}{}
 	scriptCompiler.Component = compiler.NewCompiler(scriptCompiler)
-	for _, file := range sources {
-		scriptCompiler.AddSource(file)
+	for _, s := range sources {
+		scriptCompiler.AddSource(s)
 	}
 	asm, _, err := scriptCompiler.Compile()
 	if err != nil {
@@ -57,7 +57,6 @@ func MustCompileToTemp(sources ...string) string{
 	logger.ScriptLogger().Debugf("tsb compile to: %s",tsb)
 	return tsb
 }
-
 
 func MustInitWithSourceAndRun(sources ...string) *context.Component {
 	reader := make([]io.Reader, 0)
