@@ -2,7 +2,6 @@ package context
 
 import (
     "reflect"
-    "tklibs/script/library/logger"
     "unicode"
 
     "tklibs/script"
@@ -177,6 +176,11 @@ func (impl *Component) Run() interface{} {
     return ret;
 }
 
+func (impl *Component) Reload() interface{} {
+    impl.functionComponent = function.NewScriptFunction(impl.GetOwner(), impl.assembly.(script.Assembly).GetEntry(), impl)
+    return impl.Run()
+}
+
 func (impl *Component) RegisterLibrary(library library.RuntimeLibrary) {
     library.SetScriptContext(impl.GetOwner())
     libraryName := library.GetName()
@@ -263,7 +267,6 @@ func NewScriptContext(owner, asm interface{}, stackSize int) *Component {
     context.RegisterLibrary(io.NewLibrary())
     context.RegisterLibrary(math.NewLibrary())
     context.RegisterLibrary(debug.NewLibrary())
-    context.RegisterLibrary(logger.NewLibrary())
 
     return context
 }
