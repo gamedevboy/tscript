@@ -9,7 +9,7 @@ import (
 
 var scriptTest = `
 function loaderTest() {
-    //logger.debug("dispatcherSelect")
+    logger.debug("dispatcherSelect")
 	return "loaderTest"
 }
 `

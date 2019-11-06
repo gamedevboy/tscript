@@ -3,6 +3,7 @@ package context
 import (
     "fmt"
     "reflect"
+    "tklibs/script/library/logger"
     "unicode"
 
     "tklibs/script"
@@ -278,6 +279,7 @@ func NewScriptContext(owner, asm interface{}, stackSize int) *Component {
     context.RegisterLibrary(io.NewLibrary())
     context.RegisterLibrary(math.NewLibrary())
     context.RegisterLibrary(debug.NewLibrary())
+    context.RegisterLibrary(logger.NewLibrary())
 
     return context
 }
