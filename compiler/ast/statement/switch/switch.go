@@ -75,13 +75,13 @@ func (impl *Component) Compile(f interface{}) *list.Element {
 
     index = 0
     for it := impl.caseList.Front(); it != nil; it = it.Next() {
-        caseStartList[index] = _func.AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewIntOperand(0), compiler.NewIntOperand(0))
+        caseStartList[index] = _func.AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(0))
         it.Value.(statement.Case).GetBlock().(ast.Statement).Compile(f)
         index++
     }
 
     // compile default case
-    caseStartList[index] = _func.AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewIntOperand(0), compiler.NewIntOperand(0))
+    caseStartList[index] = _func.AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(0))
     if impl.defaultCase != nil {
         impl.defaultCase.(ast.Statement).Compile(f)
     }
@@ -90,7 +90,7 @@ func (impl *Component) Compile(f interface{}) *list.Element {
         jmp.Value.(*ast.Instruction).GetABx().B = script.Int(caseStartList[idx].Value.(*ast.Instruction).Index)
     }
 
-    end := _func.AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewIntOperand(0), compiler.NewIntOperand(0))
+    end := _func.AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(0))
     breakPos := script.Int(end.Value.(*ast.Instruction).Index)
     for it := _func.GetBreakList().Front(); it != nil; it = it.Next() {
         it.Value.(*ast.Instruction).GetABx().B = breakPos
