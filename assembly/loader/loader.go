@@ -28,7 +28,10 @@ func LoadAssemblySourceFromBuffer(assembly interface{}, reader ...io.Reader) err
 		scriptCompiler.AddSource(*(*string)(unsafe.Pointer(&b)))
 	}
 
-	asm, _, _ := scriptCompiler.Compile()
+	asm, _, err := scriptCompiler.Compile()
+	if err != nil {
+		return err
+	}
 	buffer := &bytes.Buffer{}
 	asm.(script.Assembly).Save(bufio.NewWriter(buffer))
 	assembly.(script.Assembly).Load(bufio.NewReader(buffer))
@@ -68,10 +71,13 @@ func LoadAssembly(assembly interface{}, files ...string) (err error) {
 	}
 
 	// only for tsc files
-	asm, _, _ := scriptCompiler.Compile()
+	asm, _, err := scriptCompiler.Compile()
+	if err != nil {
+		return err
+	}
 	buffer := &bytes.Buffer{}
 	asm.(script.Assembly).Save(bufio.NewWriter(buffer))
 	assembly.(script.Assembly).Load(bufio.NewReader(buffer))
 
-	return nil
+	return
 }
