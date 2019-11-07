@@ -58,7 +58,7 @@ func MustCompileToTemp(sources ...string) string{
 	return tsb
 }
 
-func MustInitWithSourceAndRun(sources ...string) *context.Component {
+func MustInitWithSource(sources ...string) (*context.Component,*assembly.Component) {
 	reader := make([]io.Reader, 0)
 	for _, s := range sources {
 		reader = append(reader, strings.NewReader(s))
@@ -71,11 +71,10 @@ func MustInitWithSourceAndRun(sources ...string) *context.Component {
 	}
 	scriptContext := &struct{ *context.Component }{}
 	scriptContext.Component = context.NewScriptContext(scriptContext, scriptAssembly, 64)
-	scriptContext.Run()
-	return scriptContext.Component
+	return scriptContext.Component,scriptAssembly.Component
 }
 
-func MustInitWithFileAndRun(filePath ...string) *context.Component {
+func MustInitWithFile(filePath ...string) (*context.Component,*assembly.Component) {
 	scriptAssembly := &struct{ *assembly.Component }{}
 	scriptAssembly.Component = assembly.NewScriptAssembly(scriptAssembly)
 	if err := loader.LoadAssembly(scriptAssembly, filePath...); err != nil {
@@ -84,5 +83,5 @@ func MustInitWithFileAndRun(filePath ...string) *context.Component {
 	scriptContext := &struct{ *context.Component }{}
 	scriptContext.Component = context.NewScriptContext(scriptContext, scriptAssembly, 64)
 	scriptContext.Run()
-	return scriptContext.Component
+	return scriptContext.Component,scriptAssembly.Component
 }

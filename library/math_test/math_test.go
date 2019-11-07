@@ -21,7 +21,8 @@ function toInt(val) {
 var cc *context.Component
 
 func init() {
-	cc = testing2.MustInitWithSourceAndRun(scriptTest)
+	cc, _ = testing2.MustInitWithSource(scriptTest)
+	cc.Run()
 }
 
 func checkEnv(t *testing.T, cc *context.Component, fName string, invoker func(script.Function) interface{}) interface{} {

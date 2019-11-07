@@ -13,11 +13,19 @@ function loaderTest() {
 	return "loaderTest"
 }
 `
+var scriptTestReload = `
+function loaderTest() {
+    logger.debug("dispatcherSelect")
+    logger.debug("dispatcherSelect reload")
+	return "loaderTest"
+}
+`
 
 var cc *context.Component
 
 func init() {
-	cc = testing2.MustInitWithSourceAndRun(scriptTest)
+	cc,_ = testing2.MustInitWithSource(scriptTest)
+	cc.Run()
 }
 
 func checkEnv(t *testing.T, cc *context.Component, fName string, invoker func(script.Function) interface{}) interface{} {
@@ -49,8 +57,15 @@ func TestLoadSource(t *testing.T) {
 	testWithContext(t, cc)
 }
 
+func TestReloadLoadSource(t *testing.T) {
+	_,acReload := testing2.MustInitWithSource(scriptTestReload)
+	cc.Reload(acReload)
+	testWithContext(t, cc)
+}
+
 func TestLoadBinary(t *testing.T) {
 	tsb := testing2.MustCompileToTemp(scriptTest)
-	cc2 := testing2.MustInitWithFileAndRun(tsb)
+	cc2,_ := testing2.MustInitWithFile(tsb)
+	cc2.Run()
 	testWithContext(t, cc2)
 }
