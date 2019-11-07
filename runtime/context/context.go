@@ -40,8 +40,8 @@ type Component struct {
     *prototype.Object
     *prototype.String
 
-    arrayPrototype    *prototype.Array
-    mapPrototype      *prototype.Map
+    arrayPrototype *prototype.Array
+    mapPrototype   *prototype.Map
 
     frames          []interface{}
     scopes          []interface{}
@@ -81,7 +81,7 @@ func (impl *Component) GetRegisters() []script.Value {
     return impl.registers
 }
 
-func (impl *Component) GetRefByName(name string, valuePtr **script.Value)  {
+func (impl *Component) GetRefByName(name string, valuePtr **script.Value) {
     for i := len(impl.scopes) - 1; i >= 0; i-- {
         scope := impl.scopes[i].(runtime.Scope)
         f := scope.GetFunction().(script.Function)
@@ -102,14 +102,29 @@ func (impl *Component) GetRefByName(name string, valuePtr **script.Value)  {
         }
     }
 
-    fieldIndex := impl.GetRuntimeTypeInfo().(runtime.TypeInfo).GetFieldIndexByName(name)
+    fieldIndex := -1
+    obj := interface{}(impl).(runtime.Object)
+
+    for fieldIndex < 0 && obj != nil {
+        fieldIndex = obj.GetRuntimeTypeInfo().(runtime.TypeInfo).GetFieldIndexByName(name)
+        if fieldIndex > -1 {
+            break
+        }
+        _prototype := obj.GetPrototype().GetInterface()
+        if _prototype != nil {
+            obj = _prototype.(runtime.Object)
+        } else {
+            obj = nil
+        }
+    }
 
     if fieldIndex < 0 {
         impl.ScriptSet(name, script.NullValue)
         fieldIndex = impl.GetRuntimeTypeInfo().(runtime.TypeInfo).GetFieldIndexByName(name)
+        obj = interface{}(impl).(runtime.Object)
     }
 
-    *valuePtr = impl.GetByIndex(fieldIndex)
+    *valuePtr = obj.GetByIndex(fieldIndex)
 
     return
 }
