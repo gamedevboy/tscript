@@ -72,8 +72,7 @@ func NewMapPrototype(ctx interface{}) *Map {
     }).ToValue(ctx))
 
     obj.ScriptSet("containsKey", native.FunctionType(func(this interface{}, args ...interface{}) interface{} {
-        v := script.Value{}
-        return this.(script.Map).ContainsKey(v.Set(args[0]))
+        return this.(script.Map).ContainsKey(args[0])
     }).ToValue(ctx))
 
     obj.ScriptSet("set", native.FunctionType(func(this interface{}, args ...interface{}) interface{} {
@@ -89,7 +88,6 @@ func NewMapPrototype(ctx interface{}) *Map {
         if len(args) < 1 {
             return script.Null
         }
-
         return this.(script.Map).Get(args[0])
     }).ToValue(ctx))
 
@@ -97,8 +95,7 @@ func NewMapPrototype(ctx interface{}) *Map {
         if len(args) < 1 {
             return this
         }
-        v := script.Value{}
-        this.(script.Map).Delete(v.Set(args[0]))
+        this.(script.Map).Delete(args[0])
         return this
     }).ToValue(ctx))
 
