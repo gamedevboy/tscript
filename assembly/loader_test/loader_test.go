@@ -15,7 +15,6 @@ function loaderTest() {
 `
 var scriptTestReload = `
 function loaderTest() {
-    logger.debug("dispatcherSelect")
     logger.debug("dispatcherSelect reload")
 	return "loaderTest"
 }
