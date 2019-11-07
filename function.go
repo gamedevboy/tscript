@@ -7,6 +7,7 @@ type Function interface {
 
     GetRuntimeFunction() interface{}
 
+    Reload()
     GetRefList() []*Value
 
     GetFieldByMemberIndex(obj interface{}, index Int) Value

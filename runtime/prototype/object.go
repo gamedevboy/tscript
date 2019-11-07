@@ -18,7 +18,7 @@ func (impl *Object) GetObjectPrototype() interface{} {
     return impl.prototype
 }
 
-func (impl *Object) Init() {
+func (impl *Object) InitPrototype() {
     obj := impl.prototype.(script.Object)
 
     obj.ScriptSet("toString", native.FunctionType(func(this interface{}, _ ...interface{}) interface{} {

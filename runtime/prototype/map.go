@@ -12,7 +12,10 @@ type Map struct {
     context interface{}
 }
 
-func (impl *Map) Invoke(this interface{}, _ ...interface{}) interface{} {
+func (*Map) Reload() {
+}
+
+func (*Map) Invoke(this interface{}, _ ...interface{}) interface{} {
     return this
 }
 
@@ -39,7 +42,6 @@ func (impl *Map) SetFieldByMemberIndex(obj interface{}, index script.Int, value 
 }
 
 var _ native.Type = &Map{}
-var _ script.Function = &Map{}
 
 func (impl *Map) New(args ...interface{}) interface{} {
     capSize := 0

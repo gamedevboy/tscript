@@ -59,7 +59,7 @@ func LoadAssembly(assembly interface{}, files ...string) (err error) {
 			return fmt.Errorf("file:%s not found", file)
 		}
 
-		if strings.HasPrefix(filePathGot, script.SuffixSourceFile) {
+		if strings.HasSuffix(filePathGot, script.SuffixSourceFile) {
 			scriptCompiler.AddFile(filePathGot)
 		} else {
 			if fileHandler, err = os.Open(filePathGot); err == nil {

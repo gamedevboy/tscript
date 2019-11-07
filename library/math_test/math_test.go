@@ -1,12 +1,13 @@
 package math_test
 
 import (
-	"fmt"
-	"math"
-	"testing"
-	"tklibs/script"
-	"tklibs/script/runtime/context"
-	"tklibs/script/testing2"
+    "fmt"
+    "math"
+    "testing"
+
+    "tklibs/script"
+    "tklibs/script/compiler/test"
+    "tklibs/script/runtime/context"
 )
 
 var scriptTest = `
@@ -21,7 +22,7 @@ function toInt(val) {
 var cc *context.Component
 
 func init() {
-	cc, _ = testing2.MustInitWithSource(scriptTest)
+	cc, _ = test.MustInitWithSource(scriptTest)
 	cc.Run()
 }
 

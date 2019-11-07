@@ -16,6 +16,10 @@ type Array struct {
     context interface{}
 }
 
+func (*Array) Reload() {
+
+}
+
 func (a *Array) Invoke(this interface{}, args ...interface{}) interface{} {
     return this
 }

@@ -3,8 +3,9 @@ package context
 import (
     "fmt"
     "reflect"
-    "tklibs/script/library/logger"
     "unicode"
+
+    "tklibs/script/library/logger"
 
     "tklibs/script"
     "tklibs/script/library"
@@ -49,6 +50,77 @@ type Component struct {
     assembly        interface{}
     registers       []script.Value
     registerList    [][]script.Value
+
+    initialized bool
+}
+
+func scanFunctions(root interface{}, funcMap map[script.Function]struct{}, visitMap map[interface{}]struct{}) {
+    if root == nil {
+        return
+    }
+
+    switch target := root.(type) {
+    case script.Function:
+        if _, ok := visitMap[target]; ok {
+            return
+        }
+
+        visitMap[target] = struct{}{}
+
+        if _, ok := funcMap[target]; ok {
+            return
+        }
+
+        if _, ok := target.GetRuntimeFunction().(runtime.Function); ok {
+            funcMap[target] = struct{}{}
+        }
+
+        runtimeObject, ok  := target.(runtime.Object)
+
+        if ok {
+            typeInfo := runtimeObject.GetRuntimeTypeInfo().(runtime.TypeInfo)
+            fieldLength := len(typeInfo.GetFieldNames())
+
+            for i := 0; i < fieldLength; i++ {
+                scanFunctions(runtimeObject.GetByIndex(i).Get(), funcMap, visitMap)
+            }
+
+            scanFunctions(runtimeObject.GetPrototype().Get(), funcMap, visitMap)
+        }
+    case runtime.Object:
+        if _, ok := visitMap[target]; ok {
+            return
+        }
+
+        visitMap[target] = struct{}{}
+
+        typeInfo := target.GetRuntimeTypeInfo().(runtime.TypeInfo)
+        fieldLength := len(typeInfo.GetFieldNames())
+
+        for i := 0; i < fieldLength; i++ {
+            scanFunctions(target.GetByIndex(i).Get(), funcMap, visitMap)
+        }
+
+        scanFunctions(target.GetPrototype().Get(), funcMap, visitMap)
+    }
+}
+
+func (impl *Component) ReloadAssembly(assembly script.Assembly) error {
+    err := impl.assembly.(script.Assembly).Reload(assembly)
+    if err != nil {
+        return err
+    }
+
+    funcMap := make(map[script.Function]struct{})
+    visitMap := make(map[interface{}]struct{})
+    scanFunctions(impl, funcMap, visitMap)
+
+
+    for _func := range funcMap {
+        _func.Reload()
+    }
+
+    return nil
 }
 
 func (impl *Component) GetArrayPrototype() interface{} {
@@ -60,6 +132,7 @@ func (impl *Component) GetMapPrototype() interface{} {
 }
 
 var _ runtime.ScriptContext = &Component{}
+var _ script.Function = &Component{}
 
 func (impl *Component) PushRegisters(regStart script.Int, length int) []script.Value {
     if len(impl.registers[regStart:]) < length {
@@ -188,12 +261,18 @@ func (impl *Component) GetAssembly() interface{} {
 }
 
 func (impl *Component) Run() interface{} {
+    if !impl.initialized {
+        impl.functionComponent.Init()
+        impl.initialized = true
+    }
+
     ret := impl.functionComponent.Invoke(impl.GetOwner())
     impl.registers[0].SetNull()
     return ret;
 }
 
-func (impl *Component) Reload(assembly interface{}) interface{} {
+
+func (impl *Component) RunWithAssembly(assembly interface{}) interface{} {
     if assembly != nil {
         if _, ok := assembly.(script.Assembly); !ok {
             panic(fmt.Errorf("incorrect assembly type with assembly param"))
@@ -205,6 +284,7 @@ func (impl *Component) Reload(assembly interface{}) interface{} {
     parent := impl.functionComponent
     impl.functionComponent = function.NewScriptFunction(impl.GetOwner(), impl.assembly.(script.Assembly).GetEntry(), impl)
     impl.functionComponent.SetPrototype(script.InterfaceToValue(parent))
+    impl.initialized = false
     return impl.Run()
 }
 
@@ -278,8 +358,8 @@ func NewScriptContext(owner, asm interface{}, stackSize int) *Component {
     context.functionComponent = function.NewScriptFunction(owner, asm.(script.Assembly).GetEntry(), context)
     context.interpreterComponent = interpreter.NewScriptInterpreter(owner, context)
 
-    context.Object.Init()
-    context.Function.Init()
+    context.Object.InitPrototype()
+    context.Function.InitPrototype()
 
     context.ScriptSet("Object", script.InterfaceToValue(context.GetObjectPrototype()))
     context.ScriptSet("Array", script.InterfaceToValue(context.GetArrayPrototype()))

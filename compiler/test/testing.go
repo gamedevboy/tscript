@@ -1,4 +1,4 @@
-package testing2
+package test
 
 import (
 	"bufio"

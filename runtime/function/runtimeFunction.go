@@ -215,6 +215,8 @@ func (impl *Component) DumpString() string {
                 instStr = fmt.Sprintf("LOR \t%v, \t%v, \t%v", ra, rb, rc)
             case opcode.LogicAnd:
                 instStr = fmt.Sprintf("LAND \t%v, \t%v, \t%v", ra, rb, rc)
+            case opcode.LogicNot:
+                instStr = fmt.Sprintf("LNOT \t%v, \t%v", ra, rb)
             }
         case opcode.Flow:
             switch il.Code {
@@ -224,6 +226,8 @@ func (impl *Component) DumpString() string {
                 instStr = fmt.Sprintf("NCALL \t%v, \t%v, \t%v", ra, rb, rc)
             case opcode.JumpWhenFalse:
                 instStr = fmt.Sprintf("JEZ \t%v, \t%v", ra, rb)
+            case opcode.JumpWhenTrue:
+                instStr = fmt.Sprintf("JNZ \t%v, \t%v", ra, rb)
             case opcode.Jump:
                 instStr = fmt.Sprintf("JMP \t%v", rb)
             case opcode.Ret:

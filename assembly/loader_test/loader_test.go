@@ -2,9 +2,10 @@ package loader_test
 
 import (
 	"testing"
+
 	"tklibs/script"
+	"tklibs/script/compiler/test"
 	"tklibs/script/runtime/context"
-	"tklibs/script/testing2"
 )
 
 var scriptTest = `
@@ -23,7 +24,7 @@ function loaderTest() {
 var cc *context.Component
 
 func init() {
-	cc,_ = testing2.MustInitWithSource(scriptTest)
+	cc,_ = test.MustInitWithSource(scriptTest)
 	cc.Run()
 }
 
@@ -57,14 +58,14 @@ func TestLoadSource(t *testing.T) {
 }
 
 func TestReloadLoadSource(t *testing.T) {
-	_,acReload := testing2.MustInitWithSource(scriptTestReload)
-	cc.Reload(acReload)
+	_,acReload := test.MustInitWithSource(scriptTestReload)
+	cc.RunWithAssembly(acReload)
 	testWithContext(t, cc)
 }
 
 func TestLoadBinary(t *testing.T) {
-	tsb := testing2.MustCompileToTemp(scriptTest)
-	cc2,_ := testing2.MustInitWithFile(tsb)
+	tsb := test.MustCompileToTemp(scriptTest)
+	cc2,_ := test.MustInitWithFile(tsb)
 	cc2.Run()
 	testWithContext(t, cc2)
 }

@@ -30,7 +30,9 @@ type ScriptContext interface {
     GetAssembly() interface{}
 
     Run() interface{}
-    Reload(interface{}) interface{}
+    RunWithAssembly(assembly interface{}) interface{}
+
+    ReloadAssembly(assembly script.Assembly) error
 
     GetRefByName(name string, valuePtr **script.Value)
     GetRegisters() []script.Value
