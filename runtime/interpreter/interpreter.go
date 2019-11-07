@@ -236,7 +236,7 @@ vm_loop:
                 case script.ValueTypeInterface:
                     switch target := pb_.GetInterface().(type) {
                     case script.Map:
-                        *pa_ = target.GetValue(*pc_)
+                        pa_.Set(target.Get(pc_.Get()))
                     case script.Array:
                         *pa_ = target.GetElement(pc_.ToInt())
                     case script.Object:
@@ -250,7 +250,7 @@ vm_loop:
                 case script.ValueTypeInterface:
                     switch target := pa_.GetInterface().(type) {
                     case script.Map:
-                        target.SetValue(*pb_, *pc_)
+                        target.Set(pb_.Get(),pc_.Get())
                     case script.Array:
                         target.SetElement(pb_.ToInt(), *pc_)
                     case script.Object:

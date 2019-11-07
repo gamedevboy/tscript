@@ -114,13 +114,10 @@ func (impl *Component) GetFieldByMemberIndex(obj interface{}, index script.Int) 
     case script.String:
         return impl.GetFieldByMemberIndex(impl.scriptContext.(runtime.ScriptContext).GetStringPrototype(), index)
     case script.Map:
-        key := script.Value{}
-        key.Set(script.String(impl.getMemberNames()[index]))
-
+        key := impl.getMemberNames()[index]
         if target.ContainsKey(key) {
-            return target.GetValue(key)
+            return new(script.Value).Set(target.Get(key))
         }
-
         return obj.(script.Object).ScriptGet(impl.getMemberNames()[index])
     case script.Object:
         offset := impl.getFieldCache(obj, index).offset
@@ -137,9 +134,7 @@ func (impl *Component) GetFieldByMemberIndex(obj interface{}, index script.Int) 
 func (impl *Component) SetFieldByMemberIndex(obj interface{}, index script.Int, value script.Value) {
     switch target := obj.(type) {
     case script.Map:
-        k := script.Value{}
-        k.Set(script.String(impl.getMemberNames()[index]))
-        target.SetValue(k, value)
+        target.Set(script.String(impl.getMemberNames()[index]), value.Get())
     default:
         offset := impl.getFieldCache(obj, index).offset
         if offset > - 1 {

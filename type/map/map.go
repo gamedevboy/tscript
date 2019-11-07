@@ -21,23 +21,22 @@ func (impl *Component) Get(key interface{}) interface{} {
     if value, ok := impl.values[key]; ok {
         return value
     }
-
     return script.Null
 }
 
 var _ script.Object = &Component{}
 var _ script.Map = &Component{}
 
-func (impl *Component) Delete(key script.Value) {
-    delete(impl.values, key.Get())
+func (impl *Component) Delete(key interface{}) {
+    delete(impl.values, key)
 }
 
 func (impl *Component) Len() script.Int {
     return script.Int(len(impl.values))
 }
 
-func (impl *Component) ContainsKey(value script.Value) script.Bool {
-    _, ok := impl.values[value.Get()]
+func (impl *Component) ContainsKey(key interface{}) script.Bool {
+    _, ok := impl.values[key]
     return script.Bool(ok)
 }
 
@@ -51,20 +50,6 @@ func (impl *Component) Foreach(f func(key, value interface{}) bool) script.Int {
     }
 
     return i
-}
-
-func (impl *Component) SetValue(key, value script.Value) {
-    impl.values[key.Get()] = value.Get()
-}
-
-func (impl *Component) GetValue(key script.Value) script.Value {
-    if value, ok := impl.values[key.Get()]; ok {
-        v := script.Value{}
-        v.Set(value)
-        return v
-    }
-
-    return script.NullValue
 }
 
 func (*Component) GetScriptTypeId() script.ScriptTypeId {
