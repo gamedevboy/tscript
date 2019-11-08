@@ -96,6 +96,48 @@ func (impl *Component) invoke(sf script.Function) {
         registers[1] = sf.GetThis()
     }
 
+    pc := 0
+
+    defer func() {
+        if err := recover(); err != nil {
+            debugInfo := _func.GetDebugInfoList()
+            debugInfoLen := len(debugInfo)
+
+            sourceIndex := -1
+            line := -1
+
+            for i, d := range debugInfo {
+                if d.PC > uint32(pc) {
+                    if i > 0 {
+                        line = int(debugInfo[i-1].Line)
+                        sourceIndex = int(debugInfo[i-1].SourceIndex)
+                    } else {
+                        line = int(d.Line)
+                        sourceIndex = int(d.SourceIndex)
+                    }
+                    break
+                }
+            }
+
+            if line == -1 {
+                line = int(debugInfo[debugInfoLen-1].Line)
+            }
+
+            if sourceIndex == -1 {
+                sourceIndex = int(debugInfo[debugInfoLen-1].SourceIndex)
+            }
+
+            fileName := _func.GetSourceNames()[sourceIndex]
+
+            switch e := err.(type) {
+            case script.Error:
+                panic(script.MakeError(fileName, line, "%v @ %v: %v", e, fileName, line))
+            default:
+                panic(script.MakeError(fileName, line, "script runtime error: [%v] @ %v:%v in %v", err, fileName, line, _func.GetName()))
+            }
+        }
+    }()
+
     instList := _func.GetInstructionList()
     instCount := len(instList)
     if instCount == 0 {
@@ -107,13 +149,15 @@ func (impl *Component) invoke(sf script.Function) {
         context.PushScope(scope.NewScope(nil, sf, registers[2:], registers[ 2+len(_func.GetArguments()):]))
     }
 
+
+
     var vb, vc script.Value
     var pa_, pb_, pc_ *script.Value
 
     ilStart := uintptr(unsafe.Pointer(&instList[0]))
     ilPtr := ilStart
     il := (*instruction.Instruction)(unsafe.Pointer(ilPtr))
-    pc := 0
+
 
 vm_loop:
     for pc < instCount {
@@ -1409,6 +1453,7 @@ vm_loop:
         il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
         pc++
     }
+
 
     //do clean up here
     if _func.IsScope() {
