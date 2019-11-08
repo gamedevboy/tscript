@@ -9,12 +9,14 @@ import (
 )
 
 var scriptTest = `
+ScriptVer = "v0.0.1"
 function loaderTest() {
     logger.debug("dispatcherSelect")
 	return "loaderTest"
 }
 `
 var scriptTestReload = `
+ScriptVer = "v0.0.2"
 function loaderTest() {
     logger.debug("dispatcherSelect reload")
 	return "loaderTest"
@@ -61,6 +63,11 @@ func TestReloadLoadSource(t *testing.T) {
 	_,acReload := test.MustInitWithSource(scriptTestReload)
 	cc.RunWithAssembly(acReload)
 	testWithContext(t, cc)
+	sv := cc.ScriptGet("ScriptVer")
+	excepted := "v0.0.2"
+	if sv == script.NullValue || string(sv.Get().(script.String) )!= excepted {
+		t.Errorf("Failed:%s got:%s excepted:%s", "ScriptVer", sv, excepted)
+	}
 }
 
 func TestLoadBinary(t *testing.T) {
