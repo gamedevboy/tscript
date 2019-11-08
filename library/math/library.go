@@ -14,6 +14,7 @@ type library struct {
 	context interface{}
 	ToInt,
 	MaxInt32,
+	Max,
 	Rand native.FunctionType
 }
 
@@ -31,32 +32,50 @@ func NewLibrary() *library {
 	return ret
 }
 
+func toInt(a interface{}) script.Int {
+	switch v :=a.(type) {
+	case script.Int:
+		return v
+	case script.Float:
+		return script.Int(v)
+	case script.Bool:
+		if v {
+			return 1
+		}
+		return 0
+	case script.String:
+		val, _ := strconv.Atoi(string(v))
+		return script.Int(val)
+	default:
+		return 0
+	}
+}
+
 func (l *library) init() {
 	l.ToInt = func(this interface{}, args ...interface{}) interface{} {
 		if len(args) < 1 {
 			return script.Null
 		}
-
-		switch v := args[0].(type) {
-		case script.Int:
-			return v
-		case script.Float:
-			return script.Int(v)
-		case script.Bool:
-			if v {
-				return 1
-			}
-			return 0
-		case script.String:
-			val, _ := strconv.Atoi(string(v))
-			return script.Int(val)
-		default:
-			return 0
-		}
+		return toInt(args[0])
 	}
 
 	l.Rand = func(this interface{}, args ...interface{}) interface{} {
 		return script.Float(rand.New(rand.NewSource(time.Now().UnixNano())).Float32())
+	}
+
+	l.Max = func(this interface{}, args ...interface{}) interface{} {
+		if len(args) < 1 {
+			return 0
+		}
+		if len(args) < 2 {
+			return toInt(args[0])
+		}
+		a1 := toInt(args[0])
+		a2 := toInt(args[1])
+		if a1 < a2 {
+			return a2
+		}
+		return a1
 	}
 
 	l.MaxInt32 = func(this interface{}, args ...interface{}) interface{} {
