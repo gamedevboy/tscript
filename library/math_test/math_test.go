@@ -17,6 +17,9 @@ function maxInt32() {
 function toInt(val) {
 	return  math.toInt(val)
 }
+function max(v1,v2) {
+	return  math.max(v1,v2)
+}
 `
 
 var cc *context.Component
@@ -82,6 +85,18 @@ func TestToInt(t *testing.T) {
 		})
 		if ret != nil && int(ret.(script.Int)) != t1Int {
 			t.Errorf("Failed %s: actual: %v, expected: %v", f, int32(ret.(script.Int)), t1Int)
+			return
+		}
+	}
+	{
+		f = "max"
+		t1 := 1
+		t2 := 2
+		ret := checkEnv(t, cc, f, func(tf script.Function) interface{} {
+			return tf.Invoke(nil, t1,t2)
+		})
+		if ret != nil && int(ret.(script.Int)) != t2 {
+			t.Errorf("Failed %s: actual: %v, expected: %v", f, int32(ret.(script.Int)), t2)
 			return
 		}
 	}

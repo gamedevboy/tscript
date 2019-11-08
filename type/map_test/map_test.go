@@ -3,6 +3,7 @@ package map_test
 import (
 	"testing"
 	"tklibs/script"
+	"tklibs/script/compiler/test"
 	"tklibs/script/runtime/context"
 	"tklibs/script/testing2"
 	_map "tklibs/script/type/map"
@@ -54,7 +55,7 @@ function containsKey(m,k) {
 var cc *context.Component
 
 func init() {
-	cc, _ = testing2.MustInitWithSource(scriptTest)
+	cc, _ = test.MustInitWithSource(scriptTest)
 	cc.Run()
 }
 
