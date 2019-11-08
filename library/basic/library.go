@@ -6,7 +6,7 @@ import (
     "strconv"
 
     "tklibs/script"
-    "tklibs/script/runtime/function/native"
+    "tklibs/script/runtime/native"
     "tklibs/script/runtime/util"
 )
 

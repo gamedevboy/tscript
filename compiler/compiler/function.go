@@ -149,7 +149,7 @@ func (impl *compilerFunction) AllocRegister(tag string) *compiler.Register {
 
 func (impl *compilerFunction) AddInstructionABC(code, _type uint8, a, b, c *compiler.Operand) *list.Element {
     inst := &ast.Instruction{}
-    inst.Index = impl.instructionList.Len()
+    inst.Index = int32(impl.instructionList.Len())
     inst.Code = code
     inst.Type = _type << 4
 
@@ -183,7 +183,7 @@ func (impl *compilerFunction) AddInstructionABC(code, _type uint8, a, b, c *comp
 
 func (impl *compilerFunction) AddInstructionABx(code, _type uint8, a, b *compiler.Operand) *list.Element {
     inst := &ast.Instruction{}
-    inst.Index = impl.instructionList.Len()
+    inst.Index = int32(impl.instructionList.Len())
     inst.Code = code
     inst.Type = _type << 4
     ptr := inst.GetABx()
@@ -192,14 +192,14 @@ func (impl *compilerFunction) AddInstructionABx(code, _type uint8, a, b *compile
         inst.Type |= b.Type << 2
         switch b.Type {
         case opcode.Register:
-            ptr.B = script.Int(b.Index)
+            ptr.B = int32(b.Index)
         case opcode.Reference:
-            ptr.B = script.Int(b.I)
+            ptr.B = int32(b.I)
         default:
             if b.IsSmall {
-                ptr.B = script.Int(b.I)
+                ptr.B = int32(b.I)
             } else {
-                ptr.B = b.Int
+                ptr.B = int32(b.Int)
             }
         }
     }
@@ -214,14 +214,14 @@ func (impl *compilerFunction) AddInstructionABx(code, _type uint8, a, b *compile
 
 func (impl *compilerFunction) AddInstructionABm(code, _type uint8, a, b *compiler.Operand) *list.Element {
     inst := &ast.Instruction{}
-    inst.Index = impl.instructionList.Len()
+    inst.Index = int32(impl.instructionList.Len())
     inst.Code = code
     inst.Type = _type << 4
     ptr := inst.GetABm()
 
     if b != nil {
         inst.Type |= b.Type << 2
-        ptr.B = b.Float
+        ptr.B = float32(b.Float)
     }
 
     if a.Type == opcode.Register {

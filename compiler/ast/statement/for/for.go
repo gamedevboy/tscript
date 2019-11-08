@@ -112,23 +112,23 @@ func (impl *Component) Compile(f interface{}) *list.Element {
     bodyStart := impl.body.(ast.Statement).Compile(f)
 
     for it := skipJumpList.Front(); it != nil; it= it.Next() {
-        it.Value.(*list.Element).Value.(*ast.Instruction).GetABx().B = script.Int(bodyStart.Value.(*ast.Instruction).Index)
+        it.Value.(*list.Element).Value.(*ast.Instruction).GetABx().B = bodyStart.Value.(*ast.Instruction).Index
     }
 
     continuePos := -1
 
     if impl.step != nil {
         continueInst := impl.step.(ast.Statement).Compile(f)
-        continuePos = continueInst.Value.(*ast.Instruction).Index
+        continuePos = int(continueInst.Value.(*ast.Instruction).Index)
     }
 
-    startPos := script.Int(start.Value.(*ast.Instruction).Index)
+    startPos := start.Value.(*ast.Instruction).Index
 
-    _func.AddInstructionABx(opcode.Jump, opcode.Flow, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(startPos))
+    _func.AddInstructionABx(opcode.Jump, opcode.Flow, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(script.Int(startPos)))
 
     end := _func.AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(0))
 
-    breakPos := script.Int(end.Value.(*ast.Instruction).Index + 1)
+    breakPos := end.Value.(*ast.Instruction).Index + 1
 
     for it := jumpList.Front(); it != nil; it = it.Next() {
         it.Value.(*list.Element).Value.(*ast.Instruction).GetABx().B = breakPos
@@ -144,7 +144,7 @@ func (impl *Component) Compile(f interface{}) *list.Element {
         if continuePos == -1 {
             it.Value.(*ast.Instruction).GetABx().B = startPos
         } else {
-            it.Value.(*ast.Instruction).GetABx().B = script.Int(continuePos)
+            it.Value.(*ast.Instruction).GetABx().B = int32(continuePos)
         }
     }
 

@@ -6,7 +6,9 @@ import (
 
     "tklibs/script"
     "tklibs/script/runtime"
-    "tklibs/script/runtime/function/native"
+    "tklibs/script/runtime/native"
+    "tklibs/script/runtime/runtime_t"
+    "tklibs/script/type/function"
     "tklibs/script/type/object"
     "tklibs/script/value"
 )
@@ -14,6 +16,18 @@ import (
 type Array struct {
     *object.Component
     context interface{}
+}
+
+func (a *Array) IsScriptFunction() bool {
+    return false
+}
+
+func (a *Array) GetScriptRuntimeFunction() runtime_t.Function {
+    return nil
+}
+
+func (a *Array) GetNativeRuntimeFunction() runtime_t.NativeFunction {
+    return nil
 }
 
 func (*Array) Reload() {
@@ -63,27 +77,27 @@ func NewArrayPrototype(ctx interface{}) *Array {
     }
     obj.Component = object.NewScriptObject(obj, ctx, 0)
 
-    obj.ScriptSet("push", native.FunctionType(func(this interface{}, args ...interface{}) interface{} {
+    obj.ScriptSet("push", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
         return this.(script.Array).Push(value.FromInterfaceSlice(args)...)
-    }).ToValue(ctx))
+    }, ctx))
 
-    obj.ScriptSet("pop", native.FunctionType(func(this interface{}, _ ...interface{}) interface{} {
+    obj.ScriptSet("pop", function.NativeFunctionToValue(func(this interface{}, _ ...interface{}) interface{} {
         return this.(script.Array).Pop()
-    }).ToValue(ctx))
+    },ctx))
 
-    obj.ScriptSet("unshift", native.FunctionType(func(this interface{}, args ...interface{}) interface{} {
+    obj.ScriptSet("unshift", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
         return this.(script.Array).Unshift(value.FromInterfaceSlice(args)...)
-    }).ToValue(ctx))
+    },ctx))
 
-    obj.ScriptSet("shift", native.FunctionType(func(this interface{}, _ ...interface{}) interface{} {
+    obj.ScriptSet("shift", function.NativeFunctionToValue(func(this interface{}, _ ...interface{}) interface{} {
         return this.(script.Array).Shift()
-    }).ToValue(ctx))
+    },ctx))
 
-    obj.ScriptSet("length", native.FunctionType(func(this interface{}, _ ...interface{}) interface{} {
+    obj.ScriptSet("length", function.NativeFunctionToValue(func(this interface{}, _ ...interface{}) interface{} {
         return script.Int(this.(script.Array).Len())
-    }).ToValue(ctx))
+    },ctx))
 
-    obj.ScriptSet("find", native.FunctionType(func(this interface{}, args ...interface{}) interface{} {
+    obj.ScriptSet("find", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
         array := this.(script.Array)
         f := args[0].(script.Function)
 
@@ -100,9 +114,9 @@ func NewArrayPrototype(ctx interface{}) *Array {
         }
 
         return script.Null
-    }).ToValue(ctx))
+    },ctx))
 
-    obj.ScriptSet("findIndex", native.FunctionType(func(this interface{}, args ...interface{}) interface{} {
+    obj.ScriptSet("findIndex", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
         array := this.(script.Array)
         f := args[0].(script.Function)
 
@@ -117,9 +131,9 @@ func NewArrayPrototype(ctx interface{}) *Array {
         }
 
         return script.Int(-1)
-    }).ToValue(ctx))
+    },ctx))
 
-    obj.ScriptSet("map", native.FunctionType(func(this interface{}, args ...interface{}) interface{} {
+    obj.ScriptSet("map", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
         array := this.(script.Array)
         ret := ctx.(runtime.ScriptContext).NewScriptArray(int(array.Len()))
         f := args[0].(script.Function)
@@ -129,9 +143,9 @@ func NewArrayPrototype(ctx interface{}) *Array {
             retArray.SetElement(i, v.Set(f.Invoke(nil, array.GetElement(i).Get())))
         }
         return ret
-    }).ToValue(ctx))
+    },ctx))
 
-    obj.ScriptSet("forEach", native.FunctionType(func(this interface{}, args ...interface{}) interface{} {
+    obj.ScriptSet("forEach", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
         array := this.(script.Array)
         f := args[0].(script.Function)
         i := script.Int(0)
@@ -144,15 +158,16 @@ func NewArrayPrototype(ctx interface{}) *Array {
             }
         }
         return i
-    }).ToValue(ctx))
+    },ctx))
 
-    obj.ScriptSet("removeAt", native.FunctionType(func(this interface{}, args ...interface{}) interface{} {
+    obj.ScriptSet("removeAt", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
         array := this.(script.Array)
         return array.RemoveAt(args[0].(script.Int))
-    }).ToValue(ctx))
+    },ctx))
 
-    obj.ScriptSet("join", native.FunctionType(func(this interface{}, args ...interface{}) interface{} {
-        if len(args) < 1 {            return script.String("")
+    obj.ScriptSet("join", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
+        if len(args) < 1 {
+            return script.String("")
         }
 
         array := this.(script.Array)
@@ -162,7 +177,7 @@ func NewArrayPrototype(ctx interface{}) *Array {
         }
 
         return script.String(strings.Join(a, string(args[0].(script.String))))
-    }).ToValue(ctx))
+    },ctx))
 
     return obj
 }

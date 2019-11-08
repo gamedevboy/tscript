@@ -12,8 +12,8 @@ import (
     "tklibs/script"
     "tklibs/script/assembly/assembly"
     "tklibs/script/compiler/compiler"
-    "tklibs/script/runtime"
     "tklibs/script/runtime/context"
+    "tklibs/script/runtime/runtime_t"
 )
 
 const (
@@ -75,7 +75,7 @@ func main() {
 
     if *showAsm {
         for _, inst := range executeAsm.GetFunctions() {
-            _func := inst.(runtime.Function)
+            _func := inst.(runtime_t.Function)
 
             fmt.Printf("%v \"%v\", local: %v, args: %v, refs: %v, members: %v\n",
                 "Func:",

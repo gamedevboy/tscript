@@ -55,7 +55,7 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
             r.Tag = rt
         }
         _func.AddInstructionABx(opcode.Load, opcode.Const, r, compiler.NewIntOperand(script.Int(asm.GetIntConstPool().Insert(
-            value)<<2)+opcode.ConstInt64))
+            value)<<2)+script.Int(opcode.ConstInt64)))
     case script.Float64:
         rt := fmt.Sprintf("Float64:%v", value)
         if r == nil {
@@ -64,7 +64,7 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
             r.Tag = rt
         }
         _func.AddInstructionABx(opcode.Load, opcode.Const, r, compiler.NewIntOperand(script.Int(asm.GetFloatConstPool().Insert(
-            value)<<2)+opcode.ConstFloat64))
+            value)<<2)+script.Int(opcode.ConstFloat64)))
     case script.String:
         switch value {
         case "this":
@@ -89,7 +89,7 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
                 r.Tag = rt
             }
             _func.AddInstructionABx(opcode.Load, opcode.Const, r, compiler.NewIntOperand(script.Int(asm.GetStringConstPool().Insert(
-                string(value))<<2)+opcode.ConstString))
+                string(value))<<2)+script.Int(opcode.ConstString)))
         }
     case script.Bool:
         rt := fmt.Sprintf("Bool:%v", value)

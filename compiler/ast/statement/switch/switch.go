@@ -87,11 +87,11 @@ func (impl *Component) Compile(f interface{}) *list.Element {
     }
 
     for idx, jmp := range jmpList {
-        jmp.Value.(*ast.Instruction).GetABx().B = script.Int(caseStartList[idx].Value.(*ast.Instruction).Index)
+        jmp.Value.(*ast.Instruction).GetABx().B = caseStartList[idx].Value.(*ast.Instruction).Index
     }
 
     end := _func.AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(0))
-    breakPos := script.Int(end.Value.(*ast.Instruction).Index)
+    breakPos := end.Value.(*ast.Instruction).Index
     for it := _func.GetBreakList().Front(); it != nil; it = it.Next() {
         it.Value.(*ast.Instruction).GetABx().B = breakPos
     }

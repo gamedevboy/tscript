@@ -17,7 +17,7 @@ const (
 type pointer = unsafe.Pointer
 
 type Value struct {
-    pointer *interface{}
+    pointer *Interface
 }
 
 func (value *Value) GetType() uint16 {
@@ -72,20 +72,27 @@ func (value *Value) Set(v interface{}) Value {
     return *value
 }
 
+func (value Value) Interface() *Interface {
+    return value.pointer
+}
+
 func (value Value) GetInterface() interface{} {
     if value.pointer == nil {
         return nil
     }
-    return *value.pointer
+    return value.pointer.Get()
 }
 
 func InterfaceToValue(val interface{}) Value {
-    return Value{pointer: &val}
+    value := Value{}
+    value.SetInterface(val)
+    return value
 }
 
 func (value *Value) SetInterface(v interface{}) {
     if v != nil {
-        value.pointer = &v
+        value.pointer = &Interface{}
+        value.pointer.Set(v)
     } else {
         value.pointer = nil
     }
@@ -119,7 +126,7 @@ func (value *Value) SetBool(v Bool) {
 }
 
 func (value Value) GetFunction() Function {
-    return value.GetInterface().(Function)
+    return value.pointer.GetFunction()
 }
 
 func (value Value) GetObject() Object {

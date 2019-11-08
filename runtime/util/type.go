@@ -11,7 +11,8 @@ func ToScriptString(value interface{}) script.String {
     case script.String:
         return dest
     case script.Object:
-        switch retValue := dest.ScriptGet("toString").GetFunction().Invoke(dest).(type) {
+        funcValue := dest.ScriptGet("toString")
+        switch retValue := funcValue.GetFunction().Invoke(dest).(type) {
         case script.String:
             return retValue
         default:

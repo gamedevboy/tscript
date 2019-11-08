@@ -8,7 +8,7 @@ import (
     "tklibs/script"
     "tklibs/script/assembly"
     "tklibs/script/assembly/constpool"
-    "tklibs/script/runtime"
+    "tklibs/script/runtime/runtime_t"
 )
 
 type Component struct {
@@ -70,8 +70,8 @@ func (impl *Component) Reload(assembly script.Assembly) error {
     impl.GetFloatConstPool().CopyFrom(assembly.GetFloatConstPool())
 
     for i, f := range assembly.GetFunctions() {
-        dest := impl.functions[i].(runtime.Function)
-        src := f.(runtime.Function)
+        dest := impl.functions[i].(runtime_t.Function)
+        src := f.(runtime_t.Function)
 
         if dest.GetName() != src.GetName() {
             panic("")

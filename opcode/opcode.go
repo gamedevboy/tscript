@@ -1,7 +1,5 @@
 package opcode
 
-import "tklibs/script"
-
 type OperandABC struct {
     Code, Type uint8
     A, B, C    int16
@@ -10,13 +8,13 @@ type OperandABC struct {
 type OperandABx struct {
     Code, Type uint8
     A          int16
-    B          script.Int
+    B          int32
 }
 
 type OperandABm struct {
     Code, Type uint8
     A          int16
-    B          script.Float
+    B          float32
 }
 
 const (
@@ -100,7 +98,7 @@ const (
 
 // Const Type
 const (
-    ConstInt64 script.Int = iota
+    ConstInt64 int = iota
     ConstFloat64
     ConstString
 )

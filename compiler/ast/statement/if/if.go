@@ -97,7 +97,7 @@ func (impl *Component) Compile(f interface{}) *list.Element {
     bodyStart := impl.body.(ast.Statement).Compile(f)
 
     for it := skipJumpList.Front(); it != nil; it= it.Next() {
-        it.Value.(*list.Element).Value.(*ast.Instruction).GetABx().B = script.Int(bodyStart.Value.(*ast.Instruction).Index)
+        it.Value.(*list.Element).Value.(*ast.Instruction).GetABx().B = bodyStart.Value.(*ast.Instruction).Index
     }
 
     endJmp := _func.AddInstructionABx(opcode.Jump, opcode.Flow, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(0))
@@ -111,10 +111,10 @@ func (impl *Component) Compile(f interface{}) *list.Element {
     endTarget := _func.AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(0))
 
     for it := jumpList.Front(); it != nil; it = it.Next() {
-        it.Value.(*list.Element).Value.(*ast.Instruction).GetABx().B = script.Int(jumpTarget.Value.(*ast.Instruction).Index + 1)
+        it.Value.(*list.Element).Value.(*ast.Instruction).GetABx().B = jumpTarget.Value.(*ast.Instruction).Index + 1
     }
 
-    endJmp.Value.(*ast.Instruction).GetABx().B = script.Int(endTarget.Value.(*ast.Instruction).Index + 1)
+    endJmp.Value.(*ast.Instruction).GetABx().B = endTarget.Value.(*ast.Instruction).Index + 1
 
     return ret
 }

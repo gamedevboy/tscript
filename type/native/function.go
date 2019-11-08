@@ -2,7 +2,7 @@ package native
 
 import (
     "tklibs/script"
-    "tklibs/script/runtime/function/native"
+    "tklibs/script/runtime/native"
 )
 
 type function struct {

@@ -1,4 +1,4 @@
-package runtime
+package runtime_t
 
 import (
     "tklibs/script/debug"
@@ -19,4 +19,8 @@ type Function interface {
     IsCaptureThis() bool
     GetMaxRegisterCount() int
     CopyFrom(src  Function)
+}
+
+type NativeFunction interface {
+    NativeCall(interface{}, ...interface{}) interface{}
 }

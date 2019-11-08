@@ -3,9 +3,12 @@ package function
 import (
     "container/list"
     "fmt"
+    "reflect"
 
     "tklibs/script"
     "tklibs/script/runtime"
+    "tklibs/script/runtime/native"
+    "tklibs/script/runtime/runtime_t"
     "tklibs/script/type/object"
 )
 
@@ -15,14 +18,32 @@ type Component struct {
 
     scriptContext   interface{}
     runtimeFunction interface{}
+
+    scriptRuntimeFunction runtime_t.Function
+    nativeRuntimeFunction runtime_t.NativeFunction
+
+    scriptFunction bool
+
     refs            []*script.Value
     memberCaches    []*list.List
     this            script.Value
     refNames        []string
 }
 
+func (impl *Component) IsScriptFunction() bool {
+    return impl.scriptFunction
+}
+
+func (impl *Component) GetScriptRuntimeFunction() runtime_t.Function {
+    return impl.scriptRuntimeFunction
+}
+
+func (impl *Component) GetNativeRuntimeFunction() runtime_t.NativeFunction {
+    return impl.nativeRuntimeFunction
+}
+
 func (impl *Component) Reload() {
-    if runtimeFunction, ok := impl.runtimeFunction.(runtime.Function); ok {
+    if runtimeFunction, ok := impl.runtimeFunction.(runtime_t.Function); ok {
         scriptContext := impl.scriptContext.(runtime.ScriptContext)
 
         impl.memberCaches = make([]*list.List, len(runtimeFunction.GetMembers()))
@@ -152,12 +173,54 @@ func (impl *Component) GetRuntimeFunction() interface{} {
 }
 
 func (impl *Component) Invoke(this interface{}, args ...interface{}) interface{} {
+    defer func() {
+        if err := recover(); err != nil {
+            _func := impl.GetRuntimeFunction().(runtime_t.Function)
+            debugInfo := _func.GetDebugInfoList()
+            debugInfoLen := len(debugInfo)
+
+            sourceIndex := -1
+            line := -1
+            pc := impl.scriptContext.(runtime.ScriptInterpreter).GetPC()
+
+            for i, d := range debugInfo {
+                if d.PC > uint32(pc) {
+                    if i > 0 {
+                        line = int(debugInfo[i-1].Line)
+                        sourceIndex = int(debugInfo[i-1].SourceIndex)
+                    } else {
+                        line = int(d.Line)
+                        sourceIndex = int(d.SourceIndex)
+                    }
+                    break
+                }
+            }
+
+            if line == -1 {
+                line = int(debugInfo[debugInfoLen-1].Line)
+            }
+
+            if sourceIndex == -1 {
+                sourceIndex = int(debugInfo[debugInfoLen-1].SourceIndex)
+            }
+
+            fileName := _func.GetSourceNames()[sourceIndex]
+
+            switch e := err.(type) {
+            case script.Error:
+                panic(script.MakeError(fileName, line, "%v @ %v: %v", e, fileName, line))
+            default:
+                panic(script.MakeError(fileName, line, "script runtime error: [%v] @ %v:%v in %v", err, fileName, line, _func.GetName()))
+            }
+        }
+    }()
+
     return impl.scriptContext.(runtime.ScriptInterpreter).InvokeFunction(impl.GetOwner(), this, args...)
 }
 
 func (impl *Component) New(args ...interface{}) interface{} {
     switch runtimeFunction := impl.runtimeFunction.(type) {
-    case runtime.Function:
+    case runtime_t.Function:
         for index, value := range impl.refs {
             if value.GetType() == script.ValueTypeInterface && value.GetInterface() == nil {
                 panic(fmt.Sprintf("Can not find ref value for '%v'", runtimeFunction.GetRefVars()[index]))
@@ -171,7 +234,7 @@ func (impl *Component) New(args ...interface{}) interface{} {
 }
 
 func (impl *Component) Init() {
-    if runtimeFunction, ok := impl.runtimeFunction.(runtime.Function); ok {
+    if runtimeFunction, ok := impl.runtimeFunction.(runtime_t.Function); ok {
         scriptContext := impl.scriptContext.(runtime.ScriptContext)
 
         impl.refNames = runtimeFunction.GetRefVars()
@@ -190,7 +253,7 @@ func (impl *Component) Init() {
 }
 
 func (impl *Component) getMemberNames() []string {
-    return impl.runtimeFunction.(runtime.Function).GetMembers()
+    return impl.runtimeFunction.(runtime_t.Function).GetMembers()
 }
 
 func NewScriptFunction(owner, runtimeFunction, ctx interface{}) *Component {
@@ -200,7 +263,38 @@ func NewScriptFunction(owner, runtimeFunction, ctx interface{}) *Component {
         scriptContext:   ctx,
         Component:       object.NewScriptObject(owner, ctx, 0),
     }
+
+    switch f := runtimeFunction.(type) {
+    case runtime_t.Function:
+        ret.scriptFunction = true
+        ret.scriptRuntimeFunction = f
+    case runtime_t.NativeFunction:
+        ret.nativeRuntimeFunction = f
+    }
+
     ret.SetPrototype(script.InterfaceToValue(ctx.(runtime.ScriptContext).GetFunctionPrototype()))
 
     return ret
+}
+
+
+func NativeFunctionToValue(fn native.FunctionType, context interface{}) script.Value {
+    return script.InterfaceToValue(NewNativeFunction(fn, context))
+}
+
+func NewNativeFunction(f, ctx interface{}) interface{} {
+    nativeFunction := &struct {
+        *Component
+    }{}
+
+    switch _func := f.(type) {
+    case native.FunctionType:
+        nativeFunction.Component = NewScriptFunction(nativeFunction, _func, ctx)
+    case reflect.Value:
+        nativeFunction.Component = NewScriptFunction(nativeFunction, native.ReflectFunction(_func), ctx)
+    default:
+        panic("")
+    }
+
+    return nativeFunction
 }

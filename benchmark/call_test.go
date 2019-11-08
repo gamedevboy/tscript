@@ -3,6 +3,7 @@ package benchmark
 import (
     "bufio"
     "bytes"
+    "fmt"
     "testing"
 
     "tklibs/script"
@@ -17,15 +18,19 @@ const (
 
 func Test_Reload(t *testing.T) {
     source1 := `
+ver = 1
 func test() {
     println("1")
 }
+println(ver)
 `
 
     source2 := `
+ver = 2
 func test() {
     println(toInt("2"))
 }
+println(ver)
 `
 
     buffer := bytes.NewBuffer(make([]byte, 0, DefaultBufSize))
@@ -53,32 +58,40 @@ func test() {
     scriptContext.Component = context.NewScriptContext(scriptContext, executeAsm, 4096)
     scriptContext.Run()
 
-    f := scriptContext.ScriptGet("test").GetFunction()
-    f.Invoke(nil);
+    //f := scriptContext.ScriptGet("test").GetFunction()
 
-    // reload
-    buffer = bytes.NewBuffer(make([]byte, 0, DefaultBufSize))
+    version := scriptContext.ScriptGet("ver")
+    fmt.Println("source1:", version)
+    //f.Invoke(nil);
 
-    scriptCompiler = &struct {
-        *compiler.Component
-    }{}
-    scriptCompiler.Component = compiler.NewCompiler(scriptCompiler)
+    // do RunWithAssembly here
+    {
+        // reload
+        buffer = bytes.NewBuffer(make([]byte, 0, DefaultBufSize))
 
-    scriptCompiler.AddSource(source2)
+        scriptCompiler = &struct {
+            *compiler.Component
+        }{}
+        scriptCompiler.Component = compiler.NewCompiler(scriptCompiler)
 
-    asm, _, _ = scriptCompiler.Compile()
-    asm.(script.Assembly).Save(bufio.NewWriter(buffer))
+        scriptCompiler.AddSource(source2)
 
-    executeAsm2 := &struct {
-        *assembly.Component
-    }{}
-    executeAsm2.Component = assembly.NewScriptAssembly(executeAsm2)
-    executeAsm2.Load(bufio.NewReader(buffer))
+        asm, _, _ = scriptCompiler.Compile()
+        asm.(script.Assembly).Save(bufio.NewWriter(buffer))
 
-    scriptContext.ReloadAssembly(executeAsm2)
+        executeAsm2 := &struct {
+            *assembly.Component
+        }{}
+        executeAsm2.Component = assembly.NewScriptAssembly(executeAsm2)
+        executeAsm2.Load(bufio.NewReader(buffer))
+        scriptContext.RunWithAssembly(executeAsm2)
+    }
 
-    f.Invoke(nil)
-    //scriptContext.Reload(executeAsm)
+    //scriptContext.ReloadAssembly(executeAsm2)
+    //
+    //f.Invoke(nil)
+
+    fmt.Println("source2:", version)
 }
 
 
@@ -109,7 +122,9 @@ global fib = function(x) {
     return fib(x - 1) + fib(x - 2)
 }
 
-var result = fib(35)`)
+var result = fib(35)
+println(result)
+`)
 
     asm, _, _ := scriptCompiler.Compile()
     asm.(script.Assembly).Save(bufio.NewWriter(buffer))

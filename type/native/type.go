@@ -6,7 +6,7 @@ import (
     "sync"
 
     "tklibs/script"
-    "tklibs/script/runtime/function/native"
+    "tklibs/script/runtime/native"
 )
 
 type Type struct {

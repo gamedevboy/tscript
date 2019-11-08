@@ -6,7 +6,7 @@ import (
     "time"
 
     "tklibs/script"
-    "tklibs/script/runtime/function/native"
+    "tklibs/script/runtime/native"
 )
 
 type library struct {

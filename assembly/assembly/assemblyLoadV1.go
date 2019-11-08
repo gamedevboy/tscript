@@ -4,8 +4,8 @@ import (
     "bufio"
     "encoding/binary"
 
-    "tklibs/script/runtime"
     "tklibs/script/runtime/function"
+    "tklibs/script/runtime/runtime_t"
 )
 
 type assemblyFileHeaderV1 struct {
@@ -118,8 +118,8 @@ func loadV1(fh *assemblyFileHeader, impl *Component, reader *bufio.Reader) {
     }
 
     for i := 0; i < int(fileHeader.functionCount); i++ {
-        instList := impl.functions[i].(runtime.Function).GetInstructionList()
-        debugInfoList := impl.functions[i].(runtime.Function).GetDebugInfoList()
+        instList := impl.functions[i].(runtime_t.Function).GetInstructionList()
+        debugInfoList := impl.functions[i].(runtime_t.Function).GetDebugInfoList()
 
         for j := 0; j < len(instList); j++ {
             binary.Read(reader, binary.LittleEndian, &instList[j])

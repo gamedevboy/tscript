@@ -9,7 +9,8 @@ import (
     "tklibs/script/instruction"
     "tklibs/script/opcode"
     "tklibs/script/runtime"
-    "tklibs/script/runtime/function/native"
+    "tklibs/script/runtime/native"
+    "tklibs/script/runtime/runtime_t"
     "tklibs/script/runtime/scope"
     "tklibs/script/runtime/stack/frame"
     "tklibs/script/runtime/util"
@@ -19,7 +20,7 @@ import (
 
 type Component struct {
     script.ComponentType
-    context          interface{}
+    context          runtime.ScriptContext
     currentPC        int
     currentRegisters []script.Value
 }
@@ -35,11 +36,11 @@ func (impl *Component) GetPC() int {
 var _ runtime.ScriptInterpreter = &Component{}
 
 func (impl *Component) InvokeNew(function interface{}, args ...interface{}) interface{} {
-    this := impl.context.(runtime.ScriptContext).NewScriptObject(0)
+    this := impl.context.NewScriptObject(0)
     this.(runtime.Object).SetPrototype(script.InterfaceToValue(function))
     sf := function.(script.Function)
     switch _func := sf.GetRuntimeFunction().(type) {
-    case runtime.Function:
+    case runtime_t.Function:
         if len(args) < len(_func.GetArguments()) {
             panic("") //todo not enough arguments
         }
@@ -51,9 +52,9 @@ func (impl *Component) InvokeNew(function interface{}, args ...interface{}) inte
         for i := range _func.GetArguments() {
             registers[2+i].Set(args[i])
         }
-        impl.invoke(function)
+        impl.invoke(function.(script.Function))
         return registers[0].Get()
-    case native.Function:
+    case runtime_t.NativeFunction:
         return _func.NativeCall(this, args...)
     default:
         panic("")
@@ -63,9 +64,9 @@ func (impl *Component) InvokeNew(function interface{}, args ...interface{}) inte
 func (impl *Component) InvokeFunction(function, this interface{}, args ...interface{}) interface{} {
     sf := function.(script.Function)
     switch _func := sf.GetRuntimeFunction().(type) {
-    case runtime.Function:
+    case runtime_t.Function:
         if len(args) < len(_func.GetArguments()) {
-            panic(fmt.Sprintf("not enough arguments,get:%d excepted:%d",len(args),len(_func.GetArguments()))) //todo not enough arguments
+            panic(fmt.Sprintf("not enough arguments,get:%d excepted:%d", len(args), len(_func.GetArguments()))) //todo not enough arguments
         }
         context := impl.context.(runtime.ScriptContext)
         context.PushRegisters(0, _func.GetMaxRegisterCount()+len(_func.GetLocalVars())+len(_func.GetArguments())+2)
@@ -75,9 +76,9 @@ func (impl *Component) InvokeFunction(function, this interface{}, args ...interf
         for i := range _func.GetArguments() {
             registers[2+i].Set(args[i])
         }
-        impl.invoke(function)
+        impl.invoke(function.(script.Function))
         return registers[0].Get()
-    case native.Function:
+    case runtime_t.NativeFunction:
         return _func.NativeCall(this, args...)
     default:
         panic("")
@@ -85,10 +86,9 @@ func (impl *Component) InvokeFunction(function, this interface{}, args ...interf
 }
 
 //noinspection GoNilness
-func (impl *Component) invoke(f interface{}) {
-    sf := f.(script.Function)
-    _func := sf.GetRuntimeFunction().(runtime.Function)
-    context := impl.context.(runtime.ScriptContext)
+func (impl *Component) invoke(sf script.Function) {
+    _func := sf.GetScriptRuntimeFunction()
+    context := impl.context
     registers := context.GetRegisters()
     registers[0].SetNull()
 
@@ -99,64 +99,24 @@ func (impl *Component) invoke(f interface{}) {
     instList := _func.GetInstructionList()
     instCount := len(instList)
     if instCount == 0 {
-        registers[0].SetInterface(nil)
+        registers[0].SetNull()
         return
     }
 
     if _func.IsScope() {
-        context.PushScope(scope.NewScope(nil, f, registers[2:], registers[ 2+len(_func.GetArguments()):]))
+        context.PushScope(scope.NewScope(nil, sf, registers[2:], registers[ 2+len(_func.GetArguments()):]))
     }
 
     var vb, vc script.Value
     var pa_, pb_, pc_ *script.Value
 
     ilStart := uintptr(unsafe.Pointer(&instList[0]))
-
+    ilPtr := ilStart
+    il := (*instruction.Instruction)(unsafe.Pointer(ilPtr))
     pc := 0
-
-    defer func() {
-        if err := recover(); err != nil {
-            debugInfo := _func.GetDebugInfoList()
-            debugInfoLen := len(debugInfo)
-
-            sourceIndex := -1
-            line := -1
-            for i, d := range debugInfo {
-                if d.PC > uint32(pc) {
-                    if i > 0 {
-                        line = int(debugInfo[i-1].Line)
-                        sourceIndex = int(debugInfo[i-1].SourceIndex)
-                    } else {
-                        line = int(d.Line)
-                        sourceIndex = int(d.SourceIndex)
-                    }
-                    break
-                }
-            }
-
-            if line == -1 {
-                line = int(debugInfo[debugInfoLen-1].Line)
-            }
-
-            if sourceIndex == -1 {
-                sourceIndex = int(debugInfo[debugInfoLen-1].SourceIndex)
-            }
-
-            fileName := _func.GetSourceNames()[sourceIndex]
-
-            switch e := err.(type) {
-            case script.Error:
-                panic(script.MakeError(fileName, line, "%v @ %v: %v", e, fileName, line))
-            default:
-                panic(script.MakeError(fileName, line, "script runtime error: [%v] @ %v:%v in %v", err, fileName, line, _func.GetName()))
-            }
-        }
-    }()
 
 vm_loop:
     for pc < instCount {
-        il := (*instruction.Instruction)(unsafe.Pointer(ilStart + uintptr(pc*8)))
-
         // decode the opcode
         _type := il.Type >> 4
         bcType := il.Type & 15
@@ -206,7 +166,7 @@ vm_loop:
         case opcode.Reference << 2:
             pb_ = sf.GetRefList()[il.B]
         case opcode.Integer << 2:
-            vb.SetInt(il.GetABx().B)
+            vb.SetInt(script.Int(il.GetABx().B))
             pb_ = &vb
         case opcode.None:
             b := il.GetABm().B
@@ -217,7 +177,7 @@ vm_loop:
                     vb.SetBool(false)
                 }
             } else {
-                vb.SetFloat(b)
+                vb.SetFloat(script.Float(b))
             }
             pb_ = &vb
         }
@@ -250,7 +210,7 @@ vm_loop:
                 case script.ValueTypeInterface:
                     switch target := pa_.GetInterface().(type) {
                     case script.Map:
-                        target.Set(pb_.Get(),pc_.Get())
+                        target.Set(pb_.Get(), pc_.Get())
                     case script.Array:
                         target.SetElement(pb_.ToInt(), *pc_)
                     case script.Object:
@@ -268,7 +228,7 @@ vm_loop:
             switch il.Code {
             case opcode.Load:
                 index := pb_.GetInt()
-                _t := index & 3
+                _t := int(index & 3)
                 index = index >> 2
                 switch _t {
                 case opcode.ConstInt64:
@@ -285,12 +245,12 @@ vm_loop:
                 }{}
                 f.Component = function.NewScriptFunction(f, context.GetAssembly().(script.Assembly).GetFunctionByMetaIndex(metaIndex),
                     context)
-                pa_.SetInterface(f)
-                rf := f.GetRuntimeFunction().(runtime.Function)
+                rf := f.GetRuntimeFunction().(runtime_t.Function)
                 f.Init()
                 if rf.IsCaptureThis() {
                     f.SetThis(registers[1])
                 }
+                pa_.SetInterface(f)
             case opcode.LoadNil:
                 *pa_ = script.NullValue
             }
@@ -1327,26 +1287,34 @@ vm_loop:
             switch il.Code {
             case opcode.Jump:
                 pc = int(pb_.GetInt())
+                ilPtr = ilStart + uintptr(pc * 8)
+                il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
                 continue
             case opcode.JumpWhenFalse:
                 if !pa_.GetBool() {
                     pc = int(pb_.GetInt())
+                    ilPtr = ilStart + uintptr(pc * 8)
+                    il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
                     continue
                 }
             case opcode.JumpWhenTrue:
                 if pa_.GetBool() {
                     pc = int(pb_.GetInt())
+                    ilPtr = ilStart + uintptr(pc * 8)
+                    il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
                     continue
                 }
             case opcode.Call:
                 switch pa_.GetType() {
                 case script.ValueTypeInterface:
-                    switch callFunc := pa_.GetInterface().(type) {
-                    case script.Function:
+                    pai := pa_.Interface()
+                    switch pai.GetType() {
+                    case script.InterfaceTypeFunction:
+                        callFunc := pai.GetFunction()
                         regStart := pb_.GetInt()
                         count := pc_.GetInt()
-                        switch runtimeFunc := callFunc.GetRuntimeFunction().(type) {
-                        case runtime.Function:
+                        if callFunc.IsScriptFunction() {
+                            runtimeFunc := callFunc.GetScriptRuntimeFunction()
                             registers = context.PushRegisters(regStart,
                                 runtimeFunc.GetMaxRegisterCount()+
                                     len(runtimeFunc.GetArguments())+
@@ -1354,24 +1322,27 @@ vm_loop:
                                     2)
                             impl.invoke(callFunc)
                             context.PopRegisters()
-                        case native.Function:
+                        } else {
                             impl.currentPC = pc
+                            runtimeFunc := callFunc.GetNativeRuntimeFunction()
                             impl.currentRegisters = registers[:regStart]
                             args := registers[regStart+2 : regStart+2+count]
                             _frame := frame.NewStackFrame(nil, _func)
                             context.PushFrame(_frame)
                             context.PushRegisters(regStart, 1)
-                            registers[regStart] = runtimeFunc.NativeCall(registers[regStart+1].Get(), value.ToInterfaceSlice(args)...)
+                            ret := script.Value{}
+                            ret.Set(runtimeFunc.NativeCall(registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
+                            registers[regStart] = ret
                             context.PopRegisters()
                             frame.FreeStackFrame(context.PopFrame().(*frame.Component))
                         }
-                    case script.Object:
-                        callMethod := callFunc.ScriptGet("()").Get()
+                    case script.InterfaceTypeAny:
+                        callMethod := pai.GetObject().ScriptGet("()").Get()
                         if callFunc, ok := callMethod.(script.Function); ok {
                             regStart := pb_.GetInt()
                             count := pc_.GetInt()
                             switch runtimeFunc := callFunc.GetRuntimeFunction().(type) {
-                            case runtime.Function:
+                            case runtime_t.Function:
                                 registers = context.PushRegisters(regStart,
                                     runtimeFunc.GetMaxRegisterCount()+
                                         len(runtimeFunc.GetArguments())+
@@ -1379,52 +1350,63 @@ vm_loop:
                                         2)
                                 impl.invoke(callFunc)
                                 context.PopRegisters()
-                            case native.Function:
-                                impl.currentPC = pc
+                            case runtime_t.NativeFunction:
                                 impl.currentRegisters = registers[:regStart]
                                 args := registers[regStart+2 : regStart+2+count]
                                 context.PushRegisters(regStart, 1)
-                                registers[regStart] = runtimeFunc.NativeCall(registers[regStart+1].Get(), value.ToInterfaceSlice(args)...)
+                                ret := script.Value{}
+                                ret.Set(runtimeFunc.NativeCall(registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
+                                registers[regStart] = ret
                                 context.PopRegisters()
                             }
                         }
-                    default:
-                        panic(fmt.Errorf("Can't call null as a function "))
                     }
                 default:
                     panic("")
                 }
             case opcode.NewCall:
-                cf := pa_.GetInterface().(script.Function)
-                regStart := pb_.GetInt()
-                count := pc_.GetInt()
-                switch rtFunc := cf.GetRuntimeFunction().(type) {
-                case runtime.Function:
-                    registers = context.PushRegisters(regStart,
-                        rtFunc.GetMaxRegisterCount()+
-                            len(rtFunc.GetArguments())+
-                            len(rtFunc.GetLocalVars())+2)
-                    obj := context.NewScriptObject(0)
-                    obj.(runtime.Object).SetPrototype(script.InterfaceToValue(cf))
-                    registers[regStart+1].SetInterface(obj)
-                    impl.invoke(cf)
-                    registers[regStart].SetInterface(obj)
-                    context.PopRegisters()
-                case native.Type:
-                    impl.currentPC = pc
-                    impl.currentRegisters = registers[:regStart]
-                    args := registers[regStart+2 : regStart+2+count]
-                    context.PushRegisters(regStart, 1)
-                    registers[regStart].SetInterface(rtFunc.New(value.ToInterfaceSlice(args)...))
-                    context.PopRegisters()
-                case native.Function:
-                    panic("can not new with native function")
+                switch pa_.GetType() {
+                case script.ValueTypeInterface:
+                    pai := pa_.Interface()
+                    switch pai.GetType() {
+                    case script.InterfaceTypeFunction:
+                        callFunc := pai.GetFunction()
+                        regStart := pb_.GetInt()
+                        count := pc_.GetInt()
+                        if callFunc.IsScriptFunction() {
+                            rtFunc := callFunc.GetScriptRuntimeFunction()
+                            registers = context.PushRegisters(regStart,
+                                rtFunc.GetMaxRegisterCount()+
+                                    len(rtFunc.GetArguments())+
+                                    len(rtFunc.GetLocalVars())+2)
+                            obj := context.NewScriptObject(0)
+                            obj.(runtime.Object).SetPrototype(script.InterfaceToValue(callFunc))
+                            registers[regStart+1].SetInterface(obj)
+                            impl.invoke(pai.GetFunction())
+                            registers[regStart].SetInterface(obj)
+                            context.PopRegisters()
+                        } else {
+                            impl.currentPC = pc
+                            impl.currentRegisters = registers[:regStart]
+                            args := registers[regStart+2 : regStart+2+count]
+                            context.PushRegisters(regStart, 1)
+                            registers[regStart].SetInterface(callFunc.GetRuntimeFunction().(native.Type).New(value.ToInterfaceSlice(
+                                args)...))
+                            context.PopRegisters()
+                        }
+                    case script.InterfaceTypeAny:
+                        panic("")
+                    }
+                default:
+                    panic("")
                 }
             case opcode.Ret:
                 break vm_loop
             }
         }
 
+        ilPtr += uintptr(8)
+        il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
         pc++
     }
 
@@ -1433,21 +1415,22 @@ vm_loop:
         scope.FreeScope(context.PopScope().(*scope.Component))
     }
 
-    regPtr := uintptr(unsafe.Pointer(&registers[0]))
+    regPtr := uintptr(unsafe.Pointer(&registers[1]))
 
-    len := _func.GetMaxRegisterCount()+
-       len(_func.GetArguments())+
-       len(_func.GetLocalVars())+
-       2
+    len := _func.GetMaxRegisterCount() +
+        len(_func.GetArguments()) +
+        len(_func.GetLocalVars()) +
+        2
 
     for i := 1; i < len; i++ {
-       *(**interface{})(unsafe.Pointer(regPtr + uintptr(i*8))) = nil
+        *(**interface{})(unsafe.Pointer(regPtr)) = nil
+        regPtr += uintptr(8)
     }
 }
 
 func NewScriptInterpreter(owner, context interface{}) *Component {
     return &Component{
         ComponentType: script.MakeComponentType(owner),
-        context:       context,
+        context:       context.(runtime.ScriptContext),
     }
 }

@@ -4,7 +4,7 @@ import (
 	"tklibs/script"
 	"tklibs/script/library/debug"
 	"tklibs/script/runtime"
-	"tklibs/script/runtime/function/native"
+	"tklibs/script/runtime/native"
 )
 
 type library struct {

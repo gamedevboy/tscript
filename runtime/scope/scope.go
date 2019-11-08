@@ -10,7 +10,7 @@ import (
 
 type Component struct {
     script.ComponentType
-    function     interface{}
+    function     script.Function
     argList      []script.Value
     localVarList []script.Value
     refListMap   map[*script.Value]*list.List
@@ -46,7 +46,7 @@ func FreeScope(c *Component) {
     pool.Put(c)
 }
 
-func NewScope(owner, function interface{}, argList, localVarList []script.Value) *Component {
+func NewScope(owner interface{}, function script.Function, argList, localVarList []script.Value) *Component {
     var comp = pool.Get().(*Component)
 
     comp.ComponentType = script.MakeComponentType(owner)

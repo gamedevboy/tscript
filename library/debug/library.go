@@ -6,7 +6,8 @@ import (
 
     "tklibs/script"
     "tklibs/script/runtime"
-    "tklibs/script/runtime/function/native"
+    "tklibs/script/runtime/native"
+    "tklibs/script/runtime/runtime_t"
     "tklibs/script/runtime/stack"
 )
 
@@ -18,7 +19,7 @@ type CallInfo struct {
 
 func GetCallInfo(sc runtime.ScriptContext) *CallInfo{
     frame := sc.GetCurrentFrame().(stack.Frame)
-    rf := frame.GetFunction().(runtime.Function)
+    rf := frame.GetFunction().(runtime_t.Function)
     pc := sc.(runtime.ScriptInterpreter).GetPC()
     debugInfo := rf.GetDebugInfoList()
     debugInfoLen := len(debugInfo)

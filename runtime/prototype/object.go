@@ -5,7 +5,7 @@ import (
 
     "tklibs/script"
     "tklibs/script/runtime"
-    "tklibs/script/runtime/function/native"
+    "tklibs/script/type/function"
     "tklibs/script/type/object"
 )
 
@@ -21,23 +21,23 @@ func (impl *Object) GetObjectPrototype() interface{} {
 func (impl *Object) InitPrototype() {
     obj := impl.prototype.(script.Object)
 
-    obj.ScriptSet("toString", native.FunctionType(func(this interface{}, _ ...interface{}) interface{} {
+    obj.ScriptSet("toString", function.NativeFunctionToValue(func(this interface{}, _ ...interface{}) interface{} {
         switch str := this.(type) {
         case fmt.Stringer:
             return script.String(str.String())
         default:
             return script.String(fmt.Sprint(this))
         }
-    }).ToValue(impl.GetOwner()))
+    },impl.GetOwner()))
 
-    obj.ScriptSet("setPrototype", native.FunctionType(func(this interface{}, args ...interface{}) interface{} {
+    obj.ScriptSet("setPrototype", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
         this.(runtime.Object).SetPrototype(script.InterfaceToValue(args[0]))
         return this
-    }).ToValue(impl.GetOwner()))
+    },impl.GetOwner()))
 
-    obj.ScriptSet("getPrototype", native.FunctionType(func(this interface{}, _ ...interface{}) interface{} {
+    obj.ScriptSet("getPrototype", function.NativeFunctionToValue(func(this interface{}, _ ...interface{}) interface{} {
         return this.(runtime.Object).GetPrototype()
-    }).ToValue(impl.GetOwner()))
+    },impl.GetOwner()))
 }
 
 func NewObjectPrototype(ctx interface{}) *Object {

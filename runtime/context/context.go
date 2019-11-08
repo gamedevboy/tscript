@@ -6,6 +6,7 @@ import (
     "unicode"
 
     "tklibs/script/library/logger"
+    "tklibs/script/runtime/runtime_t"
 
     "tklibs/script"
     "tklibs/script/library"
@@ -16,8 +17,8 @@ import (
     "tklibs/script/library/math"
     "tklibs/script/library/semver"
     "tklibs/script/runtime"
-    "tklibs/script/runtime/function/native"
     "tklibs/script/runtime/interpreter"
+    "tklibs/script/runtime/native"
     "tklibs/script/runtime/prototype"
     "tklibs/script/runtime/typeinfo"
     "tklibs/script/type/array"
@@ -72,7 +73,7 @@ func scanFunctions(root interface{}, funcMap map[script.Function]struct{}, visit
             return
         }
 
-        if _, ok := target.GetRuntimeFunction().(runtime.Function); ok {
+        if _, ok := target.GetRuntimeFunction().(runtime_t.Function); ok {
             funcMap[target] = struct{}{}
         }
 
@@ -159,7 +160,7 @@ func (impl *Component) GetRefByName(name string, valuePtr **script.Value) {
     for i := len(impl.scopes) - 1; i >= 0; i-- {
         scope := impl.scopes[i].(runtime.Scope)
         f := scope.GetFunction().(script.Function)
-        _func := f.GetRuntimeFunction().(runtime.Function)
+        _func := f.GetScriptRuntimeFunction()
 
         for i, n := range _func.GetLocalVars() {
             if name == n {
@@ -269,7 +270,7 @@ func (impl *Component) Run() interface{} {
 
     ret := impl.functionComponent.Invoke(impl.GetOwner())
     impl.registers[0].SetNull()
-    return ret;
+    return ret
 }
 
 
@@ -306,7 +307,7 @@ func (impl *Component) RegisterLibrary(library library.RuntimeLibrary) {
             name := []rune(libraryType.Field(i).Name)
             name[0] = unicode.ToLower(name[0])
             valueOfDelegate.Set(valueOfBasicLibrary.Field(i))
-            _func := native.NewNativeFunction(*funcDelegate, impl)
+            _func := function.NewNativeFunction(*funcDelegate, impl)
             impl.functionComponent.ScriptSet(string(name), script.InterfaceToValue(_func))
         }
     default:
@@ -324,7 +325,7 @@ func (impl *Component) RegisterLibrary(library library.RuntimeLibrary) {
             name := []rune(libraryType.Field(i).Name)
             name[0] = unicode.ToLower(name[0])
             valueOfDelegate.Set(valueOfBasicLibrary.Field(i))
-            _func := native.NewNativeFunction(*funcDelegate, impl)
+            _func := function.NewNativeFunction(*funcDelegate, impl)
             obj.(script.Object).ScriptSet(string(name), script.InterfaceToValue(_func))
         }
 

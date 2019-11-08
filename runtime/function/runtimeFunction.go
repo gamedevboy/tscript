@@ -9,7 +9,7 @@ import (
     "tklibs/script/debug"
     "tklibs/script/instruction"
     "tklibs/script/opcode"
-    "tklibs/script/runtime"
+    "tklibs/script/runtime/runtime_t"
 )
 
 type Component struct {
@@ -27,7 +27,7 @@ type Component struct {
     maxRegisterCount int
 }
 
-func (impl *Component) CopyFrom(src runtime.Function) {
+func (impl *Component) CopyFrom(src runtime_t.Function) {
     impl.instructions = src.GetInstructionList()
     impl.debugInfos = src.GetDebugInfoList()
     impl.arguments = src.GetArguments()
@@ -48,7 +48,7 @@ func (impl *Component) GetDebugInfoList() []debug.Info {
     return impl.debugInfos
 }
 
-var _ runtime.Function = &Component{}
+var _ runtime_t.Function = &Component{}
 
 func (impl *Component) IsScope() bool {
     return impl.isScope

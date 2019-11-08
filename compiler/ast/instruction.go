@@ -4,5 +4,5 @@ import "tklibs/script/instruction"
 
 type Instruction struct {
     instruction.Instruction
-    Index int
+    Index int32
 }

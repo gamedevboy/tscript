@@ -28,7 +28,8 @@ func (v *Value) GetByIndex(index int) *script.Value {
         return v.fields[index].getter(v, index)
     }
 
-    return new(script.Value).SetInterface(script.Null)
+    ret := script.NullValue
+    return &ret
 }
 
 func (v *Value) SetByIndex(index int, value *script.Value) {

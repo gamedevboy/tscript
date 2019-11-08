@@ -9,7 +9,7 @@ import (
 
     "tklibs/script"
     "tklibs/script/runtime"
-    "tklibs/script/runtime/function/native"
+    "tklibs/script/runtime/native"
     "tklibs/script/value"
 )
 
