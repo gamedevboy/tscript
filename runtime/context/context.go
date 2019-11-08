@@ -14,6 +14,7 @@ import (
     "tklibs/script/library/io"
     "tklibs/script/library/json"
     "tklibs/script/library/math"
+    "tklibs/script/library/semver"
     "tklibs/script/runtime"
     "tklibs/script/runtime/function/native"
     "tklibs/script/runtime/interpreter"
@@ -375,6 +376,7 @@ func NewScriptContext(owner, asm interface{}, stackSize int) *Component {
     context.RegisterLibrary(math.NewLibrary())
     context.RegisterLibrary(debug.NewLibrary())
     context.RegisterLibrary(logger.NewLibrary())
+    context.RegisterLibrary(semver.NewLibrary())
 
     return context
 }
