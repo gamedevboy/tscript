@@ -114,9 +114,11 @@ func (impl *Component) GetFieldByMemberIndex(obj interface{}, index script.Int) 
     case script.String:
         return impl.GetFieldByMemberIndex(impl.scriptContext.(runtime.ScriptContext).GetStringPrototype(), index)
     case script.Map:
-        key := impl.getMemberNames()[index]
+        key := script.String(impl.getMemberNames()[index])
         if target.ContainsKey(key) {
-            return new(script.Value).Set(target.Get(key))
+            val := script.Value{}
+            val.Set(target.Get(key))
+            return val
         }
         return obj.(script.Object).ScriptGet(impl.getMemberNames()[index])
     case script.Object:
