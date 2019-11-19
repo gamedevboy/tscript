@@ -1352,6 +1352,7 @@ vm_loop:
                 switch pa_.GetType() {
                 case script.ValueTypeInterface:
                     pai := pa_.Interface()
+
                     switch pai.GetType() {
                     case script.InterfaceTypeFunction:
                         callFunc := pai.GetFunction()
@@ -1381,6 +1382,9 @@ vm_loop:
                             frame.FreeStackFrame(context.PopFrame().(*frame.Component))
                         }
                     case script.InterfaceTypeAny:
+                        if pai.IsNull() {
+                            panic(fmt.Errorf("can not call on 'null' value"))
+                        }
                         callMethod := pai.GetObject().ScriptGet("()").Get()
                         if callFunc, ok := callMethod.(script.Function); ok {
                             regStart := pb_.GetInt()
@@ -1412,6 +1416,7 @@ vm_loop:
                 switch pa_.GetType() {
                 case script.ValueTypeInterface:
                     pai := pa_.Interface()
+
                     switch pai.GetType() {
                     case script.InterfaceTypeFunction:
                         callFunc := pai.GetFunction()

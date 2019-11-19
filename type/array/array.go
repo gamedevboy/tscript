@@ -13,6 +13,14 @@ type Component struct {
     elements []script.Value
 }
 
+func (impl *Component) Clear() {
+    impl.elements = make([]script.Value, 0)
+}
+
+func (impl *Component) GetSlice() interface{} {
+    return impl.elements
+}
+
 var _ script.Array = &Component{}
 var _ script.Object = &Component{}
 

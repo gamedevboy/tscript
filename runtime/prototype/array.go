@@ -2,6 +2,7 @@ package prototype
 
 import (
     "fmt"
+    "sort"
     "strings"
 
     "tklibs/script"
@@ -97,6 +98,11 @@ func NewArrayPrototype(ctx interface{}) *Array {
         return script.Int(this.(script.Array).Len())
     },ctx))
 
+    obj.ScriptSet("clear", function.NativeFunctionToValue(func(this interface{}, _ ...interface{}) interface{} {
+        this.(script.Array).Clear()
+        return this
+    },ctx))
+
     obj.ScriptSet("find", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
         array := this.(script.Array)
         f := args[0].(script.Function)
@@ -112,6 +118,18 @@ func NewArrayPrototype(ctx interface{}) *Array {
                 }
             }
         }
+
+        return script.Null
+    },ctx))
+
+    obj.ScriptSet("sort", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
+        array := this.(script.Array)
+        f := args[0].(script.Function)
+
+        sort.SliceIsSorted(array.GetSlice(), func(i,j int) bool {
+            ret := f.Invoke(nil, array.GetElement(script.Int(i)).Get(), array.GetElement(script.Int(j)).Get())
+            return ret == script.Bool(true)
+        })
 
         return script.Null
     },ctx))

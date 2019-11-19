@@ -29,6 +29,10 @@ func (i *Interface) Set(v interface{}) {
     }
 }
 
+func (i *Interface) IsNull() bool {
+    return i.value != nil
+}
+
 func (i *Interface) GetFunction() Function {
     return **(**Function)(unsafe.Pointer(i))
 }

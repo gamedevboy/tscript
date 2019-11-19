@@ -1,6 +1,7 @@
 package script
 
 type Array interface {
+    GetSlice() interface{}
     GetElement(index Int) Value
     SetElement(index Int, value Value)
     Push(args ...Value) interface{}
@@ -9,4 +10,5 @@ type Array interface {
     Shift() interface{}
     Len() Int
     RemoveAt(index Int) Bool
+    Clear()
 }
