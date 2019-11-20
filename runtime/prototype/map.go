@@ -14,6 +14,10 @@ type Map struct {
     context interface{}
 }
 
+func (impl *Map) GetContext() interface{} {
+    return impl.context
+}
+
 func (impl *Map) IsScriptFunction() bool {
     return false
 }

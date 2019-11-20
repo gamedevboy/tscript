@@ -126,6 +126,10 @@ func (value *Value) SetBool(v Bool) {
 }
 
 func (value Value) GetFunction() Function {
+    if value.pointer == nil {
+        return nil
+    }
+
     return value.pointer.GetFunction()
 }
 

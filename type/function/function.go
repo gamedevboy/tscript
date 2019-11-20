@@ -30,6 +30,10 @@ type Component struct {
     refNames        []string
 }
 
+func (impl *Component) GetContext() interface{} {
+    return impl.scriptContext
+}
+
 func (impl *Component) IsScriptFunction() bool {
     return impl.scriptFunction
 }
@@ -173,8 +177,6 @@ func (impl *Component) GetRuntimeFunction() interface{} {
 }
 
 func (impl *Component) Invoke(this interface{}, args ...interface{}) interface{} {
-
-
     return impl.scriptContext.(runtime.ScriptInterpreter).InvokeFunction(impl.GetOwner(), this, args...)
 }
 

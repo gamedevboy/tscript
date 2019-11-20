@@ -21,4 +21,5 @@ type Function interface {
 
     GetFieldByMemberIndex(obj interface{}, index Int) Value
     SetFieldByMemberIndex(obj interface{}, index Int, value Value)
+    GetContext() interface{}
 }

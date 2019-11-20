@@ -271,6 +271,7 @@ vm_loop:
         case opcode.Const:
             switch il.Code {
             case opcode.Load:
+                context := sf.GetContext().(runtime.ScriptContext)
                 index := pb_.GetInt()
                 _t := int(index & 3)
                 index = index >> 2

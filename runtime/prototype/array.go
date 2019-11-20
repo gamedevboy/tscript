@@ -19,6 +19,10 @@ type Array struct {
     context interface{}
 }
 
+func (a *Array) GetContext() interface{} {
+    return a.context
+}
+
 func (a *Array) IsScriptFunction() bool {
     return false
 }
