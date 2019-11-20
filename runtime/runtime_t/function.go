@@ -19,6 +19,7 @@ type Function interface {
     IsCaptureThis() bool
     GetMaxRegisterCount() int
     CopyFrom(src  Function)
+    GetAssembly() interface{}
 }
 
 type NativeFunction interface {

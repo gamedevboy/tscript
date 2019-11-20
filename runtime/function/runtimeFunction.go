@@ -25,6 +25,11 @@ type Component struct {
     isScope          bool
     captureThis      bool
     maxRegisterCount int
+    assembly         interface{}
+}
+
+func (impl *Component) GetAssembly() interface{} {
+    return impl.assembly
 }
 
 func (impl *Component) CopyFrom(src runtime_t.Function) {
@@ -252,11 +257,13 @@ func (impl *Component) DumpString() string {
 
 }
 
-func NewFunctionComponent(owner interface{}, instructionCount int, debugInfoCount int, name string, sourceFiles []string, localVars,
+func NewFunctionComponent(owner, assembly interface{}, instructionCount int, debugInfoCount int, name string, sourceFiles []string,
+    localVars,
     arguments, refVars,
     members []string, isScope bool, captureThis bool, maxRegisterCount uint32) *Component {
     return &Component{
         ComponentType:    script.MakeComponentType(owner),
+        assembly:         assembly,
         instructions:     make([]instruction.Instruction, instructionCount),
         debugInfos:       make([]debug.Info, debugInfoCount),
         arguments:        arguments,

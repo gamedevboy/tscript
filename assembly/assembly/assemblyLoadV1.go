@@ -100,7 +100,7 @@ func loadV1(fh *assemblyFileHeader, impl *Component, reader *bufio.Reader) {
         }{}
 
         fd := functionDecls[i]
-        f.Component = function.NewFunctionComponent(f,
+        f.Component = function.NewFunctionComponent(f, impl,
             int(fd.instructionCount),
             int(fd.debugInfoCount),
             impl.stringConstPool.Get(int(fd.nameIndex)).(string),

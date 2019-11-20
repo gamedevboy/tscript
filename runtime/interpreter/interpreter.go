@@ -149,15 +149,12 @@ func (impl *Component) invoke(sf script.Function) {
         context.PushScope(scope.NewScope(nil, sf, registers[2:], registers[ 2+len(_func.GetArguments()):]))
     }
 
-
-
     var vb, vc script.Value
     var pa_, pb_, pc_ *script.Value
 
     ilStart := uintptr(unsafe.Pointer(&instList[0]))
     ilPtr := ilStart
     il := (*instruction.Instruction)(unsafe.Pointer(ilPtr))
-
 
 vm_loop:
     for pc < instCount {
@@ -271,24 +268,25 @@ vm_loop:
         case opcode.Const:
             switch il.Code {
             case opcode.Load:
-                context := sf.GetContext().(runtime.ScriptContext)
+                assembly := _func.GetAssembly()
                 index := pb_.GetInt()
                 _t := int(index & 3)
                 index = index >> 2
                 switch _t {
                 case opcode.ConstInt64:
-                    pa_.SetInt64(context.GetAssembly().(script.Assembly).GetIntConstPool().Get(int(index)).(script.Int64))
+                    pa_.SetInt64(assembly.(script.Assembly).GetIntConstPool().Get(int(index)).(script.Int64))
                 case opcode.ConstFloat64:
-                    pa_.SetFloat64(context.GetAssembly().(script.Assembly).GetFloatConstPool().Get(int(index)).(script.Float64))
+                    pa_.SetFloat64(assembly.(script.Assembly).GetFloatConstPool().Get(int(index)).(script.Float64))
                 case opcode.ConstString:
-                    pa_.SetInterface(script.String(context.GetAssembly().(script.Assembly).GetStringConstPool().Get(int(index)).(string)))
+                    pa_.SetInterface(script.String(assembly.(script.Assembly).GetStringConstPool().Get(int(index)).(string)))
                 }
             case opcode.LoadFunc:
                 metaIndex := pb_.GetInt()
                 f := &struct {
                     *function.Component
                 }{}
-                f.Component = function.NewScriptFunction(f, context.GetAssembly().(script.Assembly).GetFunctionByMetaIndex(metaIndex),
+                f.Component = function.NewScriptFunction(f, _func.GetAssembly().(script.Assembly).
+                    GetFunctionByMetaIndex(metaIndex),
                     context)
                 rf := f.GetRuntimeFunction().(runtime_t.Function)
                 f.Init()

@@ -130,7 +130,7 @@ func NewArrayPrototype(ctx interface{}) *Array {
         array := this.(script.Array)
         f := args[0].(script.Function)
 
-        sort.SliceIsSorted(array.GetSlice(), func(i,j int) bool {
+        sort.Slice(array.GetSlice(), func(i,j int) bool {
             ret := f.Invoke(nil, array.GetElement(script.Int(i)).Get(), array.GetElement(script.Int(j)).Get())
             return ret == script.Bool(true)
         })
