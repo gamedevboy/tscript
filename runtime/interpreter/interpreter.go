@@ -3,6 +3,7 @@ package interpreter
 import (
     "fmt"
     "math"
+    "strings"
     "unsafe"
 
     "tklibs/script"
@@ -1150,17 +1151,26 @@ vm_loop:
                         default:
                             panic("")
                         }
+                    case script.String:
+                        if pc_.IsNull() {
+                            pa_.SetBool(false)
+                        } else {
+                            switch vc_ := pc_.GetInterface().(type) {
+                            case script.String:
+                                pa_.SetBool(strings.Compare(string(vb_), string(vc_)) == 0)
+                            default:
+                                if vc_ == script.Null {
+                                    pa_.SetBool(false)
+                                } else {
+                                    panic("")
+                                }
+                            }
+                        }
                     case script.Object:
                         if vb_.GetScriptTypeId() != script.ScriptTypeNull {
                             switch pc_.GetType() {
                             case script.ValueTypeInterface:
                                 switch vc_ := pc_.GetInterface().(type) {
-                                case script.String:
-                                    if vc_.GetScriptTypeId() == script.ScriptTypeNull {
-                                        pa_.SetBool(false)
-                                    } else {
-                                        pa_.SetBool(vb_ == vc_)
-                                    }
                                 case script.Object:
                                     if vc_.GetScriptTypeId() == script.ScriptTypeNull {
                                         pa_.SetBool(false)
@@ -1277,17 +1287,26 @@ vm_loop:
                         default:
                             panic("")
                         }
+                    case script.String:
+                        if pc_.IsNull() {
+                            pa_.SetBool(true)
+                        } else {
+                            switch vc_ := pc_.GetInterface().(type) {
+                            case script.String:
+                                pa_.SetBool(strings.Compare(string(vb_), string(vc_)) != 0)
+                            default:
+                                if vc_ == script.Null {
+                                    pa_.SetBool(true)
+                                } else {
+                                    panic("")
+                                }
+                            }
+                        }
                     case script.Object:
                         if vb_.GetScriptTypeId() != script.ScriptTypeNull {
                             switch pc_.GetType() {
                             case script.ValueTypeInterface:
                                 switch vc_ := pc_.GetInterface().(type) {
-                                case script.String:
-                                    if vc_.GetScriptTypeId() != script.ScriptTypeNull {
-                                        pa_.SetBool(vb_ != vc_)
-                                    } else {
-                                        pa_.SetBool(true)
-                                    }
                                 case script.Object:
                                     if vc_.GetScriptTypeId() != script.ScriptTypeNull {
                                         pa_.Set(vb_.ScriptGet("!=").GetFunction().Invoke(vb_, vc_))
