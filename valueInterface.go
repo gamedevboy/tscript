@@ -30,7 +30,7 @@ func (i *Interface) Set(v interface{}) {
 }
 
 func (i *Interface) IsNull() bool {
-    return i.value != nil
+    return i.value == nil || *i.value == Null
 }
 
 func (i *Interface) GetFunction() Function {

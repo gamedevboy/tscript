@@ -268,7 +268,7 @@ func (value Value) ToString() string {
 }
 
 func (value Value) IsNull() bool {
-    return value.pointer == nil
+    return value == NullValue || value.pointer == nil
 }
 
 func (value *Value) SetNull() {
