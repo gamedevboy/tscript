@@ -40,18 +40,24 @@ func (impl *Component) expandConditionExpression(e interface{}, conditionList *l
     case expression.Binary:
         switch val.GetOpType() {
         case token.TokenTypeLAND:
+            if conditionList.Len() == 0 {
+                conditionList.PushBack(true)
+            }
             impl.expandConditionExpression(val.GetLeft(), conditionList)
             conditionList.PushBack(true)
-            impl.expandConditionExpression(val.GetRight(), conditionList)
+            conditionList.PushBack(val.GetRight())
         case token.TokenTypeLOR:
+            if conditionList.Len() == 0 {
+                conditionList.PushBack(false)
+            }
             impl.expandConditionExpression(val.GetLeft(), conditionList)
             conditionList.PushBack(false)
-            impl.expandConditionExpression(val.GetRight(), conditionList)
+            conditionList.PushBack(val.GetRight())
         default:
-            conditionList.PushBack(e)
+            conditionList.PushBack(val)
         }
     default:
-        conditionList.PushBack(e)
+        conditionList.PushBack(val)
     }
 }
 
@@ -60,39 +66,54 @@ func (impl *Component) Compile(f interface{}) *list.Element {
 
     ret := _func.GetInstructionList().Back()
 
-    jumpList := list.New()
-    skipJumpList := list.New()
+    jumpList := list.New() // jump to the end
+    skipJumpList := list.New() // jump to the body start
 
     conditionList := list.New()
-    conditionList.PushBack(true)
 
     impl.expandConditionExpression(impl.condition, conditionList)
 
     r := compiler.NewRegisterOperand(_func.AllocRegister(""))
+    lastOp := false
+    for it := conditionList.Front(); it != nil; it = it.Next() {
+        switch val := it.Value.(type) {
+        case bool:
+            lastOp = val
+        case ast.Expression:
+            val.Compile(f, r)
 
-    for it := conditionList.Front(); it != nil; {
-        if it.Value.(bool) {
-            it.Next().Value.(ast.Expression).Compile(f, r)
-
-            next := it.Next().Next()
-            if next != nil && next.Value.(bool) {
+            if lastOp {
                 jumpList.PushBack(_func.AddInstructionABx(opcode.JumpWhenFalse, opcode.Flow, r,
                     compiler.NewIntOperand(0)))
+            } else {
+                skipJumpList.PushBack(_func.AddInstructionABx(opcode.JumpWhenTrue, opcode.Flow, r,
+                    compiler.NewIntOperand(0)))
             }
-        } else {
-            skipJumpList.PushBack(_func.AddInstructionABx(opcode.JumpWhenTrue, opcode.Flow, r,
-                compiler.NewIntOperand(0)))
-            next := it.Next().Value.(ast.Expression).Compile(f, nil)
-            _func.AddInstructionABC(opcode.LogicOr, opcode.Logic, r, r, next)
-            jumpList.PushBack(_func.AddInstructionABx(opcode.JumpWhenFalse, opcode.Flow, r,
-                compiler.NewIntOperand(0)))
         }
 
-        it = it.Next().Next()
+
+        // if it.Value.(bool) {
+        //     it.Next().Value.(ast.Expression).Compile(f, r)
+        //
+        //     next := it.Next().Next()
+        //     if next != nil && next.Value.(bool) {
+        //         jumpList.PushBack(_func.AddInstructionABx(opcode.JumpWhenFalse, opcode.Flow, r,
+        //             compiler.NewIntOperand(0)))
+        //     }
+        // } else {
+        //     skipJumpList.PushBack(_func.AddInstructionABx(opcode.JumpWhenTrue, opcode.Flow, r,
+        //         compiler.NewIntOperand(0)))
+        //     next := it.Next().Value.(ast.Expression).Compile(f, nil)
+        //     _func.AddInstructionABC(opcode.LogicOr, opcode.Logic, r, r, next)
+        //     jumpList.PushBack(_func.AddInstructionABx(opcode.JumpWhenFalse, opcode.Flow, r,
+        //         compiler.NewIntOperand(0)))
+        // }
     }
 
-    jumpList.PushBack(_func.AddInstructionABx(opcode.JumpWhenFalse, opcode.Flow, r,
-       compiler.NewIntOperand(0)))
+    if !lastOp {
+        jumpList.PushBack(_func.AddInstructionABx(opcode.JumpWhenFalse, opcode.Flow, r,
+            compiler.NewIntOperand(0)))
+    }
 
     bodyStart := impl.body.(ast.Statement).Compile(f)
 

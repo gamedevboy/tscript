@@ -52,7 +52,9 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
         if r == nil {
             r = compiler.NewRegisterOperand(_func.AllocRegister(rt))
         } else {
-            r.Tag = rt
+            if r.Register != nil {
+                r.Tag = rt
+            }
         }
         _func.AddInstructionABx(opcode.Load, opcode.Const, r, compiler.NewIntOperand(script.Int(asm.GetIntConstPool().Insert(
             value)<<2)+script.Int(opcode.ConstInt64)))
@@ -61,7 +63,9 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
         if r == nil {
             r = compiler.NewRegisterOperand(_func.AllocRegister(rt))
         } else {
-            r.Tag = rt
+            if r.Register != nil {
+                r.Tag = rt
+            }
         }
         _func.AddInstructionABx(opcode.Load, opcode.Const, r, compiler.NewIntOperand(script.Int(asm.GetFloatConstPool().Insert(
             value)<<2)+script.Int(opcode.ConstFloat64)))
@@ -86,7 +90,9 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
             if r == nil {
                 r = compiler.NewRegisterOperand(_func.AllocRegister(rt))
             } else {
-                r.Tag = rt
+                if r.Register != nil {
+                    r.Tag = rt
+                }
             }
             _func.AddInstructionABx(opcode.Load, opcode.Const, r, compiler.NewIntOperand(script.Int(asm.GetStringConstPool().Insert(
                 string(value))<<2)+script.Int(opcode.ConstString)))
@@ -96,7 +102,9 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
         if r == nil {
             r = compiler.NewRegisterOperand(_func.AllocRegister(rt))
         } else {
-            r.Tag = rt
+            if r.Register != nil {
+                r.Register.Tag = rt
+            }
         }
         if value {
             _func.AddInstructionABm(opcode.Move, opcode.Memory, r, compiler.NewFloatOperand(0)).Value.(*ast.Instruction).GetABx().B = math.

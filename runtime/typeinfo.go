@@ -6,5 +6,5 @@ type TypeInfo interface {
     GetName() string
     GetParent() interface{}
     GetFieldIndexByName(fieldName string) int
-    GetFieldNames() []string
+    GetFieldNames() []*string
 }

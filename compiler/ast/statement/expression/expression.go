@@ -42,7 +42,7 @@ func (impl *Component) Compile(f interface{}) *list.Element {
     }
 
     if cur == nil {
-        return cur
+        return f.(compiler.Function).GetInstructionList().Front()
     }
 
     return cur.Next()

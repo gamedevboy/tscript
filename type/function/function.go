@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"fmt"
 	"reflect"
+	rt "runtime"
 	"unsafe"
 
 	"tklibs/script"
@@ -11,19 +12,17 @@ import (
 	"tklibs/script/runtime/native"
 	"tklibs/script/runtime/runtime_t"
 	"tklibs/script/type/object"
-
-	rt "runtime"
 )
 
 type ComopnentRef struct {
 	pointer uintptr
-	f runtime_t.Function
+	f       runtime_t.Function
 }
 
 func (comp *ComopnentRef) Dispose() {
 	if comp.pointer != 0 {
 		comp.f.UnregisterFunction(comp.pointer)
-	}	
+	}
 }
 
 type Component struct {
@@ -44,8 +43,6 @@ type Component struct {
 	memberCaches []*list.List
 	this         script.Value
 	refNames     []string
-
-
 }
 
 func (impl *Component) GetContext() interface{} {
@@ -251,7 +248,7 @@ func NewScriptFunction(owner, runtimeFunction, ctx interface{}) *Component {
 		f.RegisterFunction(uintptr(unsafe.Pointer(ret)))
 		ret._compRef = &ComopnentRef{
 			pointer: ^uintptr(unsafe.Pointer(ret)),
-			f: f,
+			f:       f,
 		}
 
 		rt.SetFinalizer(ret._compRef, (*ComopnentRef).Dispose)

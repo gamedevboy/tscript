@@ -15,6 +15,7 @@ type library struct {
     SetPrototype,
     GetPrototype,
     ToInt,
+    ToInt64,
     ToFloat,
     Print,
     Println,
@@ -44,6 +45,31 @@ func (l *library) init() {
     l.Println = func(this interface{}, args ...interface{}) interface{} {
         fmt.Println(args...)
         return this
+    }
+
+    l.ToInt64 = func(this interface{}, args ...interface{}) interface{} {
+        switch value := args[0].(type) {
+        case script.Int64:
+            return value
+        case script.Float:
+            return script.Int64(value)
+        case script.Float64:
+            return script.Int64(value)
+        case script.Bool:
+            if value {
+                return script.Int64(1)
+            }
+            return script.Int64(0)
+        case script.String:
+            val, err := strconv.ParseInt(string(value), 10, 64)
+            if err != nil {
+                return script.Int64(0)
+            }
+
+            return script.Int64(val)
+        default:
+            return this
+        }
     }
 
     l.ToInt = func(this interface{}, args ...interface{}) interface{} {
@@ -76,7 +102,7 @@ func (l *library) init() {
     }
 
     l.ToFloat = func(this interface{}, args ...interface{}) interface{} {
-        return util.ToScriptFloat(this)
+        return util.ToScriptFloat(args[0])
     }
 
     l.SetPrototype = func(this interface{}, args ...interface{}) interface{} {

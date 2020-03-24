@@ -21,11 +21,19 @@ func NewReturn(owner interface{}) *Component {
 }
 
 func (impl *Component) Compile(f interface{}) *list.Element {
+    cur := f.(compiler.Function).GetInstructionList().Back()
+
     if impl.expression != nil {
-        impl.expression.(ast.Expression).Compile(f, compiler.NewRegisterOperand(&compiler.Register{Index: 0}))
+         impl.expression.(ast.Expression).Compile(f, compiler.NewRegisterOperand(&compiler.Register{Index: 0}))
     }
 
-    return f.(compiler.Function).AddInstructionABx(opcode.Ret, opcode.Flow, compiler.NewRegisterOperand(&compiler.Register{Index: 0}), compiler.NewIntOperand(0))
+    f.(compiler.Function).AddInstructionABx(opcode.Ret, opcode.Flow, compiler.NewRegisterOperand(&compiler.Register{Index: 0}), compiler.NewIntOperand(0))
+
+    if cur == nil {
+        return f.(compiler.Function).GetInstructionList().Front()
+    }
+
+    return cur.Next()
 }
 
 func (impl *Component) GetExpression() interface{} {

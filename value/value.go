@@ -90,7 +90,7 @@ func ToJsonString(value script.Value) string {
                 switch obj.Get().(type) {
                 case script.Function:
                 default:
-                    sb.WriteString(fmt.Sprintf("\"%v\":%v", name, ToJsonString(obj)))
+                    sb.WriteString(fmt.Sprintf("\"%v\":%v", *name, ToJsonString(obj)))
                     if i < len(names)-1 {
                         sb.WriteRune(',')
                     }

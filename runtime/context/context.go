@@ -6,6 +6,7 @@ import (
 	"unicode"
 
 	"tklibs/script/library/logger"
+	"tklibs/script/runtime/util"
 
 	"tklibs/script"
 	"tklibs/script/library"
@@ -223,9 +224,7 @@ func (impl *Component) Run() interface{} {
 		impl.initialized = true
 	}
 
-	ret := impl.functionComponent.Invoke(impl.GetOwner())
-	impl.registers[0].SetNull()
-	return ret
+	return impl.functionComponent.Invoke(impl.GetOwner())
 }
 
 func (impl *Component) RunWithAssembly(assembly interface{}) interface{} {
@@ -301,7 +300,7 @@ func NewScriptContext(owner, asm interface{}, stackSize int) *Component {
 	runtimeType := &struct {
 		*typeinfo.Component
 	}{}
-	runtimeType.Component = typeinfo.NewTypeComponent(runtimeType)
+	runtimeType.Component = typeinfo.NewTypeComponent(runtimeType, util.NewStringPool())
 	context.rootRuntimeType = runtimeType
 
 	context.Object = prototype.NewObjectPrototype(context)

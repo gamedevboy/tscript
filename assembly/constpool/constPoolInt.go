@@ -45,19 +45,19 @@ func (cp *Int) Insert(value interface{}) int {
 func (cp *Int) Write(writer *bufio.Writer) {
     binary.Write(writer, binary.LittleEndian, uint32(cp.pool.Len()))
     for it := cp.pool.Front(); it != nil; it = it.Next() {
-        binary.Write(writer, binary.LittleEndian, it.Value)
+        binary.Write(writer, binary.LittleEndian, int64(it.Value.(script.Int64)))
     }
 }
 
 func (cp *Int) Read(reader *bufio.Reader) {
-    var len uint32;
+    var len uint32
     binary.Read(reader, binary.LittleEndian, &len)
 
-    var value script.Int64
+    var value int64
 
     for len > 0 {
         len--
         binary.Read(reader, binary.LittleEndian, &value)
-        cp.pool.PushBack(value)
+        cp.pool.PushBack(script.Int64(value))
     }
 }

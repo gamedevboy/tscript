@@ -11,6 +11,7 @@ const (
     InterfaceTypeMap
     InterfaceTypeFunction
     InterfaceTypeObject
+    InterfaceTypeNull
 )
 
 type Interface struct {
