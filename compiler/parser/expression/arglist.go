@@ -60,7 +60,7 @@ func (impl *ArgListExpressionParserComponent) ParseArgList(a interface{}, tokenI
                     return tokenIt.Next()
                 }
             default:
-                return tokenIt.Next()
+                return tokenIt
             }
         }
     }

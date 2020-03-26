@@ -1406,9 +1406,16 @@ vm_loop:
 						}
 					case script.InterfaceTypeAny:
 						if pai.IsNull() {
-							panic(fmt.Errorf("can not call on 'null' value"))
+							panic(fmt.Errorf("Cannot call on 'null' value "))
 						}
-						callMethod := pai.GetObject().ScriptGet("()").Get()
+
+						cm := pai.Get().(script.Object).ScriptGet("()")
+
+						if cm.IsNull() {
+							panic(fmt.Errorf("Cannot find call operator in object "))
+						}
+
+						callMethod := cm.Get()
 						if callFunc, ok := callMethod.(script.Function); ok {
 							regStart := pb_.GetInt()
 							count := pc_.GetInt()
