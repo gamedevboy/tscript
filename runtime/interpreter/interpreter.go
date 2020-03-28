@@ -49,13 +49,13 @@ func (impl *Component) InvokeNew(function interface{}, args ...interface{}) inte
 		context.PushRegisters(0, _func.GetMaxRegisterCount()+len(_func.GetLocalVars())+len(_func.GetArguments())+2)
 		defer context.PopRegisters()
 		registers := context.GetRegisters()
+		defer registers[0].SetNull()
 		registers[1].Set(this)
 		for i := range _func.GetArguments() {
 			registers[2+i].Set(args[i])
 		}
 		impl.invoke(function.(script.Function))
 		ret := registers[0].Get()
-		registers[0].SetNull()
 		return ret
 	case runtime_t.NativeFunction:
 		return _func.NativeCall(this, args...)
@@ -75,13 +75,13 @@ func (impl *Component) InvokeFunction(function, this interface{}, args ...interf
 		context.PushRegisters(0, _func.GetMaxRegisterCount()+len(_func.GetLocalVars())+len(_func.GetArguments())+2)
 		defer context.PopRegisters()
 		registers := context.GetRegisters()
+		defer registers[0].SetNull()
 		registers[1].Set(this)
 		for i := range _func.GetArguments() {
 			registers[2+i].Set(args[i])
 		}
 		impl.invoke(function.(script.Function))
 		ret := registers[0].Get()
-		registers[0].SetNull()
 		return ret
 	case runtime_t.NativeFunction:
 		return _func.NativeCall(this, args...)
@@ -97,6 +97,20 @@ func (impl *Component) invoke(sf script.Function) {
 	context := impl.context
 	registers := context.GetRegisters()
 	registers[0].SetNull()
+
+	defer func() {
+		regPtr := uintptr(unsafe.Pointer(&registers[1]))
+
+		len := _func.GetMaxRegisterCount() +
+			len(_func.GetArguments()) +
+			len(_func.GetLocalVars()) +
+			2
+
+		for i := 1; i < len; i++ {
+			*(**interface{})(unsafe.Pointer(regPtr)) = nil
+			regPtr += uintptr(8)
+		}
+	}()
 
 	if _func.IsCaptureThis() {
 		registers[1] = sf.GetThis()
@@ -153,6 +167,7 @@ func (impl *Component) invoke(sf script.Function) {
 
 	if _func.IsScope() {
 		context.PushScope(scope.NewScope(nil, sf, registers[2:], registers[2+len(_func.GetArguments()):]))
+		defer freeScope(context)
 	}
 
 	var vb, vc script.Value
@@ -1488,23 +1503,10 @@ vm_loop:
 		il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
 		pc++
 	}
+}
 
-	// do clean up here
-	if _func.IsScope() {
-		scope.FreeScope(context.PopScope().(*scope.Component))
-	}
-
-	regPtr := uintptr(unsafe.Pointer(&registers[1]))
-
-	len := _func.GetMaxRegisterCount() +
-		len(_func.GetArguments()) +
-		len(_func.GetLocalVars()) +
-		2
-
-	for i := 1; i < len; i++ {
-		*(**interface{})(unsafe.Pointer(regPtr)) = nil
-		regPtr += uintptr(8)
-	}
+func freeScope(context runtime.ScriptContext) {
+	scope.FreeScope(context.PopScope().(*scope.Component))
 }
 
 func NewScriptInterpreter(owner, context interface{}) *Component {
