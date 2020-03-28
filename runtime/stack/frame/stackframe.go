@@ -25,6 +25,8 @@ var pool = sync.Pool{
 }
 
 func FreeStackFrame(c *Component) {
+    c.ComponentType = script.MakeComponentType(nil)
+    c.function = nil
     pool.Put(c)
 }
 

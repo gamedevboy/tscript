@@ -43,6 +43,11 @@ var pool = sync.Pool{New: func() interface{} {
 }}
 
 func FreeScope(c *Component) {
+    c.refListMap = nil
+    c.function = nil
+    c.argList = nil
+    c.localVarList = nil
+    c.ComponentType = script.MakeComponentType(nil)
     pool.Put(c)
 }
 
