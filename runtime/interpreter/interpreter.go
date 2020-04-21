@@ -2,7 +2,6 @@ package interpreter
 
 import (
 	"fmt"
-	"math"
 	"strings"
 	"unsafe"
 
@@ -10,7 +9,6 @@ import (
 	"tklibs/script/instruction"
 	"tklibs/script/opcode"
 	"tklibs/script/runtime"
-	"tklibs/script/runtime/native"
 	"tklibs/script/runtime/runtime_t"
 	"tklibs/script/runtime/scope"
 	"tklibs/script/runtime/stack/frame"
@@ -232,15 +230,7 @@ vm_loop:
 			pb_ = &vb
 		case opcode.None:
 			b := il.GetABm().B
-			if math.IsNaN(float64(b)) {
-				if il.GetABx().B == math.MaxInt32 {
-					vb.SetBool(true)
-				} else {
-					vb.SetBool(false)
-				}
-			} else {
-				vb.SetFloat(script.Float(b))
-			}
+			vb.SetFloat(script.Float(b))
 			pb_ = &vb
 		}
 
@@ -317,6 +307,12 @@ vm_loop:
 				pa_.SetInterface(f)
 			case opcode.LoadNil:
 				*pa_ = script.NullValue
+			case opcode.LoadBool:
+				if pb_.GetInt() > 0 {
+					pa_.SetBool(true)
+				} else {
+					pa_.SetBool(false)
+				}
 			}
 		case opcode.Math:
 			switch il.Code {
@@ -1353,7 +1349,7 @@ vm_loop:
 							}
 						}
 					default:
-						panic("")
+						panic(fmt.Errorf("Unknow object %v ", vb_))
 					}
 				default:
 					panic("")
@@ -1367,24 +1363,24 @@ vm_loop:
 			}
 		case opcode.Flow:
 			switch il.Code {
-			case opcode.Jump:
-				pc = int(pb_.GetInt())
-				ilPtr = ilStart + uintptr(pc*8)
+			case opcode.JumpTo:
+				ilPtr = ilStart + uintptr(int(pb_.GetInt())*8)
 				il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
 				continue
-			case opcode.JumpWhenFalse:
-				if !pa_.GetBool() {
-					pc = int(pb_.GetInt())
-					ilPtr = ilStart + uintptr(pc*8)
-					il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
-					continue
-				}
-			case opcode.JumpWhenTrue:
-				if pa_.GetBool() {
-					pc = int(pb_.GetInt())
-					ilPtr = ilStart + uintptr(pc*8)
-					il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
-					continue
+			case opcode.Jump:
+				pc := int(pb_.GetInt())
+				if pc > 0 {
+					if !pa_.GetBool() {
+						ilPtr = ilStart + uintptr(pc*8)
+						il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
+						continue
+					}
+				} else {
+					if pa_.GetBool() {
+						ilPtr = ilStart + uintptr(-pc*8)
+						il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
+						continue
+					}
 				}
 			case opcode.Call:
 				switch pa_.GetType() {
@@ -1396,6 +1392,9 @@ vm_loop:
 						callFunc := pai.GetFunction()
 						regStart := pb_.GetInt()
 						count := pc_.GetInt()
+						isNewCall := regStart&1 != 0
+						regStart = regStart >> 1
+
 						if callFunc.IsScriptFunction() {
 							runtimeFunc := callFunc.GetScriptRuntimeFunction()
 							registers = context.PushRegisters(regStart,
@@ -1403,19 +1402,27 @@ vm_loop:
 									len(runtimeFunc.GetArguments())+
 									len(runtimeFunc.GetLocalVars())+
 									2)
+							if isNewCall {
+								obj := context.NewScriptObject(0)
+								obj.(runtime.Object).SetPrototype(script.InterfaceToValue(callFunc))
+								registers[regStart+1].SetInterface(obj)
+							}
 							impl.invoke(callFunc)
 							context.PopRegisters()
 						} else {
 							impl.currentPC = pc
-							runtimeFunc := callFunc.GetNativeRuntimeFunction()
 							impl.currentRegisters = registers[:regStart]
 							args := registers[regStart+2 : regStart+2+count]
 							_frame := frame.NewStackFrame(nil, _func)
 							context.PushFrame(_frame)
 							context.PushRegisters(regStart, 1)
-							ret := script.Value{}
-							ret.Set(runtimeFunc.NativeCall(registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
-							registers[regStart] = ret
+							callFunc.GetNativeRuntimeFunction()
+							switch f := callFunc.(type) {
+							case runtime_t.NativeFunction:
+								registers[regStart].Set(f.NativeCall(registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
+							default:
+								panic("Invalid native function call")
+							}
 							context.PopRegisters()
 							frame.FreeStackFrame(context.PopFrame().(*frame.Component))
 						}
@@ -1447,49 +1454,10 @@ vm_loop:
 								impl.currentRegisters = registers[:regStart]
 								args := registers[regStart+2 : regStart+2+count]
 								context.PushRegisters(regStart, 1)
-								ret := script.Value{}
-								ret.Set(runtimeFunc.NativeCall(registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
-								registers[regStart] = ret
+								registers[regStart].Set(runtimeFunc.NativeCall(registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
 								context.PopRegisters()
 							}
 						}
-					}
-				default:
-					panic("")
-				}
-			case opcode.NewCall:
-				switch pa_.GetType() {
-				case script.ValueTypeInterface:
-					pai := pa_.Interface()
-
-					switch pai.GetType() {
-					case script.InterfaceTypeFunction:
-						callFunc := pai.GetFunction()
-						regStart := pb_.GetInt()
-						count := pc_.GetInt()
-						if callFunc.IsScriptFunction() {
-							rtFunc := callFunc.GetScriptRuntimeFunction()
-							registers = context.PushRegisters(regStart,
-								rtFunc.GetMaxRegisterCount()+
-									len(rtFunc.GetArguments())+
-									len(rtFunc.GetLocalVars())+2)
-							obj := context.NewScriptObject(0)
-							obj.(runtime.Object).SetPrototype(script.InterfaceToValue(callFunc))
-							registers[regStart+1].SetInterface(obj)
-							impl.invoke(pai.GetFunction())
-							registers[regStart].SetInterface(obj)
-							context.PopRegisters()
-						} else {
-							impl.currentPC = pc
-							impl.currentRegisters = registers[:regStart]
-							args := registers[regStart+2 : regStart+2+count]
-							context.PushRegisters(regStart, 1)
-							registers[regStart].SetInterface(callFunc.GetRuntimeFunction().(native.Type).New(value.ToInterfaceSlice(
-								args)...))
-							context.PopRegisters()
-						}
-					case script.InterfaceTypeAny:
-						panic("")
 					}
 				default:
 					panic("")

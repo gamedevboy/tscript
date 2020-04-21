@@ -26,7 +26,8 @@ func NewBreak(owner interface{}) *Component {
 func (*Component) Compile(f interface{}) *list.Element {
     _func := f.(compiler.Function)
     ret := _func.GetInstructionList().Back()
-    _func.GetBreakList().PushBack(_func.AddInstructionABx(opcode.Jump, opcode.Flow, compiler.NewSmallIntOperand(-1),
+
+    _func.GetBreakList().PushBack(_func.AddInstructionABx(opcode.JumpTo, opcode.Flow, compiler.NewSmallIntOperand(-1),
         compiler.NewIntOperand(0)).Value)
 
     return ret

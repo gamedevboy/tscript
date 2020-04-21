@@ -6,7 +6,6 @@ import (
 
     "tklibs/script"
     "tklibs/script/compiler"
-    "tklibs/script/compiler/ast"
     "tklibs/script/opcode"
 )
 
@@ -107,11 +106,9 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
             }
         }
         if value {
-            _func.AddInstructionABm(opcode.Move, opcode.Memory, r, compiler.NewFloatOperand(0)).Value.(*ast.Instruction).GetABx().B = math.
-                MaxInt32
+            _func.AddInstructionABm(opcode.LoadBool, opcode.Const, r, compiler.NewIntOperand(1))
         } else {
-            _func.AddInstructionABm(opcode.Move, opcode.Memory, r, compiler.NewFloatOperand(0)).Value.(*ast.Instruction).GetABx().B = math.
-                MaxInt32 - 1
+            _func.AddInstructionABm(opcode.LoadBool, opcode.Const, r, compiler.NewIntOperand(0))
         }
     }
 

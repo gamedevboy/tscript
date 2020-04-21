@@ -7,7 +7,6 @@ import (
 
     "tklibs/script"
     "tklibs/script/runtime"
-    "tklibs/script/runtime/native"
     "tklibs/script/runtime/runtime_t"
     "tklibs/script/type/function"
     "tklibs/script/type/object"
@@ -17,6 +16,14 @@ import (
 type Array struct {
     *object.Component
     context interface{}
+}
+
+func (a *Array) NativeCall(_ interface{}, args ...interface{}) interface{} {
+    capSize := 0
+    if len(args) > 0 {
+        capSize = int(args[0].(script.Int))
+    }
+    return a.context.(runtime.ScriptContext).NewScriptArray(capSize)
 }
 
 func (a *Array) GetContext() interface{} {
@@ -65,16 +72,8 @@ func (a *Array) GetFieldByMemberIndex(obj interface{}, index script.Int) script.
 func (a *Array) SetFieldByMemberIndex(obj interface{}, index script.Int, value script.Value) {
 }
 
-func (a *Array) New(args ...interface{}) interface{} {
-    capSize := 0
-    if len(args) > 0 {
-        capSize = int(args[0].(script.Int))
-    }
-    return a.context.(runtime.ScriptContext).NewScriptArray(capSize)
-}
-
 var _ script.Function = &Array{}
-var _ native.Type = &Array{}
+var _ runtime_t.NativeFunction = &Array{}
 
 func NewArrayPrototype(ctx interface{}) *Array {
     obj := &Array{

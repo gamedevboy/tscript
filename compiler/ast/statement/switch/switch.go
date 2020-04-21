@@ -68,10 +68,11 @@ func (impl *Component) Compile(f interface{}) *list.Element {
         v := it.Value.(statement.Case).GetValue().(ast.Expression).Compile(f, nil)
         r := compiler.NewRegisterOperand(_func.AllocRegister(""))
         _func.AddInstructionABC(opcode.NotEqual, opcode.Logic, r, target, v)
-        jmpList[index] = _func.AddInstructionABx(opcode.JumpWhenFalse, opcode.Flow, r, compiler.NewIntOperand(0))
+        jmpList[index] = _func.AddInstructionABx(opcode.Jump, opcode.Flow, r, compiler.NewIntOperand(0))
         index++
     }
-    jmpList[index] = _func.AddInstructionABx(opcode.Jump, opcode.Flow, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(0))
+
+    jmpList[index] = _func.AddInstructionABx(opcode.JumpTo, opcode.Flow, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(0))
 
     index = 0
     for it := impl.caseList.Front(); it != nil; it = it.Next() {

@@ -47,13 +47,19 @@ func makeExpression(expressionList *list.List, op *tokenTypeLevel, e interface{}
 		m := &struct {
 			*member.Component
 		}{}
-		m.Component = member.NewMember(m, e, cur)
+		m.Component = member.NewMember(m, e, cur, false)
+		expressionList.PushBack(m)
+	case token.TokenTypeOptPERIOD:
+		m := &struct {
+			*member.Component
+		}{}
+		m.Component = member.NewMember(m, e, cur, true)
 		expressionList.PushBack(m)
 	case token.TokenTypeLPAREN:
 		c := &struct {
 			*call.Component
 		}{}
-		c.Component = call.NewCall(c, e, cur)
+		c.Component = call.NewCall(c, e, cur, false)
 		expressionList.PushBack(c)
 	case token.TokenTypeSUB,
 		token.TokenTypeLNOT:
@@ -168,7 +174,7 @@ parseLoop:
 				m := &struct {
 					*member.Component
 				}{}
-				m.Component = member.NewMember(m, e, field)
+				m.Component = member.NewMember(m, e, field, false)
 				currentExpression, tokenIt = m, next
 			} else {
 				a := &struct {
@@ -224,7 +230,16 @@ parseLoop:
 						m := &struct {
 							*member.Component
 						}{}
-						m.Component = member.NewMember(m, expressionList.Front().Value, t.GetValue())
+						m.Component = member.NewMember(m, expressionList.Front().Value, t.GetValue(), false)
+						opList.Remove(opList.Front())
+						expressionList.Remove(expressionList.Front())
+
+						currentExpression, tokenIt = m, tokenIt.Next()
+					case token.TokenTypeOptPERIOD:
+						m := &struct {
+							*member.Component
+						}{}
+						m.Component = member.NewMember(m, expressionList.Front().Value, t.GetValue(), true)
 						opList.Remove(opList.Front())
 						expressionList.Remove(expressionList.Front())
 
@@ -233,14 +248,14 @@ parseLoop:
 						m := &struct {
 							*member.Component
 						}{}
-						m.Component = member.NewMember(m, nil, t.GetValue())
+						m.Component = member.NewMember(m, nil, t.GetValue(), false)
 						currentExpression, tokenIt = m, tokenIt.Next()
 					}
 				} else {
 					m := &struct {
 						*member.Component
 					}{}
-					m.Component = member.NewMember(m, nil, t.GetValue())
+					m.Component = member.NewMember(m, nil, t.GetValue(), false)
 					currentExpression, tokenIt = m, tokenIt.Next()
 				}
 			}
@@ -325,49 +340,49 @@ parseLoop:
 			}
 		case token.TokenTypePERIOD: // .
 			currentOp, tokenIt = &tokenTypeLevel{token.TokenTypePERIOD, token.TokenTypePERIOD}, tokenIt.Next()
+		case token.TokenTypeOptPERIOD: // ?.
+			currentOp, tokenIt = &tokenTypeLevel{token.TokenTypeOptPERIOD, token.TokenTypePERIOD}, tokenIt.Next()
 		case token.TokenTypeLPAREN: // (
 			if opList.Len() < expressionList.Len() {
-				// it's a call expression
-				a := &struct {
-					*arglist.Component
-				}{}
-				a.Component = arglist.NewArgList(a)
-				argList, end := a, p.GetOwner().(parser.ArgListParser).ParseArgList(a, tokenIt.Next())
-
-				c := &struct {
-					*call.Component
-				}{}
-				c.Component = call.NewCall(c, expressionList.Front().Value, argList)
-				expressionList.Remove(expressionList.Front())
-
-				currentExpression, tokenIt = c, end
+				tokenIt, currentExpression = makeCall(tokenIt, p, expressionList, false)
 			} else {
-				// check for lambda function
-				it := tokenIt
-				count := 0
-			parenLoop:
-				for ; it != nil; it = it.Next() { // scan token list until ')'
-					switch it.Value.(token.Token).GetType() {
-					case token.TokenTypeLPAREN:
-						count++
-					case token.TokenTypeRPAREN:
-						count--
+				var prev *tokenTypeLevel
 
-						if count == 0 {
-							break parenLoop
-						}
-					}
+				if opList.Len() > 0 {
+					prev = opList.Front().Value.(*tokenTypeLevel)
 				}
 
-				// check the next symbol '=>'
-				if it != nil && it.Next() != nil && it.Next().Value.(token.Token).GetType() == token.TokenTypeLAMBDA {
-					f := &struct {
-						*function2.Component
-					}{}
-					f.Component = function2.NewFunction(f)
-					currentExpression, tokenIt = f, p.GetOwner().(parser.FunctionParser).ParseFunction(f, tokenIt)
+				if prev != nil && prev.tokenType == token.TokenTypeOptPERIOD {
+					opList.Remove(opList.Front())
+					tokenIt, currentExpression = makeCall(tokenIt, p, expressionList, true)
 				} else {
-					currentExpression, tokenIt = p.ParseExpression(tokenIt.Next())
+					// check for lambda function
+					it := tokenIt
+					count := 0
+				parenLoop:
+					for ; it != nil; it = it.Next() { // scan token list until ')'
+						switch it.Value.(token.Token).GetType() {
+						case token.TokenTypeLPAREN:
+							count++
+						case token.TokenTypeRPAREN:
+							count--
+
+							if count == 0 {
+								break parenLoop
+							}
+						}
+					}
+
+					// check the next symbol '=>'
+					if it != nil && it.Next() != nil && it.Next().Value.(token.Token).GetType() == token.TokenTypeLAMBDA {
+						f := &struct {
+							*function2.Component
+						}{}
+						f.Component = function2.NewFunction(f)
+						currentExpression, tokenIt = f, p.GetOwner().(parser.FunctionParser).ParseFunction(f, tokenIt)
+					} else {
+						currentExpression, tokenIt = p.ParseExpression(tokenIt.Next())
+					}
 				}
 			}
 		default:
@@ -384,6 +399,22 @@ parseLoop:
 	}
 
 	return getExpression(opList, expressionList), tokenIt
+}
+
+func makeCall(tokenIt *list.Element, p *ExpressionParserComponent, expressionList *list.List, option bool) (*list.Element, *struct{ *call.Component }) {
+	// it's a call expression
+	a := &struct {
+		*arglist.Component
+	}{}
+	a.Component = arglist.NewArgList(a)
+	argList, end := a, p.GetOwner().(parser.ArgListParser).ParseArgList(a, tokenIt.Next())
+
+	c := &struct {
+		*call.Component
+	}{}
+	c.Component = call.NewCall(c, expressionList.Front().Value, argList, option)
+	expressionList.Remove(expressionList.Front())
+	return end, c
 }
 
 func makeNewCall(exp interface{}) bool {

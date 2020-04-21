@@ -37,6 +37,5 @@ func init() {
     null.scriptNull = &scriptNull{script.MakeComponentType(null)}
 
     script.Null = null
-
     script.NullValue.SetInterface(null)
 }

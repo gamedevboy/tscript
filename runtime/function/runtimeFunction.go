@@ -2,7 +2,6 @@ package function
 
 import (
 	"fmt"
-	"math"
 	"strings"
 	"sync"
 	"unsafe"
@@ -148,16 +147,7 @@ func (impl *Component) DumpString() string {
 			case opcode.Integer:
 				rb = fmt.Sprintf("%v", il.GetABx().B)
 			case opcode.None:
-				if math.IsNaN(float64(il.GetABm().B)) {
-					if il.GetABx().B == math.MaxInt32 {
-						rb = "true"
-					} else {
-						rb = "false"
-					}
-				} else {
-					rb = fmt.Sprintf("%v", il.GetABm().B)
-				}
-
+				rb = fmt.Sprintf("%v", il.GetABm().B)
 			}
 		} else {
 			switch tb {
@@ -245,13 +235,13 @@ func (impl *Component) DumpString() string {
 			switch il.Code {
 			case opcode.Call:
 				instStr = fmt.Sprintf("CALL \t%v, \t%v, \t%v", ra, rb, rc)
-			case opcode.NewCall:
-				instStr = fmt.Sprintf("NCALL \t%v, \t%v, \t%v", ra, rb, rc)
-			case opcode.JumpWhenFalse:
-				instStr = fmt.Sprintf("JEZ \t%v, \t%v", ra, rb)
-			case opcode.JumpWhenTrue:
-				instStr = fmt.Sprintf("JNZ \t%v, \t%v", ra, rb)
 			case opcode.Jump:
+				if il.GetABx().B > 0 {
+					instStr = fmt.Sprintf("JEZ \t%v, \t%v", ra, il.GetABx().B)
+				} else {
+					instStr = fmt.Sprintf("JNZ \t%v, \t%v", ra, -il.GetABx().B)
+				}
+			case opcode.JumpTo:
 				instStr = fmt.Sprintf("JMP \t%v", rb)
 			case opcode.Ret:
 				instStr = "RET"

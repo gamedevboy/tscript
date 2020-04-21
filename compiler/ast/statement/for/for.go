@@ -79,15 +79,15 @@ func (impl *Component) Compile(f interface{}) *list.Element {
 
                 next := it.Next().Next()
                 if next != nil && next.Value.(bool) {
-                    jumpList.PushBack(_func.AddInstructionABx(opcode.JumpWhenFalse, opcode.Flow, r,
+                    jumpList.PushBack(_func.AddInstructionABx(opcode.Jump, opcode.Flow, r,
                         compiler.NewIntOperand(0)))
                 }
             } else {
-                skipJumpList.PushBack(_func.AddInstructionABx(opcode.JumpWhenTrue, opcode.Flow, r,
+                skipJumpList.PushBack(_func.AddInstructionABx(opcode.Jump, opcode.Flow, r,
                     compiler.NewIntOperand(0)))
                 next := it.Next().Value.(ast.Expression).Compile(f, nil)
                 _func.AddInstructionABC(opcode.LogicOr, opcode.Logic, r, r, next)
-                jumpList.PushBack(_func.AddInstructionABx(opcode.JumpWhenFalse, opcode.Flow, r,
+                jumpList.PushBack(_func.AddInstructionABx(opcode.Jump, opcode.Flow, r,
                     compiler.NewIntOperand(0)))
             }
 
@@ -107,12 +107,12 @@ func (impl *Component) Compile(f interface{}) *list.Element {
         start = _func.GetInstructionList().Front()
     }
 
-    jmp := _func.AddInstructionABx(opcode.JumpWhenFalse, opcode.Flow, r, compiler.NewIntOperand(0))
+    jmp := _func.AddInstructionABx(opcode.Jump, opcode.Flow, r, compiler.NewIntOperand(0))
 
     bodyStart := impl.body.(ast.Statement).Compile(f)
 
     for it := skipJumpList.Front(); it != nil; it= it.Next() {
-        it.Value.(*list.Element).Value.(*ast.Instruction).GetABx().B = bodyStart.Value.(*ast.Instruction).Index
+        it.Value.(*list.Element).Value.(*ast.Instruction).GetABx().B = -bodyStart.Value.(*ast.Instruction).Index
     }
 
     continuePos := -1
@@ -124,7 +124,7 @@ func (impl *Component) Compile(f interface{}) *list.Element {
 
     startPos := start.Value.(*ast.Instruction).Index
 
-    _func.AddInstructionABx(opcode.Jump, opcode.Flow, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(script.Int(startPos)))
+    _func.AddInstructionABx(opcode.JumpTo, opcode.Flow, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(script.Int(startPos)))
 
     end := _func.AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(0))
 

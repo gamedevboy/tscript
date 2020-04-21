@@ -3,7 +3,6 @@ package prototype
 import (
     "tklibs/script"
     "tklibs/script/runtime"
-    "tklibs/script/runtime/native"
     "tklibs/script/runtime/runtime_t"
     "tklibs/script/type/function"
     "tklibs/script/type/object"
@@ -12,6 +11,14 @@ import (
 type Map struct {
     *object.Component
     context interface{}
+}
+
+func (impl *Map) NativeCall(_ interface{}, args ...interface{}) interface{} {
+    capSize := 0
+    if len(args) > 0 {
+        capSize = int(args[0].(script.Int))
+    }
+    return impl.context.(runtime.ScriptContext).NewScriptMap(capSize)
 }
 
 func (impl *Map) GetContext() interface{} {
@@ -59,16 +66,8 @@ func (impl *Map) GetFieldByMemberIndex(obj interface{}, index script.Int) script
 func (impl *Map) SetFieldByMemberIndex(obj interface{}, index script.Int, value script.Value) {
 }
 
-var _ native.Type = &Map{}
+var _ runtime_t.NativeFunction = &Map{}
 var _ script.Function = &Map{}
-
-func (impl *Map) New(args ...interface{}) interface{} {
-    capSize := 0
-    if len(args) > 0 {
-        capSize = int(args[0].(script.Int))
-    }
-    return impl.context.(runtime.ScriptContext).NewScriptMap(capSize)
-}
 
 func NewMapPrototype(ctx interface{}) *Map {
     obj := &Map{

@@ -70,7 +70,7 @@ func (impl *ClassExpressionParserComponent) ParseClass(c interface{}, tokenIt *l
         m := &struct {
             *member.Component
         }{}
-        m.Component = member.NewMember(m, nil, parentName)
+        m.Component = member.NewMember(m, nil, parentName, false)
         c.(expression.Class).SetParent(m)
 
         tokenIt = tokenIt.Next()

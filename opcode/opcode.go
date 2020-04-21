@@ -50,6 +50,7 @@ const (
     Load uint8 = iota
     LoadFunc
     LoadNil
+    LoadBool
 )
 
 // Math
@@ -89,10 +90,8 @@ const (
 // Flow
 const (
     Jump uint8 = iota
-    JumpWhenFalse
-    JumpWhenTrue
+    JumpTo
     Call
-    NewCall
     Ret
 )
 

@@ -53,6 +53,7 @@ const (
     TokenTypeLBRACK     // [
     TokenTypeLBRACE     // {
     TokenTypePERIOD     // .
+    TokenTypeOptPERIOD  // ?.
     TokenTypeRPAREN     // )
     TokenTypeRBRACK     // ]
     TokenTypeRBRACE     // }

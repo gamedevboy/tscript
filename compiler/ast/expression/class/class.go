@@ -72,12 +72,12 @@ func (impl *Component) AddMethod(f interface{}) {
         c := &struct {
             *member.Component
         }{}
-        c.Component = member.NewMember(c, nil, "constructor")
+        c.Component = member.NewMember(c, nil, "constructor", false)
 
         m := &struct {
             *member.Component
         }{}
-        m.Component = member.NewMember(m, c, _f.GetName())
+        m.Component = member.NewMember(m, c, _f.GetName(), false)
 
         bin := &struct {
             *binary.Component
@@ -126,7 +126,7 @@ func (impl *Component) FinishMethod() {
     rv := &struct {
         *member.Component
     }{}
-    rv.Component = member.NewMember(rv, nil, "constructor")
+    rv.Component = member.NewMember(rv, nil, "constructor", false)
 
     r.SetExpression(rv)
 
@@ -135,7 +135,7 @@ func (impl *Component) FinishMethod() {
             *member.Component
         }{}
 
-        p.Component = member.NewMember(p, rv, "setPrototype")
+        p.Component = member.NewMember(p, rv, "setPrototype", false)
 
         a := &struct {
             *arglist.Component
@@ -146,7 +146,7 @@ func (impl *Component) FinishMethod() {
         c := &struct {
             *call.Component
         }{}
-        c.Component = call.NewCall(c, p, a)
+        c.Component = call.NewCall(c, p, a, false)
 
         es := &struct {
             *expression2.Component
@@ -175,7 +175,7 @@ func NewComponent(owner interface{}) *Component {
     ret := &Component{
         ComponentType: script.MakeComponentType(owner),
         function:      f,
-        callComponent: call.NewCall(owner, f, al),
+        callComponent: call.NewCall(owner, f, al, false),
     }
 
     return ret

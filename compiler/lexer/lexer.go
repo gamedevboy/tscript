@@ -444,6 +444,8 @@ scanLoop:
                 currentTokenType = token.TokenTypePERIOD
             case token.TokenTypeINT:
                 currentTokenType = token.TokenTypeFLOAT
+            case token.TokenTypeQUES:
+                currentTokenType = token.TokenTypeOptPERIOD
             case token.TokenTypePERIOD:
                 if i < length-1 && parseContent[i+1] == '.' {
                     currentTokenType = token.TokenTypeELLIPSIS
