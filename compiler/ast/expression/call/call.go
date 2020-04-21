@@ -1,6 +1,7 @@
 package call
 
 import (
+	"container/list"
 	"fmt"
 
 	"tklibs/script"
@@ -46,6 +47,27 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
 	_func := f.(compiler.Function)
 
 	rf := impl.expression.(ast.Expression).Compile(f, nil)
+
+	if impl.option {
+		rn := _func.AllocRegister("")
+		_func.AddInstructionABx(opcode.LoadNil, opcode.Const, compiler.NewRegisterOperand(rn), nil)
+		_func.AddInstructionABC(opcode.Equal, opcode.Logic, compiler.NewRegisterOperand(rn), rf, compiler.NewRegisterOperand(rn))
+		jump := _func.AddInstructionABx(opcode.Jump, opcode.Flow, compiler.NewRegisterOperand(rn), compiler.NewIntOperand(0))
+		end := call(f, r, _func, impl, argList, rf)
+		endJump := _func.AddInstructionABx(opcode.JumpTo, opcode.Flow, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(0))
+		nilEnd := _func.AddInstructionABx(opcode.LoadNil, opcode.Const, end, nil)
+		nop := _func.AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewSmallIntOperand(-1), compiler.NewIntOperand(0))
+
+		jump.Value.(*ast.Instruction).GetABx().B = -nilEnd.Value.(*ast.Instruction).Index
+		endJump.Value.(*ast.Instruction).GetABx().B = nop.Value.(*ast.Instruction).Index
+
+		return end
+	} else {
+		return call(f, r, _func, impl, argList, rf)
+	}
+}
+
+func call(f interface{}, r *compiler.Operand, _func compiler.Function, impl *Component, argList *list.List, rf *compiler.Operand) *compiler.Operand {
 	regCount := _func.GetRegisterCount()
 
 	_ = _func.AllocRegister("")                                  // reverse for return value

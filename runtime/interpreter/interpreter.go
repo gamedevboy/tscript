@@ -240,7 +240,17 @@ vm_loop:
 			case opcode.Move:
 				*pa_ = *pb_
 			case opcode.LoadField:
-				*pa_ = sf.GetFieldByMemberIndex(pb_.Get(), pc_.GetInt())
+				index := pc_.GetInt()
+				obj := pb_.Get()
+				if index > 0 {
+					*pa_ = sf.GetFieldByMemberIndex(obj, index)
+				} else {
+					if obj != nil && obj != script.Null {
+						*pa_ = sf.GetFieldByMemberIndex(obj, index)
+					} else {
+						*pa_ = script.NullValue
+					}
+				}
 			case opcode.StoreField:
 				sf.SetFieldByMemberIndex(pa_.Get(), pb_.GetInt(), *pc_)
 			case opcode.LoadElement:
@@ -1416,12 +1426,17 @@ vm_loop:
 							_frame := frame.NewStackFrame(nil, _func)
 							context.PushFrame(_frame)
 							context.PushRegisters(regStart, 1)
-							callFunc.GetNativeRuntimeFunction()
+
 							switch f := callFunc.(type) {
 							case runtime_t.NativeFunction:
 								registers[regStart].Set(f.NativeCall(registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
 							default:
-								panic("Invalid native function call")
+								fc := callFunc.GetNativeRuntimeFunction()
+								if fc != nil {
+									registers[regStart].Set(fc.NativeCall(registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
+								} else {
+									panic("Invalid native function call")
+								}
 							}
 							context.PopRegisters()
 							frame.FreeStackFrame(context.PopFrame().(*frame.Component))
