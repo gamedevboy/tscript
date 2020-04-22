@@ -77,6 +77,7 @@ const (
     LogicAnd
     LogicOr
     LogicNot
+    LogicNull
 )
 
 // Bit

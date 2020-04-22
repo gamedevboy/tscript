@@ -296,6 +296,7 @@ parseLoop:
 
 			currentExpression, tokenIt = u, tokenIt.Next()
 		case
+			token.TokenTypeNULLISH,
 			token.TokenTypeAND,
 			token.TokenTypeANDASSIGN,
 			token.TokenTypeOR,

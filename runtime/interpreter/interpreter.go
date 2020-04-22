@@ -1370,6 +1370,12 @@ vm_loop:
 				pa_.SetBool(pb_.GetBool() && pc_.GetBool())
 			case opcode.LogicOr:
 				pa_.SetBool(pb_.GetBool() || pc_.GetBool())
+			case opcode.LogicNull:
+				if pb_.IsNull() {
+					*pa_ = *pc_
+				} else {
+					*pa_ = *pb_
+				}
 			}
 		case opcode.Flow:
 			switch il.Code {

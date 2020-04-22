@@ -144,12 +144,15 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
         case token.TokenTypeNEQ:
             rr := impl.right.(ast.Expression).Compile(f, nil)
             _func.AddInstructionABC(opcode.NotEqual, opcode.Logic, r, lr, rr)
-        case token.TokenTypeLAND: //todo
+        case token.TokenTypeLAND:
             rr := impl.right.(ast.Expression).Compile(f, nil)
             _func.AddInstructionABC(opcode.LogicAnd, opcode.Logic, r, lr, rr)
-        case token.TokenTypeLOR: //todo
+        case token.TokenTypeLOR:
             rr := impl.right.(ast.Expression).Compile(f, nil)
             _func.AddInstructionABC(opcode.LogicOr, opcode.Logic, r, lr, rr)
+        case token.TokenTypeNULLISH:
+            rr := impl.right.(ast.Expression).Compile(f, nil)
+            _func.AddInstructionABC(opcode.LogicNull, opcode.Logic, r, lr, rr)
         }
 
         if impl.opType.WithAssign() {

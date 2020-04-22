@@ -54,6 +54,7 @@ const (
     TokenTypeLBRACE     // {
     TokenTypePERIOD     // .
     TokenTypeOptPERIOD  // ?.
+    TokenTypeNULLISH    // ??
     TokenTypeRPAREN     // )
     TokenTypeRBRACK     // ]
     TokenTypeRBRACE     // }
