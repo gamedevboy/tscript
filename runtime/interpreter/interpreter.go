@@ -300,6 +300,8 @@ vm_loop:
 					pa_.SetFloat64(assembly.(script.Assembly).GetFloatConstPool().Get(int(index)).(script.Float64))
 				case opcode.ConstString:
 					pa_.SetInterface(script.String(assembly.(script.Assembly).GetStringConstPool().Get(int(index)).(string)))
+				case opcode.ConstBool:
+					pa_.SetBool(index != 0)
 				}
 			case opcode.LoadFunc:
 				metaIndex := pb_.GetInt()
@@ -317,13 +319,6 @@ vm_loop:
 				pa_.SetInterface(f)
 			case opcode.LoadNil:
 				*pa_ = script.NullValue
-			case opcode.LoadBool:
-				x := pb_.GetInt()
-				if x > 0 {
-					pa_.SetBool(true)
-				} else {
-					pa_.SetBool(false)
-				}
 			}
 		case opcode.Math:
 			switch il.Code {

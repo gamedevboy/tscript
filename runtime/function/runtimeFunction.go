@@ -190,8 +190,6 @@ func (impl *Component) DumpString() string {
 				instStr = fmt.Sprintf("LDNIL \t%v", ra)
 			case opcode.LoadFunc:
 				instStr = fmt.Sprintf("LDFN \t%v, \t%v", ra, rb)
-			case opcode.LoadBool:
-				instStr = fmt.Sprintf("LDBOOL \t%v, \t%v", ra, rb)
 			}
 		case opcode.Math:
 			switch il.Code {

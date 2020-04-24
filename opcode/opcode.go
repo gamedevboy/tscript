@@ -50,7 +50,6 @@ const (
     Load uint8 = iota
     LoadFunc
     LoadNil
-    LoadBool
 )
 
 // Math
@@ -101,4 +100,5 @@ const (
     ConstInt64 int = iota
     ConstFloat64
     ConstString
+    ConstBool
 )
