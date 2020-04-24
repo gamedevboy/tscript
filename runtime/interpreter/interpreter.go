@@ -242,11 +242,11 @@ vm_loop:
 			case opcode.LoadField:
 				index := pc_.GetInt()
 				obj := pb_.Get()
-				if index > 0 {
+				if index > -1 {
 					*pa_ = sf.GetFieldByMemberIndex(obj, index)
 				} else {
 					if obj != nil && obj != script.Null {
-						*pa_ = sf.GetFieldByMemberIndex(obj, index)
+						*pa_ = sf.GetFieldByMemberIndex(obj, -index-1)
 					} else {
 						*pa_ = script.NullValue
 					}
@@ -1380,20 +1380,23 @@ vm_loop:
 		case opcode.Flow:
 			switch il.Code {
 			case opcode.JumpTo:
-				ilPtr = ilStart + uintptr(int(pb_.GetInt())*8)
+				pc = int(pb_.GetInt())
+				ilPtr = ilStart + uintptr(int(pc)*8)
 				il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
 				continue
 			case opcode.Jump:
-				pc := int(pb_.GetInt())
-				if pc > 0 {
+				p := int(pb_.GetInt())
+				if p > 0 {
 					if !pa_.GetBool() {
+						pc = p
 						ilPtr = ilStart + uintptr(pc*8)
 						il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
 						continue
 					}
 				} else {
 					if pa_.GetBool() {
-						ilPtr = ilStart + uintptr(-pc*8)
+						pc = -p
+						ilPtr = ilStart + uintptr(pc*8)
 						il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
 						continue
 					}
@@ -1418,12 +1421,21 @@ vm_loop:
 									len(runtimeFunc.GetArguments())+
 									len(runtimeFunc.GetLocalVars())+
 									2)
+
+							var newObj interface{}
+
 							if isNewCall {
-								obj := context.NewScriptObject(0)
-								obj.(runtime.Object).SetPrototype(script.InterfaceToValue(callFunc))
-								registers[regStart+1].SetInterface(obj)
+								newObj = context.NewScriptObject(0)
+								newObj.(runtime.Object).SetPrototype(script.InterfaceToValue(callFunc))
+								registers[regStart+1].SetInterface(newObj)
+
 							}
 							impl.invoke(callFunc)
+
+							if isNewCall {
+								registers[regStart].SetInterface(newObj)
+							}
+
 							context.PopRegisters()
 						} else {
 							impl.currentPC = pc

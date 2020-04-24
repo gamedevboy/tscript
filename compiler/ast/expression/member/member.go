@@ -111,7 +111,7 @@ func (impl *Component) compileLoad(_func compiler.Function, varName string, r *c
 		memberList.PushBack(varName)
 	}
 	if impl.option {
-		_func.AddInstructionABC(opcode.LoadField, opcode.Memory, r, lr, compiler.NewSmallIntOperand(-int16(index)))
+		_func.AddInstructionABC(opcode.LoadField, opcode.Memory, r, lr, compiler.NewSmallIntOperand(-(int16(index) + 1)))
 	} else {
 		_func.AddInstructionABC(opcode.LoadField, opcode.Memory, r, lr, compiler.NewSmallIntOperand(int16(index)))
 	}

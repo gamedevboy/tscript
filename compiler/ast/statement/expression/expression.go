@@ -37,8 +37,8 @@ func (impl *Component) Compile(f interface{}) *list.Element {
     if impl.expression != nil {
         impl.expression.(ast.Expression).Compile(f, nil)
     } else {
-        return f.(compiler.Function).AddInstructionABC(opcode.None, opcode.None, compiler.NewSmallIntOperand(0),
-            compiler.NewSmallIntOperand(0), compiler.NewSmallIntOperand(0))
+        return f.(compiler.Function).AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewSmallIntOperand(-1),
+            compiler.NewIntOperand(0))
     }
 
     if cur == nil {
