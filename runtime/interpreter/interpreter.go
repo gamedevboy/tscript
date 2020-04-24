@@ -318,7 +318,8 @@ vm_loop:
 			case opcode.LoadNil:
 				*pa_ = script.NullValue
 			case opcode.LoadBool:
-				if pb_.GetInt() > 0 {
+				x := pb_.GetInt()
+				if x > 0 {
 					pa_.SetBool(true)
 				} else {
 					pa_.SetBool(false)

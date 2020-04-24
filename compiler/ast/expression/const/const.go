@@ -106,9 +106,9 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
             }
         }
         if value {
-            _func.AddInstructionABm(opcode.LoadBool, opcode.Const, r, compiler.NewIntOperand(1))
+            _func.AddInstructionABx(opcode.LoadBool, opcode.Const, r, compiler.NewIntOperand(1))
         } else {
-            _func.AddInstructionABm(opcode.LoadBool, opcode.Const, r, compiler.NewIntOperand(0))
+            _func.AddInstructionABx(opcode.LoadBool, opcode.Const, r, compiler.NewIntOperand(0))
         }
     }
 
