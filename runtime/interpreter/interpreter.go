@@ -252,7 +252,15 @@ vm_loop:
 					}
 				}
 			case opcode.StoreField:
-				sf.SetFieldByMemberIndex(pa_.Get(), pb_.GetInt(), *pc_)
+				index := pb_.GetInt()
+				target := pa_.Get()
+				if index > -1 {
+					sf.SetFieldByMemberIndex(target, index, *pc_)
+				} else {
+					if target != nil && target != script.Null {
+						sf.SetFieldByMemberIndex(target, -index-1, *pc_)
+					}
+				}
 			case opcode.LoadElement:
 				switch pb_.GetType() {
 				case script.ValueTypeInterface:

@@ -16,6 +16,12 @@ type Component struct {
 	option      bool
 }
 
+func (impl *Component) WithOption() bool {
+	return impl.option
+}
+
+var _ expression.Member = &Component{}
+
 func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Operand {
 	_func := f.(compiler.Function)
 
