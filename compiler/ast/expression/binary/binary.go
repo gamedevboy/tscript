@@ -132,6 +132,12 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
 		case token.TokenTypeREM, token.TokenTypeREMASSIGN:
 			rr := impl.right.(ast.Expression).Compile(f, nil)
 			_func.AddInstructionABC(opcode.Rem, opcode.Math, r, lr, rr)
+		case token.TokenTypeOR, token.TokenTypeORASSIGN:
+			rr := impl.right.(ast.Expression).Compile(f, nil)
+			_func.AddInstructionABC(opcode.Or, opcode.Bit, r, lr, rr)
+		case token.TokenTypeAND, token.TokenTypeANDASSIGN:
+			rr := impl.right.(ast.Expression).Compile(f, nil)
+			_func.AddInstructionABC(opcode.And, opcode.Bit, r, lr, rr)
 		case token.TokenTypeLESS:
 			rr := impl.right.(ast.Expression).Compile(f, nil)
 			_func.AddInstructionABC(opcode.Less, opcode.Logic, r, lr, rr)
@@ -150,6 +156,8 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
 		case token.TokenTypeNEQ:
 			rr := impl.right.(ast.Expression).Compile(f, nil)
 			_func.AddInstructionABC(opcode.NotEqual, opcode.Logic, r, lr, rr)
+
+
 		case token.TokenTypeLAND:
 			rr := impl.right.(ast.Expression).Compile(f, nil)
 			_func.AddInstructionABC(opcode.LogicAnd, opcode.Logic, r, lr, rr)

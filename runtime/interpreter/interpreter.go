@@ -1502,6 +1502,99 @@ vm_loop:
 			case opcode.Ret:
 				break vm_loop
 			}
+		case opcode.Bit:
+			switch il.Code {
+			case opcode.Or:
+				switch pb_.GetType() {
+				case script.ValueTypeInt:
+					switch pc_.GetType() {
+					case script.ValueTypeInt:
+						pa_.SetInt(pb_.GetInt() | pc_.GetInt())
+					case script.ValueTypeInterface:
+						switch vc_ := pc_.GetInterface().(type) {
+						case script.Int64:
+							pa_.SetInt64(script.Int64(pb_.GetInt()) | vc_)
+						default:
+							panic("not support |")
+						}
+					default:
+						panic("not support |")
+					}
+				case script.ValueTypeBool:
+					switch pc_.GetType() {
+					case script.ValueTypeBool:
+						pa_.SetBool(pb_.GetBool() || pc_.GetBool())
+					default:
+						panic("not support |")
+					}
+				case script.ValueTypeInterface:
+					switch vb_ := pb_.GetInterface().(type) {
+					case script.Int64:
+						switch pc_.GetType() {
+						case script.ValueTypeInterface:
+							switch vc_ := pc_.GetInterface().(type) {
+							case script.Int64:
+								pa_.SetInt64(vb_ | vc_)
+							default:
+								panic("not support |")
+							}
+						case script.ValueTypeInt:
+							pa_.SetInt64(vb_ | script.Int64(pc_.GetInt()))
+						default:
+							panic("not support |")
+						}
+					default:
+						panic("not support |")
+					}
+				default:
+					panic(fmt.Errorf("Add can not support: %v: %v ", pb_.GetType(), pb_.Get()))
+				}
+			case opcode.And:
+				switch pb_.GetType() {
+				case script.ValueTypeInt:
+					switch pc_.GetType() {
+					case script.ValueTypeInt:
+						pa_.SetInt(pb_.GetInt() & pc_.GetInt())
+					case script.ValueTypeInterface:
+						switch vc_ := pc_.GetInterface().(type) {
+						case script.Int64:
+							pa_.SetInt64(script.Int64(pb_.GetInt()) & vc_)
+						default:
+							panic("not support |")
+						}
+					default:
+						panic("not support |")
+					}
+				case script.ValueTypeBool:
+					switch pc_.GetType() {
+					case script.ValueTypeBool:
+						pa_.SetBool(pb_.GetBool() && pc_.GetBool())
+					default:
+						panic("not support |")
+					}
+				case script.ValueTypeInterface:
+					switch vb_ := pb_.GetInterface().(type) {
+					case script.Int64:
+						switch pc_.GetType() {
+						case script.ValueTypeInterface:
+							switch vc_ := pc_.GetInterface().(type) {
+							case script.Int64:
+								pa_.SetInt64(vb_ & vc_)
+							default:
+								panic("not support |")
+							}
+						case script.ValueTypeInt:
+							pa_.SetInt64(vb_ & script.Int64(pc_.GetInt()))
+						default:
+							panic("not support |")
+						}
+					default:
+						panic("not support |")
+					}
+				default:
+					panic(fmt.Errorf("Add can not support: %v: %v ", pb_.GetType(), pb_.Get()))
+				}
+			}
 		}
 
 		ilPtr += uintptr(8)

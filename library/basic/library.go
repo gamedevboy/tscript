@@ -49,6 +49,8 @@ func (l *library) init() {
 
     l.ToInt64 = func(this interface{}, args ...interface{}) interface{} {
         switch value := args[0].(type) {
+        case script.Int:
+            return script.Int64(value)
         case script.Int64:
             return value
         case script.Float:
@@ -65,7 +67,6 @@ func (l *library) init() {
             if err != nil {
                 return script.Int64(0)
             }
-
             return script.Int64(val)
         default:
             return this
