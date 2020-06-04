@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"time"
 	"unsafe"
 )
 
@@ -59,6 +60,8 @@ func (value *Value) Set(v interface{}) Value {
 		value.SetFloat64(Float64(val))
 	case string:
 		value.SetInterface(String(val))
+	case time.Time:
+		value.SetInt64(Int64(val.UnixNano() / 1000000))
 	case Int:
 		value.SetInt(val)
 	case Float:

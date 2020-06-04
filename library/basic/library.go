@@ -77,6 +77,8 @@ func (l *library) init() {
         switch value := args[0].(type) {
         case script.Int:
             return value
+        case script.Int64:
+            return script.Int(value)
         case script.Float:
             return script.Int(value)
         case script.Float64:

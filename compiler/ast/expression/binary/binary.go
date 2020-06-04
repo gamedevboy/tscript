@@ -93,7 +93,8 @@ func (impl *Component) compileStoreByString(m expression.Member, _func compiler.
 func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Operand {
 	_func := f.(compiler.Function)
 
-	if impl.opType == token.TokenTypeASSIGN {
+	switch impl.opType {
+	case token.TokenTypeASSIGN:
 		switch right := impl.right.(type) {
 		case expression.Binary:
 			if impl.left.(expression.Member).GetLeft() != nil {
@@ -109,7 +110,18 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
 			impl.compileStore(f, impl.left, rr)
 			return rr
 		}
-	} else {
+	case token.TokenTypeNULLISH:
+		if r == nil {
+			r = compiler.NewRegisterOperand(_func.AllocRegister(""))
+		}
+
+		impl.left.(ast.Expression).Compile(f, r)
+		jmp := _func.AddInstructionABx(opcode.Jump, opcode.Flow, r, compiler.NewIntOperand(0))
+		impl.right.(ast.Expression).Compile(f, r)
+		end := f.(compiler.Function).AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewSmallIntOperand(-1),
+			compiler.NewIntOperand(0))
+		jmp.Value.(*ast.Instruction).GetABx().B = end.Value.(*ast.Instruction).Index
+	default:
 		lr := impl.left.(ast.Expression).Compile(f, nil)
 
 		if r == nil {
@@ -156,17 +168,12 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
 		case token.TokenTypeNEQ:
 			rr := impl.right.(ast.Expression).Compile(f, nil)
 			_func.AddInstructionABC(opcode.NotEqual, opcode.Logic, r, lr, rr)
-
-
 		case token.TokenTypeLAND:
 			rr := impl.right.(ast.Expression).Compile(f, nil)
 			_func.AddInstructionABC(opcode.LogicAnd, opcode.Logic, r, lr, rr)
 		case token.TokenTypeLOR:
 			rr := impl.right.(ast.Expression).Compile(f, nil)
 			_func.AddInstructionABC(opcode.LogicOr, opcode.Logic, r, lr, rr)
-		case token.TokenTypeNULLISH:
-			rr := impl.right.(ast.Expression).Compile(f, nil)
-			_func.AddInstructionABC(opcode.LogicNull, opcode.Logic, r, lr, rr)
 		}
 
 		if impl.opType.WithAssign() {

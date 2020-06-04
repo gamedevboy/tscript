@@ -13,6 +13,7 @@ const (
     TokenTypeINT        // 12345
     TokenTypeFLOAT      // 123.45
     TokenTypeSTRING     // "abc"
+    TokenTypeNULLISH    // ??
     TokenTypeCOMMA      // ,
     TokenTypeELLIPSIS   // ...
     TokenTypeORASSIGN   // |=
@@ -54,7 +55,6 @@ const (
     TokenTypeLBRACE     // {
     TokenTypePERIOD     // .
     TokenTypeOptPERIOD  // ?.
-    TokenTypeNULLISH    // ??
     TokenTypeRPAREN     // )
     TokenTypeRBRACK     // ]
     TokenTypeRBRACE     // }
@@ -111,6 +111,8 @@ func (t TokenType) String() string {
         return "=" // =
     case TokenTypeQUES:
         return "?" // ?
+    case TokenTypeNULLISH: // ??
+        return "??"
     case TokenTypeLOR:
         return "||" // ||
     case TokenTypeLAND:

@@ -345,6 +345,12 @@ parseLoop:
 			currentOp, tokenIt = &tokenTypeLevel{token.TokenTypeOptPERIOD, token.TokenTypePERIOD}, tokenIt.Next()
 		case token.TokenTypeLPAREN: // (
 			if opList.Len() < expressionList.Len() {
+				prev := tokenIt.Prev()
+
+				if prev != nil && prev.Value.(token.Token).GetLine() != t.GetLine() {
+					break parseLoop
+				}
+
 				tokenIt, currentExpression = makeCall(tokenIt, p, expressionList, false)
 			} else {
 				var prev *tokenTypeLevel

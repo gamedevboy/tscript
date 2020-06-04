@@ -88,7 +88,7 @@ func (impl *Component) RemoveAt(index script.Int) script.Bool {
         return script.Bool(false)
     }
     impl.elements = append(impl.elements[:index], impl.elements[index+1:]...)
-    return script.Bool(true)
+    return true
 }
 
 func (impl *Component) Len() script.Int {

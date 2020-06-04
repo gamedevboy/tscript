@@ -407,7 +407,8 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet("+").GetFunction().Invoke(vb_, pb_.Get()))
+						f := vb_.ScriptGet("+").GetFunction()
+						pa_.Set(f.Invoke(vb_, pb_.Get()))
 					default:
 						panic("")
 					}
@@ -1374,12 +1375,6 @@ vm_loop:
 				pa_.SetBool(pb_.GetBool() && pc_.GetBool())
 			case opcode.LogicOr:
 				pa_.SetBool(pb_.GetBool() || pc_.GetBool())
-			case opcode.LogicNull:
-				if pb_.IsNull() {
-					*pa_ = *pc_
-				} else {
-					*pa_ = *pb_
-				}
 			}
 		case opcode.Flow:
 			switch il.Code {
@@ -1391,7 +1386,7 @@ vm_loop:
 			case opcode.Jump:
 				p := int(pb_.GetInt())
 				if p > 0 {
-					if !pa_.GetBool() {
+					if !script.Bool(pa_.IsNull()) && !pa_.GetBool() {
 						pc = p
 						ilPtr = ilStart + uintptr(pc*8)
 						il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
@@ -1432,8 +1427,8 @@ vm_loop:
 								newObj = context.NewScriptObject(0)
 								newObj.(runtime.Object).SetPrototype(script.InterfaceToValue(callFunc))
 								registers[regStart+1].SetInterface(newObj)
-
 							}
+
 							impl.invoke(callFunc)
 
 							if isNewCall {
