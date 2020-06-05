@@ -327,17 +327,20 @@ parseLoop:
 			token.TokenTypeREM,
 			token.TokenTypeREMASSIGN,
 			token.TokenTypeASSIGN:
-			if opList.Len() == expressionList.Len() {
+			if opList.Len() == expressionList.Len() && (tokenType == token.TokenTypeSUB || tokenType == token.TokenTypeLNOT) {
+				expressionList.PushFront(nil)
+				currentOp, tokenIt = &tokenTypeLevel{tokenType, token.TokenTypeCOLON}, tokenIt.Next()
+			} else {
 				switch tokenType {
-				case token.TokenTypeSUB,
-					token.TokenTypeLNOT:
-					expressionList.PushFront(nil)
-					currentOp, tokenIt = &tokenTypeLevel{tokenType, token.TokenTypeCOLON}, tokenIt.Next()
+				case token.TokenTypeMUL,
+					token.TokenTypeDIV:
+					currentOp, tokenIt = &tokenTypeLevel{tokenType, token.TokenTypeMUL}, tokenIt.Next()
+				case token.TokenTypeADD,
+					token.TokenTypeSUB:
+					currentOp, tokenIt = &tokenTypeLevel{tokenType, token.TokenTypeADD}, tokenIt.Next()
 				default:
 					currentOp, tokenIt = &tokenTypeLevel{tokenType, tokenType}, tokenIt.Next()
 				}
-			} else {
-				currentOp, tokenIt = &tokenTypeLevel{tokenType, tokenType}, tokenIt.Next()
 			}
 		case token.TokenTypePERIOD: // .
 			currentOp, tokenIt = &tokenTypeLevel{token.TokenTypePERIOD, token.TokenTypePERIOD}, tokenIt.Next()

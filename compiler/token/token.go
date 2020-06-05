@@ -40,12 +40,12 @@ const (
     TokenTypeLEQ        // <=
     TokenTypeLESS       // <
     TokenTypeSHL        // <<
-    TokenTypeSHR        // >>
-    TokenTypeADD        // +
+    TokenTypeSHR        // >
     TokenTypeSUB        // -
+    TokenTypeADD        // +
     TokenTypeREM        // %
-    TokenTypeMUL        // *
     TokenTypeDIV        // /
+    TokenTypeMUL        // *
     TokenTypeNOT        // ~
     TokenTypeLNOT       // !
     TokenTypeINC        // ++
