@@ -21,21 +21,25 @@ func ToScriptString(value interface{}) script.String {
 	case script.Float64:
 		return script.String(strconv.FormatFloat(float64(dest), 'f',-1, 64))
 	case script.Object:
-		funcValue := dest.ScriptGet("toString")
+		if dest.GetScriptTypeId() == script.ScriptTypeNull {
+			return "null"
+		} else {
+			funcValue := dest.ScriptGet("toString")
 
-		if funcValue.GetPointerType() == script.InterfaceTypeFunction {
-			_func := funcValue.GetFunction()
-			if _func != nil {
-				switch retValue := _func.Invoke(dest).(type) {
-				case script.String:
-					return retValue
-				default:
-					panic(fmt.Sprintf("Can not convert '%v'.toString() to String", value))
+			if funcValue.GetPointerType() == script.InterfaceTypeFunction {
+				_func := funcValue.GetFunction()
+				if _func != nil {
+					switch retValue := _func.Invoke(dest).(type) {
+					case script.String:
+						return retValue
+					default:
+						panic(fmt.Sprintf("Can not convert '%v'.toString() to String", value))
+					}
 				}
 			}
-		}
 
-		return ""
+			return script.String(fmt.Sprintln(dest))
+		}
 	default:
 		return script.String(fmt.Sprint(dest))
 	}

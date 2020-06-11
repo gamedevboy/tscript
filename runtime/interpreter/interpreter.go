@@ -410,7 +410,6 @@ vm_loop:
 						pa_.Set(context.GetStringPrototype().(script.Object).ScriptGet("+").GetFunction().Invoke(vb_, util.ToScriptString(pc_.Get())))
 					case script.Object:
 						fn := vb_.ScriptGet("+")
-
 						if fn.IsNull() || fn.GetPointerType() != script.InterfaceTypeFunction {
 							panic("Can't find '+' operator")
 						}
