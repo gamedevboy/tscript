@@ -25,6 +25,10 @@ type Component struct {
     defaultCase interface{}
 }
 
+func (impl *Component) String() string {
+    panic("implement me")
+}
+
 var _ ast.Statement = &Component{}
 
 func (impl *Component) GetTargetValue() interface{} {

@@ -5,100 +5,105 @@ import (
     runtime2 "runtime"
 
     "tklibs/script"
-    "tklibs/script/runtime"
+	"tklibs/script/library/logger"
+	"tklibs/script/runtime"
     "tklibs/script/runtime/native"
     "tklibs/script/runtime/runtime_t"
     "tklibs/script/runtime/stack"
 )
 
 type CallInfo struct {
-    FilePath string
-    Line int
-    FuncName string
+	FilePath string
+	Line     int
+	FuncName string
 }
 
-func GetCallInfo(sc runtime.ScriptContext) *CallInfo{
-    frame := sc.GetCurrentFrame().(stack.Frame)
-    rf := frame.GetFunction().(runtime_t.Function)
-    pc := sc.(runtime.ScriptInterpreter).GetPC()
-    debugInfo := rf.GetDebugInfoList()
-    debugInfoLen := len(debugInfo)
-    sourceIndex := -1
-    line := -1
-    for i, d := range debugInfo {
-        if d.PC > uint32(pc) {
-            if i > 0 {
-                line = int(debugInfo[i-1].Line)
-                sourceIndex = int(debugInfo[i-1].SourceIndex)
-            } else {
-                line = int(d.Line)
-                sourceIndex = int(d.SourceIndex)
-            }
-            break
-        }
-    }
+func GetCallInfo(sc runtime.ScriptContext) *CallInfo {
+	frame := sc.GetCurrentFrame().(stack.Frame)
+	rf := frame.GetFunction().(runtime_t.Function)
+	pc := sc.(runtime.ScriptInterpreter).GetPC()
+	debugInfo := rf.GetDebugInfoList()
+	debugInfoLen := len(debugInfo)
+	sourceIndex := -1
+	line := -1
+	for i, d := range debugInfo {
+		if d.PC > uint32(pc) {
+			if i > 0 {
+				line = int(debugInfo[i-1].Line)
+				sourceIndex = int(debugInfo[i-1].SourceIndex)
+			} else {
+				line = int(d.Line)
+				sourceIndex = int(d.SourceIndex)
+			}
+			break
+		}
+	}
 
-    if line == -1 {
-        line = int(debugInfo[debugInfoLen-1].Line)
-    }
+	if line == -1 {
+		line = int(debugInfo[debugInfoLen-1].Line)
+	}
 
-    if sourceIndex == -1 {
-        sourceIndex = int(debugInfo[debugInfoLen-1].SourceIndex)
-    }
-    return &CallInfo{FilePath: rf.GetSourceNames()[sourceIndex],Line:line,FuncName:rf.GetName()}
+	if sourceIndex == -1 {
+		sourceIndex = int(debugInfo[debugInfoLen-1].SourceIndex)
+	}
+	return &CallInfo{FilePath: rf.GetSourceNames()[sourceIndex], Line: line, FuncName: rf.GetName()}
 }
 
 type library struct {
-    context    interface{}
-    Breakpoint native.FunctionType
+	context    interface{}
+	Breakpoint native.FunctionType
+	Log        native.FunctionType
 }
 
 func (*library) GetName() string {
-    return "debug"
+	return "debug"
 }
 
 func (l *library) SetScriptContext(context interface{}) {
-    l.context = context
+	l.context = context
 }
 
 func NewLibrary() *library {
-    ret := &library{}
-    ret.init()
-    return ret
+	ret := &library{}
+	ret.init()
+	return ret
 }
 
 func (l *library) init() {
-    l.Breakpoint = func(this interface{}, args ...interface{}) interface{} {
-        ctx := l.context.(runtime.ScriptContext)
-        i := ctx.(runtime.ScriptInterpreter)
+	l.Log = func(this interface{}, args ...interface{}) interface{} {
+		logger.ScriptLogger().Debug(args...)
+		return script.Null
+	}
 
-        _ = GetCallInfo(ctx)
+	l.Breakpoint = func(this interface{}, args ...interface{}) interface{} {
+		ctx := l.context.(runtime.ScriptContext)
+		i := ctx.(runtime.ScriptInterpreter)
 
-        println()
-        //fmt.Printf("SCRIPT BREAKPOINT %q, PC: %v, Line: %v", rf.GetSourceName(), pc, line)
-        println()
+		_ = GetCallInfo(ctx)
 
-        for i, v := range i.GetCurrentRegisters() {
-            switch t := v.Get().(type) {
-            case script.Int:
-                fmt.Printf("[%v] \t%v", i, t)
-            case script.Float:
-                fmt.Printf("[%v] \t%v", i, t)
-            case script.String:
-                fmt.Printf("[%v] \t%v", i, t)
-            case script.Bool:
-                fmt.Printf("[%v] \t%v", i, t)
-            case script.Object:
-                fmt.Printf("[%v] \tObject:%v", i, t.GetScriptTypeId())
-            default:
-                fmt.Printf("[%v] \t%v", i, t)
-            }
+		println()
 
-            println()
-        }
+		for i, v := range i.GetCurrentRegisters() {
+			switch t := v.Get().(type) {
+			case script.Int:
+				fmt.Printf("[%v] \t%v", i, t)
+			case script.Float:
+				fmt.Printf("[%v] \t%v", i, t)
+			case script.String:
+				fmt.Printf("[%v] \t%v", i, t)
+			case script.Bool:
+				fmt.Printf("[%v] \t%v", i, t)
+			case script.Object:
+				fmt.Printf("[%v] \tObject:%v", i, t.GetScriptTypeId())
+			default:
+				fmt.Printf("[%v] \t%v", i, t)
+			}
 
-        runtime2.Breakpoint()
+			println()
+		}
 
-        return script.Null
-    }
+		runtime2.Breakpoint()
+
+		return script.Null
+	}
 }

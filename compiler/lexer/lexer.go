@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"container/list"
+	"fmt"
 	"io/ioutil"
 	"path"
 	"runtime"
@@ -113,7 +114,14 @@ parseLoop:
 		case token.TokenTypeUnknown:
 			break parseLoop
 		case token.TokenTypeCommet:
-			continue
+			lastToken := tokenList.Back()
+			if lastToken != nil {
+				lt := lastToken.Value.(token.Token)
+				if lt.GetLine() == t.GetLine() && lt.GetFilePath() == t.GetFilePath() {
+					lt.SetComment(t.GetValue())
+					continue
+				}
+			}
 		case token.TokenTypeIDENT:
 			v := t.GetValue()
 			if strings.IndexRune(v, '#') == 0 {
@@ -132,7 +140,7 @@ parseLoop:
 						tokenList = tl
 						continue
 					} else {
-						panic("")
+						panic(fmt.Errorf("unsupport [%v]", v))
 					}
 				}
 			}

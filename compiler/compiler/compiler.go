@@ -16,6 +16,7 @@ import (
     "tklibs/script/compiler/lexer"
     "tklibs/script/compiler/parser"
     parserComponent "tklibs/script/compiler/parser/parser"
+    "tklibs/script/compiler/token"
 )
 
 type Component struct {
@@ -76,7 +77,7 @@ func (impl *Component) Compile() (interface{}, *list.List, error) {
     ef.SetScope(true)
     tokenStart := tokenList.Front()
 
-    p.(parser.BlockParser).ParseBlock(bs, tokenStart)
+    p.(parser.BlockParser).ParseBlock(bs, token.NewIterator(tokenStart))
 
     impl.funcIndex = 0
     impl.funcStack.PushBack(entryFunction)

@@ -1,30 +1,36 @@
 package parser
 
 import (
-    "container/list"
+	"tklibs/script/compiler/token"
 )
 
 type (
-    BlockParser interface {
-        ParseBlock(interface{}, *list.Element) *list.Element
-        ParseStatement(element *list.Element) (interface{}, *list.Element)
-    }
-    DeclParser interface {
-        ParseDecl(interface{}, *list.Element) *list.Element
-    }
-    IfParser interface {
-        ParseIf(interface{}, *list.Element) *list.Element
-    }
-    WhileParser interface {
-        ParseWhile(interface{}, *list.Element) *list.Element
-    }
-    ForParser interface {
-        ParseFor(interface{}, *list.Element) *list.Element
-    }
-    ForeachParser interface {
-        ParseForeach(interface{}, *list.Element) *list.Element
-    }
-    SwitchParser interface {
-        ParseSwitch(interface{}, *list.Element) *list.Element
-    }
+	BlockParser interface {
+		ParseBlock(interface{}, *token.Iterator) *token.Iterator
+		ParseStatement(element *token.Iterator) (interface{}, *token.Iterator)
+	}
+
+	DeclParser interface {
+		ParseDecl(interface{}, *token.Iterator) *token.Iterator
+	}
+
+	IfParser interface {
+		ParseIf(interface{}, *token.Iterator) *token.Iterator
+	}
+
+	WhileParser interface {
+		ParseWhile(interface{}, *token.Iterator) *token.Iterator
+	}
+
+	ForParser interface {
+		ParseFor(interface{}, *token.Iterator) *token.Iterator
+	}
+
+	ForeachParser interface {
+		ParseForeach(interface{}, *token.Iterator) *token.Iterator
+	}
+
+	SwitchParser interface {
+		ParseSwitch(interface{}, *token.Iterator) *token.Iterator
+	}
 )

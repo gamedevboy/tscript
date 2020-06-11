@@ -16,6 +16,12 @@ type Component struct {
     statementList list.List
 }
 
+func (impl *Component) String() string {
+    panic("implement me")
+}
+
+var _ ast.Statement = &Component{}
+
 func (impl *Component) GetStatementList() *list.List {
     return &impl.statementList
 }

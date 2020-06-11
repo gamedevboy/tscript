@@ -1,7 +1,6 @@
 package expression
 
 import (
-    "container/list"
     "fmt"
 
     "tklibs/script"
@@ -20,12 +19,12 @@ func NewClassExpressionParser(owner interface{}) *ClassExpressionParserComponent
     return &ClassExpressionParserComponent{script.MakeComponentType(owner)}
 }
 
-func (impl *ClassExpressionParserComponent) parse(c interface{}, tokenIt *list.Element) *list.Element {
+func (impl *ClassExpressionParserComponent) parse(c interface{}, tokenIt *token.Iterator) *token.Iterator {
     e := c.(expression.Class)
     methods := e.GetMethods()
 
     for tokenIt != nil {
-        t := tokenIt.Value.(token.Token)
+        t := tokenIt.Value().(token.Token)
         switch t.GetType() {
         case token.TokenTypeRBRACE:
             e.FinishMethod()
@@ -46,12 +45,12 @@ func (impl *ClassExpressionParserComponent) parse(c interface{}, tokenIt *list.E
     return nil
 }
 
-func (impl *ClassExpressionParserComponent) ParseClass(c interface{}, tokenIt *list.Element) *list.Element {
+func (impl *ClassExpressionParserComponent) ParseClass(c interface{}, tokenIt *token.Iterator) *token.Iterator {
     if tokenIt == nil {
         return tokenIt
     }
 
-    t := tokenIt.Value.(token.Token)
+    t := tokenIt.Value().(token.Token)
     className := t.GetValue()
     c.(expression.Class).SetName(className)
 
@@ -60,11 +59,11 @@ func (impl *ClassExpressionParserComponent) ParseClass(c interface{}, tokenIt *l
         return nil
     }
 
-    t = tokenIt.Value.(token.Token)
+    t = tokenIt.Value().(token.Token)
     switch t.GetType() {
     case token.TokenTypeCOLON:
         tokenIt = tokenIt.Next()
-        t = tokenIt.Value.(token.Token)
+        t = tokenIt.Value().(token.Token)
 
         parentName := t.GetValue()
         m := &struct {
@@ -75,7 +74,7 @@ func (impl *ClassExpressionParserComponent) ParseClass(c interface{}, tokenIt *l
 
         tokenIt = tokenIt.Next()
 
-        t = tokenIt.Value.(token.Token)
+        t = tokenIt.Value().(token.Token)
         if t.GetType() != token.TokenTypeLBRACE {
             panic("excepting {")
         }

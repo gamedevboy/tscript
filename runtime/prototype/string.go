@@ -90,5 +90,14 @@ func NewStringPrototype(ctx interface{}) *String {
         return script.String(runes[startIndex : startIndex+count])
     }, ctx))
 
+    obj.ScriptSet("+", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
+        argLen := len(args)
+        if argLen < 1 {
+            return this
+        }
+
+        return script.String(append([]rune(this.(script.String)), []rune(args[0].(script.String))...))
+    }, ctx))
+
     return ret
 }

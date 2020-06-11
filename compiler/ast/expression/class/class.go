@@ -31,6 +31,8 @@ type Component struct {
     hasConstructor bool
 }
 
+var _ expression.Class = &Component{}
+
 func (impl *Component) SetName(name string) {
     impl.name = name
 }

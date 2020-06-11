@@ -128,17 +128,15 @@ func getExpression(opList, expressionList *list.List) interface{} {
 	return expressionList.Front().Value
 }
 
-type ExpressionParserComponent struct {
+type ParserComponent struct {
 	script.ComponentType
 }
 
-func NewExpressionParser(owner interface{}) *ExpressionParserComponent {
-	return &ExpressionParserComponent{script.MakeComponentType(owner)}
+func NewExpressionParser(owner interface{}) *ParserComponent {
+	return &ParserComponent{script.MakeComponentType(owner)}
 }
 
-func (p *ExpressionParserComponent) ParseExpression(tokenIt *list.Element) (interface{}, *list.Element) {
-	// todo check null for tokenIt
-
+func (p *ParserComponent) ParseExpression(tokenIt *token.Iterator) (interface{}, *token.Iterator) {
 	expressionList := list.New()
 	opList := list.New()
 
@@ -150,7 +148,7 @@ parseLoop:
 
 		var currentExpression, currentOp interface{}
 
-		t := tokenIt.Value.(token.Token)
+		t := tokenIt.Value().(token.Token)
 
 		tokenType := t.GetType()
 		switch tokenType {
@@ -178,13 +176,13 @@ parseLoop:
 				currentExpression, tokenIt = m, next
 			} else {
 				a := &struct {
-					*array.ArrayExpressionComponent
+					*array.Component
 				}{}
 				al := &struct {
 					*arglist.Component
 				}{}
 				al.Component = arglist.NewArgList(al)
-				a.ArrayExpressionComponent = array.NewArrayExpression(a, al)
+				a.Component = array.NewArrayExpression(a, al)
 				currentExpression, tokenIt = a, p.GetOwner().(parser.ArgListParser).ParseArgList(al, tokenIt.Next())
 			}
 		case token.TokenTypeRBRACK, token.TokenTypeRPAREN, token.TokenTypeSEMICOLON:
@@ -350,7 +348,7 @@ parseLoop:
 			if opList.Len() < expressionList.Len() {
 				prev := tokenIt.Prev()
 
-				if prev != nil && prev.Value.(token.Token).GetLine() != t.GetLine() {
+				if prev != nil && prev.Value().(token.Token).GetLine() != t.GetLine() {
 					break parseLoop
 				}
 
@@ -371,7 +369,7 @@ parseLoop:
 					count := 0
 				parenLoop:
 					for ; it != nil; it = it.Next() { // scan token list until ')'
-						switch it.Value.(token.Token).GetType() {
+						switch it.Value().(token.Token).GetType() {
 						case token.TokenTypeLPAREN:
 							count++
 						case token.TokenTypeRPAREN:
@@ -384,7 +382,7 @@ parseLoop:
 					}
 
 					// check the next symbol '=>'
-					if it != nil && it.Next() != nil && it.Next().Value.(token.Token).GetType() == token.TokenTypeLAMBDA {
+					if it != nil && it.Next() != nil && it.Next().Value().(token.Token).GetType() == token.TokenTypeLAMBDA {
 						f := &struct {
 							*function2.Component
 						}{}
@@ -411,7 +409,7 @@ parseLoop:
 	return getExpression(opList, expressionList), tokenIt
 }
 
-func makeCall(tokenIt *list.Element, p *ExpressionParserComponent, expressionList *list.List, option bool) (*list.Element, *struct{ *call.Component }) {
+func makeCall(tokenIt *token.Iterator, p *ParserComponent, expressionList *list.List, option bool) (*token.Iterator, *struct{ *call.Component }) {
 	// it's a call expression
 	a := &struct {
 		*arglist.Component

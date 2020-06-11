@@ -17,6 +17,10 @@ type Component struct {
     tokenType  token.TokenType
 }
 
+func (c *Component) String() string {
+    panic("implement me")
+}
+
 func (c *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Operand {
     _func := f.(compiler.Function)
     switch c.tokenType {

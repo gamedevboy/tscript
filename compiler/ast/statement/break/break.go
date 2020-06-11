@@ -15,6 +15,10 @@ type Component struct {
     script.ComponentType
 }
 
+func (c *Component) String() string {
+    panic("implement me")
+}
+
 var _ ast.Statement = &Component{}
 
 func NewBreak(owner interface{}) *Component {

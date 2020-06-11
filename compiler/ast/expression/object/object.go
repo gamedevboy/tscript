@@ -15,6 +15,10 @@ type Component struct {
     values map[string]interface{}
 }
 
+func (impl *Component) String() string {
+    panic("implement me")
+}
+
 func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Operand {
     _func := f.(compiler.Function)
     if r == nil {

@@ -2,8 +2,6 @@ package logger
 
 import (
 	"tklibs/script"
-	"tklibs/script/library/debug"
-	"tklibs/script/runtime"
 	"tklibs/script/runtime/native"
 )
 
@@ -50,11 +48,6 @@ func extract(args []interface{}) (format string, ok1 bool) {
 }
 
 func (l *library) init() {
-	// todo the logger implementer need 'runtime.ScriptContext' to get CallInfo
-	_ = func(context interface{}) *debug.CallInfo {
-		return debug.GetCallInfo(context.(runtime.ScriptContext))
-	}
-
 	l.Debug = func(this interface{}, args ...interface{}) interface{} {
 		ScriptLogger().Debug(args...)
 		return this

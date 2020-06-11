@@ -1,7 +1,10 @@
 package _case
 
 import (
+    "container/list"
+
     "tklibs/script"
+    "tklibs/script/compiler/ast/statement"
     "tklibs/script/compiler/debug"
 )
 
@@ -12,6 +15,16 @@ type Component struct {
     value interface{}
     block interface{}
 }
+
+func (impl *Component) String() string {
+    panic("implement me")
+}
+
+func (impl *Component) Compile(i interface{}) *list.Element {
+    panic("implement me")
+}
+
+var _ statement.Case = &Component{}
 
 func NewCase(owner interface{}) *Component {
     return &Component{

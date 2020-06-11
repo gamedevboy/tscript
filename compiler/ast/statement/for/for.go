@@ -8,6 +8,7 @@ import (
 	"tklibs/script/compiler/ast"
 	"tklibs/script/compiler/ast/expression"
 	"tklibs/script/compiler/ast/expression/const"
+	"tklibs/script/compiler/ast/statement"
 	"tklibs/script/compiler/debug"
 	"tklibs/script/compiler/token"
 	"tklibs/script/opcode"
@@ -21,6 +22,12 @@ type Component struct {
 	step      interface{}
 	body      interface{}
 }
+
+func (impl *Component) String() string {
+	panic("implement me")
+}
+
+var _ statement.For = &Component{}
 
 func NewForStatementComponent(owner interface{}) *Component {
 	return &Component{ComponentType: script.MakeComponentType(owner)}

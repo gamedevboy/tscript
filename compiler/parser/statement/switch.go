@@ -1,8 +1,6 @@
 package statement
 
 import (
-    "container/list"
-
     "tklibs/script"
     "tklibs/script/compiler/ast/statement"
     block2 "tklibs/script/compiler/ast/statement/block"
@@ -19,13 +17,13 @@ func NewSwitchStatementParserComponent(owner interface{}) *SwitchStatementParser
     return &SwitchStatementParserComponent{script.MakeComponentType(owner)}
 }
 
-func (s *SwitchStatementParserComponent) ParseSwitch(switchStatement interface{}, tokenIt *list.Element) *list.Element {
+func (s *SwitchStatementParserComponent) ParseSwitch(switchStatement interface{}, tokenIt *token.Iterator) *token.Iterator {
     ss := switchStatement.(statement.Switch)
     if tokenIt == nil {
         panic("")
     }
 
-    t := tokenIt.Value.(token.Token)
+    t := tokenIt.Value().(token.Token)
     if t.GetType() != token.TokenTypeLPAREN {
         panic("switch exception (")
     }
@@ -33,7 +31,7 @@ func (s *SwitchStatementParserComponent) ParseSwitch(switchStatement interface{}
     target, tokenIt := s.GetOwner().(parser.ExpressionParser).ParseExpression(tokenIt)
     ss.SetTargetValue(target)
 
-    t = tokenIt.Value.(token.Token)
+    t = tokenIt.Value().(token.Token)
     if t.GetType() != token.TokenTypeLBRACE {
         panic("switch exception {")
     }
@@ -41,7 +39,7 @@ func (s *SwitchStatementParserComponent) ParseSwitch(switchStatement interface{}
     tokenIt = tokenIt.Next()
 
     for tokenIt != nil {
-        t = tokenIt.Value.(token.Token)
+        t = tokenIt.Value().(token.Token)
         switch t.GetType() {
         case token.TokenTypeRBRACE:
             return tokenIt.Next()
@@ -53,7 +51,7 @@ func (s *SwitchStatementParserComponent) ParseSwitch(switchStatement interface{}
                     *block2.Component
                 }{}
 
-                t = next.Value.(token.Token)
+                t = next.Value().(token.Token)
                 if t.GetType() != token.TokenTypeCOLON {
                     panic("switch exception :")
                 }
@@ -69,7 +67,7 @@ func (s *SwitchStatementParserComponent) ParseSwitch(switchStatement interface{}
                 ss.GetCaseList().PushBack(c)
             case "default":
                 tokenIt = tokenIt.Next()
-                t = tokenIt.Value.(token.Token)
+                t = tokenIt.Value().(token.Token)
                 if t.GetType() != token.TokenTypeCOLON {
                     panic("switch exception :")
                 }

@@ -80,6 +80,8 @@ func (ds *Component) Compile(f interface{}) *list.Element {
     return ret
 }
 
+var _ statement.Decl = &Component{}
+
 func NewDecl(owner interface{}) *Component {
     return &Component{ComponentType: script.MakeComponentType(owner)}
 }

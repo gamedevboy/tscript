@@ -1,7 +1,6 @@
 package expression
 
 import (
-    "container/list"
     "fmt"
 
     "tklibs/script"
@@ -21,12 +20,12 @@ func NewFunctionExpressionParser(owner interface{}) *FunctionExpressionParserCom
     return &FunctionExpressionParserComponent{script.MakeComponentType(owner)}
 }
 
-func (impl *FunctionExpressionParserComponent) ParseFunction(f interface{}, tokenIt *list.Element) *list.Element {
+func (impl *FunctionExpressionParserComponent) ParseFunction(f interface{}, tokenIt *token.Iterator) *token.Iterator {
     if tokenIt == nil {
         return nil
     }
     _func := f.(expression.Function)
-    t := tokenIt.Value.(token.Token)
+    t := tokenIt.Value().(token.Token)
     debugInfo := f.(debug.Info)
     debugInfo.SetLine(t.GetLine())
     debugInfo.SetFilePath(t.GetFilePath())
@@ -35,7 +34,7 @@ func (impl *FunctionExpressionParserComponent) ParseFunction(f interface{}, toke
             return nil
         }
 
-        t := tokenIt.Value.(token.Token)
+        t := tokenIt.Value().(token.Token)
 
         switch t.GetType() {
         case token.TokenTypeLAMBDA:
@@ -51,12 +50,12 @@ func (impl *FunctionExpressionParserComponent) ParseFunction(f interface{}, toke
 
             tokenIt = impl.GetOwner().(parser.ArgListParser).ParseArgList(a, tokenIt.Next())
 
-            t = tokenIt.Value.(token.Token)
+            t = tokenIt.Value().(token.Token)
 
             if t.GetType() == token.TokenTypeLAMBDA {
                 fe.SetCaptureThis(true)
                 tokenIt = tokenIt.Next()
-                t = tokenIt.Value.(token.Token)
+                t = tokenIt.Value().(token.Token)
             }
 
             if t.GetType() != token.TokenTypeLBRACE {

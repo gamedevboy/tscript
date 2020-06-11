@@ -6,6 +6,7 @@ import (
     "tklibs/script"
     "tklibs/script/compiler"
     "tklibs/script/compiler/ast"
+    "tklibs/script/compiler/ast/statement"
     "tklibs/script/compiler/debug"
     "tklibs/script/opcode"
 )
@@ -15,6 +16,12 @@ type Component struct {
     script.ComponentType
     expression interface{}
 }
+
+func (impl *Component) String() string {
+    panic("implement me")
+}
+
+var _ statement.Return = &Component{}
 
 func NewReturn(owner interface{}) *Component {
     return &Component{ComponentType: script.MakeComponentType(owner)}

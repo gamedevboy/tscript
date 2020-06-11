@@ -1,8 +1,6 @@
 package statement
 
 import (
-    "container/list"
-
     "tklibs/script"
     "tklibs/script/compiler/ast/statement"
     "tklibs/script/compiler/ast/statement/block"
@@ -18,12 +16,12 @@ func NewForStatementParserComponent(owner interface{}) *ForStatementParserCompon
     return &ForStatementParserComponent{script.MakeComponentType(owner)}
 }
 
-func (impl *ForStatementParserComponent) ParseFor(f interface{}, tokenIt *list.Element) *list.Element {
+func (impl *ForStatementParserComponent) ParseFor(f interface{}, tokenIt *token.Iterator) *token.Iterator {
     if tokenIt == nil {
         return nil
     }
 
-    if tokenIt.Value.(token.Token).GetType() != token.TokenTypeLPAREN {
+    if tokenIt.Value().(token.Token).GetType() != token.TokenTypeLPAREN {
         panic("for statement expecting (")
     }
 
@@ -42,7 +40,7 @@ func (impl *ForStatementParserComponent) ParseFor(f interface{}, tokenIt *list.E
     fs.SetStep(step)
     tokenIt = next
 
-    switch tokenIt.Value.(token.Token).GetType() {
+    switch tokenIt.Value().(token.Token).GetType() {
     case token.TokenTypeLBRACE:
         body := &struct {
             *block.Component

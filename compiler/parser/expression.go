@@ -1,27 +1,27 @@
 package parser
 
 import (
-    "container/list"
+    "tklibs/script/compiler/token"
 )
 
 type (
     ObjectParser interface {
-        ParseObject(interface{}, *list.Element) *list.Element
+        ParseObject(interface{}, *token.Iterator) *token.Iterator
     }
 
     ArgListParser interface {
-        ParseArgList(interface{}, *list.Element) *list.Element
+        ParseArgList(interface{}, *token.Iterator) *token.Iterator
     }
 
     ExpressionParser interface {
-        ParseExpression(*list.Element) (interface{}, *list.Element)
+        ParseExpression(*token.Iterator) (interface{}, *token.Iterator)
     }
 
     FunctionParser interface {
-        ParseFunction(interface{}, *list.Element) *list.Element
+        ParseFunction(interface{}, *token.Iterator) *token.Iterator
     }
 
     ClassParser interface {
-        ParseClass(interface{}, *list.Element) *list.Element
+        ParseClass(interface{}, *token.Iterator) *token.Iterator
     }
 )

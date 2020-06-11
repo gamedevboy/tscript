@@ -1,8 +1,6 @@
 package statement
 
 import (
-    "container/list"
-
     "tklibs/script"
     "tklibs/script/compiler/ast/statement"
     "tklibs/script/compiler/ast/statement/block"
@@ -14,12 +12,12 @@ type WhileStatementParserComponent struct {
     script.ComponentType
 }
 
-func (impl *WhileStatementParserComponent) ParseWhile(w interface{}, tokenIt *list.Element) *list.Element {
+func (impl *WhileStatementParserComponent) ParseWhile(w interface{}, tokenIt *token.Iterator) *token.Iterator {
     if tokenIt == nil {
         return tokenIt
     }
 
-    if tokenIt.Value.(token.Token).GetType() != token.TokenTypeLPAREN {
+    if tokenIt.Value().(token.Token).GetType() != token.TokenTypeLPAREN {
         panic("while expecting ( ")
     }
 
@@ -30,7 +28,7 @@ func (impl *WhileStatementParserComponent) ParseWhile(w interface{}, tokenIt *li
     tokenIt = next
 
     blockParser := impl.GetOwner().(parser.BlockParser)
-    switch tokenIt.Value.(token.Token).GetType() {
+    switch tokenIt.Value().(token.Token).GetType() {
     case token.TokenTypeLBRACE:
         body := &struct {
             *block.Component

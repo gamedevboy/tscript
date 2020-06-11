@@ -89,6 +89,7 @@ const (
 // Flow
 const (
     Jump uint8 = iota
+    JumpNull
     JumpTo
     Call
     Ret

@@ -1,8 +1,6 @@
 package statement
 
 import (
-    "container/list"
-
     "tklibs/script"
     "tklibs/script/compiler/ast/statement"
     "tklibs/script/compiler/ast/statement/block"
@@ -18,13 +16,13 @@ func NewIfStatementParserComponent(owner interface{}) *IfStatementParserComponen
     return &IfStatementParserComponent{script.MakeComponentType(owner)}
 }
 
-func (impl *IfStatementParserComponent) ParseIf(ifStatement interface{}, tokenIt *list.Element) *list.Element {
+func (impl *IfStatementParserComponent) ParseIf(ifStatement interface{}, tokenIt *token.Iterator) *token.Iterator {
     is := ifStatement.(statement.If)
     condition, next := impl.GetOwner().(parser.ExpressionParser).ParseExpression(tokenIt)
     is.SetCondition(condition)
     tokenIt = next
 
-    switch tokenIt.Value.(token.Token).GetType() {
+    switch tokenIt.Value().(token.Token).GetType() {
     case token.TokenTypeLBRACE:
         body := &struct {
             *block.Component
@@ -38,10 +36,10 @@ func (impl *IfStatementParserComponent) ParseIf(ifStatement interface{}, tokenIt
         tokenIt = next
     }
 
-    if tokenIt != nil && tokenIt.Value.(token.Token).GetValue() == "else" {
+    if tokenIt != nil && tokenIt.Value().(token.Token).GetValue() == "else" {
         tokenIt = tokenIt.Next()
 
-        switch tokenIt.Value.(token.Token).GetType() {
+        switch tokenIt.Value().(token.Token).GetType() {
         case token.TokenTypeLBRACE:
             elseBody := &struct {
                 *block.Component

@@ -406,9 +406,15 @@ vm_loop:
 						default:
 							panic("")
 						}
+					case script.String:
+						pa_.Set(context.GetStringPrototype().(script.Object).ScriptGet("+").GetFunction().Invoke(vb_, util.ToScriptString(pc_.Get())))
 					case script.Object:
-						f := vb_.ScriptGet("+").GetFunction()
-						pa_.Set(f.Invoke(vb_, pb_.Get()))
+						fn := vb_.ScriptGet("+")
+
+						if fn.IsNull() || fn.GetPointerType() != script.InterfaceTypeFunction {
+							panic("Can't find '+' operator")
+						}
+						pa_.Set(fn.GetFunction().Invoke(vb_, pc_.Get()))
 					default:
 						panic("")
 					}
@@ -1386,7 +1392,7 @@ vm_loop:
 			case opcode.Jump:
 				p := int(pb_.GetInt())
 				if p > 0 {
-					if !script.Bool(pa_.IsNull()) && !pa_.GetBool() {
+					if !pa_.GetBool() {
 						pc = p
 						ilPtr = ilStart + uintptr(pc*8)
 						il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
@@ -1399,6 +1405,14 @@ vm_loop:
 						il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
 						continue
 					}
+				}
+			case opcode.JumpNull:
+				p := int(pb_.GetInt())
+				if !pa_.IsNull() {
+					pc = p
+					ilPtr = ilStart + uintptr(pc*8)
+					il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
+					continue
 				}
 			case opcode.Call:
 				switch pa_.GetType() {

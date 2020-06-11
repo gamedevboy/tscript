@@ -1,8 +1,6 @@
 package expression
 
 import (
-    "container/list"
-
     "tklibs/script"
     "tklibs/script/compiler/ast/expression"
     "tklibs/script/compiler/parser"
@@ -17,7 +15,7 @@ func NewArgListExpressionParser(owner interface{}) *ArgListExpressionParserCompo
     return &ArgListExpressionParserComponent{script.MakeComponentType(owner)}
 }
 
-func (impl *ArgListExpressionParserComponent) ParseArgList(a interface{}, tokenIt *list.Element) *list.Element {
+func (impl *ArgListExpressionParserComponent) ParseArgList(a interface{}, tokenIt *token.Iterator) *token.Iterator {
     for {
         if tokenIt == nil {
             return nil
@@ -34,11 +32,11 @@ func (impl *ArgListExpressionParserComponent) ParseArgList(a interface{}, tokenI
 
         if tokenIt != nil {
             prev := tokenIt.Prev()
-            if prev.Value.(token.Token).GetType() == token.TokenTypeRPAREN {
+            if prev.Value().(token.Token).GetType() == token.TokenTypeRPAREN {
                 tokenIt = prev
             }
 
-            t := tokenIt.Value.(token.Token)
+            t := tokenIt.Value().(token.Token)
 
             switch t.GetType() {
             case token.TokenTypeCOMMA:
@@ -49,7 +47,7 @@ func (impl *ArgListExpressionParserComponent) ParseArgList(a interface{}, tokenI
                     tokenIt = tokenIt.Next()
 
                     if tokenIt != nil {
-                        switch tokenIt.Value.(token.Token).GetType() {
+                        switch tokenIt.Value().(token.Token).GetType() {
                         case token.TokenTypeCOMMA:
                             tokenIt = tokenIt.Next()
                         default:

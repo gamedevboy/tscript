@@ -1,8 +1,6 @@
 package statement
 
 import (
-    "container/list"
-
     "tklibs/script"
     "tklibs/script/compiler/ast/statement"
     "tklibs/script/compiler/parser"
@@ -13,13 +11,13 @@ type DeclStatementParserComponent struct {
     script.ComponentType
 }
 
-func (impl *DeclStatementParserComponent) ParseDecl(ds interface{}, tokenIt *list.Element) *list.Element {
+func (impl *DeclStatementParserComponent) ParseDecl(ds interface{}, tokenIt *token.Iterator) *token.Iterator {
     if tokenIt == nil {
         panic("wrong decl, excepting }")
     }
 
     varName := tokenIt
-    ds.(statement.Decl).SetName(varName.Value.(token.Token).GetValue())
+    ds.(statement.Decl).SetName(varName.Value().(token.Token).GetValue())
 
     op := varName.Next()
 
@@ -27,7 +25,7 @@ func (impl *DeclStatementParserComponent) ParseDecl(ds interface{}, tokenIt *lis
         return nil
     }
 
-    opToken := op.Value.(token.Token)
+    opToken := op.Value().(token.Token)
     switch opToken.GetType() {
     case token.TokenTypeASSIGN:
         e, next := impl.GetOwner().(parser.ExpressionParser).ParseExpression(op.Next())

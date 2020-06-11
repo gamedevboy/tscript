@@ -18,6 +18,10 @@ type Component struct {
     captureThis bool
 }
 
+func (impl *Component) String() string {
+    panic("implement me")
+}
+
 func (impl *Component) SetCaptureThis(val bool) {
     impl.captureThis = val
 }

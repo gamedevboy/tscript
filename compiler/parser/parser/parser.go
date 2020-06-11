@@ -7,7 +7,7 @@ import (
 
 type parser struct {
     *expression.FunctionExpressionParserComponent
-    *expression.ExpressionParserComponent
+    *expression.ParserComponent
     *expression.ArgListExpressionParserComponent
     *expression.ObjectExpressionParserComponent
     *expression.ClassExpressionParserComponent
@@ -24,7 +24,7 @@ func NewParser() interface{} {
 
     p.ClassExpressionParserComponent = expression.NewClassExpressionParser(p)
     p.FunctionExpressionParserComponent = expression.NewFunctionExpressionParser(p)
-    p.ExpressionParserComponent = expression.NewExpressionParser(p)
+    p.ParserComponent = expression.NewExpressionParser(p)
     p.ArgListExpressionParserComponent = expression.NewArgListExpressionParser(p)
     p.ObjectExpressionParserComponent = expression.NewObjectExpressionParser(p)
     p.BlockStatementParserComponent = statement.NewBlockStatementParser(p)

@@ -12,6 +12,14 @@ func ToScriptString(value interface{}) script.String {
 	switch dest := value.(type) {
 	case script.String:
 		return dest
+	case script.Int:
+		return script.String(strconv.FormatInt(int64(int(dest)), 10))
+	case script.Float:
+		return script.String(strconv.FormatFloat(float64(dest), 'f',-1, 32))
+	case script.Int64:
+		return script.String(strconv.FormatInt(int64(dest), 10))
+	case script.Float64:
+		return script.String(strconv.FormatFloat(float64(dest), 'f',-1, 64))
 	case script.Object:
 		funcValue := dest.ScriptGet("toString")
 

@@ -21,6 +21,10 @@ type Component struct {
 	elseBody  interface{}
 }
 
+func (impl *Component) String() string {
+	panic("implement me")
+}
+
 var _ statement.If = &Component{}
 
 func (impl *Component) SetCondition(value interface{}) {

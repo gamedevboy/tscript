@@ -1,15 +1,14 @@
 package statement
 
 import (
-    "container/list"
-
     "tklibs/script"
+    "tklibs/script/compiler/token"
 )
 
 type ForeachStatementParserComponent struct {
     *script.ComponentType
 }
 
-func (parser *ForeachStatementParserComponent) ParseForeach(f interface{}, tokenIt *list.Element) *list.Element {
+func (parser *ForeachStatementParserComponent) ParseForeach(f interface{}, tokenIt *token.Iterator) *token.Iterator {
     return tokenIt
 }

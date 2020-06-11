@@ -6,6 +6,7 @@ import (
 
 	"tklibs/script"
 	"tklibs/script/compiler"
+	"tklibs/script/compiler/ast/expression"
 	"tklibs/script/opcode"
 )
 
@@ -114,6 +115,8 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
 
 	return r
 }
+
+var _ expression.Const = &Component{}
 
 func NewConst(owner, value interface{}) *Component {
 	return &Component{

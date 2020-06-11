@@ -31,7 +31,7 @@ func SetScriptLogger(l Logger) {
 }
 
 var (
-	_defaultLogger = &defaultLogger{Logger: log.New(os.Stdout, "[tscript]", log.LstdFlags)}
+	_defaultLogger = &defaultLogger{Logger: log.New(os.Stdout, "[script]", log.LstdFlags)}
 	discardLogger  = &defaultLogger{Logger: log.New(ioutil.Discard, "", 0)}
 	scriptLogger   = Logger(_defaultLogger)
 )

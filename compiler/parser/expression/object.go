@@ -1,8 +1,6 @@
 package expression
 
 import (
-    "container/list"
-
     "tklibs/script"
     "tklibs/script/compiler/ast/expression"
     "tklibs/script/compiler/parser"
@@ -17,7 +15,7 @@ func NewObjectExpressionParser(owner interface{}) *ObjectExpressionParserCompone
     return &ObjectExpressionParserComponent{script.MakeComponentType(owner)}
 }
 
-func (p *ObjectExpressionParserComponent) ParseObject(m interface{}, tokenIt *list.Element) *list.Element {
+func (p *ObjectExpressionParserComponent) ParseObject(m interface{}, tokenIt *token.Iterator) *token.Iterator {
     if tokenIt == nil {
         return nil
     }
@@ -25,7 +23,7 @@ func (p *ObjectExpressionParserComponent) ParseObject(m interface{}, tokenIt *li
     object := m.(expression.Object)
 
     for {
-        t := tokenIt.Value.(token.Token)
+        t := tokenIt.Value().(token.Token)
 
         switch t.GetType() {
         case token.TokenTypeCOMMA: // skip ,
@@ -37,12 +35,12 @@ func (p *ObjectExpressionParserComponent) ParseObject(m interface{}, tokenIt *li
             varName := t.GetValue() // get var name
 
             tokenIt = tokenIt.Next() // skip :
-            //todo check if the token is = or :
+            // TODO check if the token is = or :
             if tokenIt == nil {
                 return nil
             }
 
-            t = tokenIt.Value.(token.Token)
+            t = tokenIt.Value().(token.Token)
             if t.GetType() != token.TokenTypeCOLON {
                 return tokenIt
             }

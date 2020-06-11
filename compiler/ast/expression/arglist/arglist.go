@@ -5,6 +5,7 @@ import (
     "fmt"
 
     "tklibs/script"
+    "tklibs/script/compiler/ast/expression"
 )
 
 type Component struct {
@@ -27,6 +28,8 @@ func (impl *Component) String() string {
 
     return r
 }
+
+var _ expression.ArgList = &Component{}
 
 func NewArgList(owner interface{}) *Component {
     return &Component{ComponentType: script.MakeComponentType(owner)}

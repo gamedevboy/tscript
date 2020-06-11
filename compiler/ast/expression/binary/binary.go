@@ -116,7 +116,7 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
 		}
 
 		impl.left.(ast.Expression).Compile(f, r)
-		jmp := _func.AddInstructionABx(opcode.Jump, opcode.Flow, r, compiler.NewIntOperand(0))
+		jmp := _func.AddInstructionABx(opcode.JumpNull, opcode.Flow, r, compiler.NewIntOperand(0))
 		impl.right.(ast.Expression).Compile(f, r)
 		end := f.(compiler.Function).AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewSmallIntOperand(-1),
 			compiler.NewIntOperand(0))
@@ -183,6 +183,8 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
 
 	return r
 }
+
+var _ expression.Binary = &Component{}
 
 func NewBinary(owner, left, right interface{}, opType token.TokenType) *Component {
 	return &Component{script.MakeComponentType(owner),
