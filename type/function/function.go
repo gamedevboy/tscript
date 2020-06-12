@@ -191,11 +191,11 @@ func (impl *Component) GetRuntimeFunction() interface{} {
 	return impl.runtimeFunction
 }
 
-func (impl *Component) Invoke(this interface{}, args ...interface{}) interface{} {
-	return impl.scriptContext.(runtime.ScriptInterpreter).InvokeFunction(impl.GetOwner(), this, args...)
+func (impl *Component) Invoke(context, this interface{}, args ...interface{}) interface{} {
+	return context.(runtime.ScriptInterpreter).InvokeFunction(impl.GetOwner(), context, this, args...)
 }
 
-func (impl *Component) New(args ...interface{}) interface{} {
+func (impl *Component) New(context interface{}, args ...interface{}) interface{} {
 	switch runtimeFunction := impl.runtimeFunction.(type) {
 	case runtime_t.Function:
 		for index, value := range impl.refs {
@@ -207,7 +207,7 @@ func (impl *Component) New(args ...interface{}) interface{} {
 		// native function can't invoke as new operator
 	}
 
-	return impl.scriptContext.(runtime.ScriptInterpreter).InvokeNew(impl.GetOwner(), args...)
+	return impl.scriptContext.(runtime.ScriptInterpreter).InvokeNew(impl.GetOwner(), context, args...)
 }
 
 func (impl *Component) Init() {

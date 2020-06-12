@@ -13,7 +13,7 @@ type Map struct {
     context interface{}
 }
 
-func (impl *Map) NativeCall(_ interface{}, args ...interface{}) interface{} {
+func (impl *Map) NativeCall(_, _ interface{}, args ...interface{}) interface{} {
     capSize := 0
     if len(args) > 0 {
         capSize = int(args[0].(script.Int))
@@ -40,7 +40,7 @@ func (impl *Map) GetNativeRuntimeFunction() runtime_t.NativeFunction {
 func (*Map) Reload() {
 }
 
-func (*Map) Invoke(this interface{}, _ ...interface{}) interface{} {
+func (*Map) Invoke(context, this interface{}, _ ...interface{}) interface{} {
     return this
 }
 
@@ -75,11 +75,11 @@ func NewMapPrototype(ctx interface{}) *Map {
     }
     obj.Component = object.NewScriptObject(obj, ctx, 0)
 
-    obj.ScriptSet("forEach", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
+    obj.ScriptSet("forEach", function.NativeFunctionToValue(func(context interface{}, this interface{}, args ...interface{}) interface{} {
         f := args[0].(script.Function)
 
         return this.(script.Map).Foreach(func(key, value interface{}) bool {
-            ret := f.Invoke(nil, key, value)
+            ret := f.Invoke(context, nil, key, value)
             if r, ok := ret.(script.Bool); ok && r == false {
                 return false
             }
@@ -87,15 +87,15 @@ func NewMapPrototype(ctx interface{}) *Map {
         })
     },ctx))
 
-    obj.ScriptSet("length", function.NativeFunctionToValue(func(this interface{}, _ ...interface{}) interface{} {
+    obj.ScriptSet("length", function.NativeFunctionToValue(func(context interface{}, this interface{}, _ ...interface{}) interface{} {
         return this.(script.Map).Len()
     },ctx))
 
-    obj.ScriptSet("containsKey", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
+    obj.ScriptSet("containsKey", function.NativeFunctionToValue(func(context interface{}, this interface{}, args ...interface{}) interface{} {
         return this.(script.Map).ContainsKey(args[0])
     },ctx))
 
-    obj.ScriptSet("set", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
+    obj.ScriptSet("set", function.NativeFunctionToValue(func(context interface{}, this interface{}, args ...interface{}) interface{} {
         if len(args) < 2 {
             return this
         }
@@ -104,14 +104,14 @@ func NewMapPrototype(ctx interface{}) *Map {
         return this
     },ctx))
 
-    obj.ScriptSet("get", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
+    obj.ScriptSet("get", function.NativeFunctionToValue(func(context interface{}, this interface{}, args ...interface{}) interface{} {
         if len(args) < 1 {
             return script.Null
         }
         return this.(script.Map).Get(args[0])
     },ctx))
 
-    obj.ScriptSet("delete", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
+    obj.ScriptSet("delete", function.NativeFunctionToValue(func(context interface{}, this interface{}, args ...interface{}) interface{} {
         if len(args) < 1 {
             return this
         }

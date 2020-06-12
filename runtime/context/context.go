@@ -224,7 +224,7 @@ func (impl *Component) Run() interface{} {
 		impl.initialized = true
 	}
 
-	return impl.functionComponent.Invoke(impl.GetOwner())
+	return impl.functionComponent.Invoke(impl.GetOwner(), impl.GetOwner())
 }
 
 func (impl *Component) RunWithAssembly(assembly interface{}) interface{} {

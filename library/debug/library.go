@@ -1,15 +1,14 @@
 package debug
 
 import (
-    "fmt"
-    runtime2 "runtime"
+	"fmt"
+	goRuntime "runtime"
 
-    "tklibs/script"
-	"tklibs/script/library/logger"
+	"tklibs/script"
 	"tklibs/script/runtime"
-    "tklibs/script/runtime/native"
-    "tklibs/script/runtime/runtime_t"
-    "tklibs/script/runtime/stack"
+	"tklibs/script/runtime/native"
+	"tklibs/script/runtime/runtime_t"
+	"tklibs/script/runtime/stack"
 )
 
 type CallInfo struct {
@@ -52,7 +51,6 @@ func GetCallInfo(sc runtime.ScriptContext) *CallInfo {
 type library struct {
 	context    interface{}
 	Breakpoint native.FunctionType
-	Log        native.FunctionType
 }
 
 func (*library) GetName() string {
@@ -70,12 +68,7 @@ func NewLibrary() *library {
 }
 
 func (l *library) init() {
-	l.Log = func(this interface{}, args ...interface{}) interface{} {
-		logger.ScriptLogger().Debug(args...)
-		return script.Null
-	}
-
-	l.Breakpoint = func(this interface{}, args ...interface{}) interface{} {
+	l.Breakpoint = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		ctx := l.context.(runtime.ScriptContext)
 		i := ctx.(runtime.ScriptInterpreter)
 
@@ -102,7 +95,7 @@ func (l *library) init() {
 			println()
 		}
 
-		runtime2.Breakpoint()
+		goRuntime.Breakpoint()
 
 		return script.Null
 	}

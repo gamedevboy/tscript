@@ -34,7 +34,7 @@ func (impl *Component) GetPC() int {
 
 var _ runtime.ScriptInterpreter = &Component{}
 
-func (impl *Component) InvokeNew(function interface{}, args ...interface{}) interface{} {
+func (impl *Component) InvokeNew(function, context interface{}, args ...interface{}) interface{} {
 	this := impl.context.NewScriptObject(0)
 	this.(runtime.Object).SetPrototype(script.InterfaceToValue(function))
 	sf := function.(script.Function)
@@ -43,7 +43,7 @@ func (impl *Component) InvokeNew(function interface{}, args ...interface{}) inte
 		if len(args) < len(_func.GetArguments()) {
 			panic("") // todo not enough arguments
 		}
-		context := impl.context.(runtime.ScriptContext)
+		context := context.(runtime.ScriptContext)
 		context.PushRegisters(0, _func.GetMaxRegisterCount()+len(_func.GetLocalVars())+len(_func.GetArguments())+2)
 		defer context.PopRegisters()
 		registers := context.GetRegisters()
@@ -56,20 +56,20 @@ func (impl *Component) InvokeNew(function interface{}, args ...interface{}) inte
 		ret := registers[0].Get()
 		return ret
 	case runtime_t.NativeFunction:
-		return _func.NativeCall(this, args...)
+		return _func.NativeCall(context, this, args...)
 	default:
 		panic("")
 	}
 }
 
-func (impl *Component) InvokeFunction(function, this interface{}, args ...interface{}) interface{} {
+func (impl *Component) InvokeFunction(function, context, this interface{}, args ...interface{}) interface{} {
 	sf := function.(script.Function)
 	switch _func := sf.GetRuntimeFunction().(type) {
 	case runtime_t.Function:
 		if len(args) < len(_func.GetArguments()) {
 			panic(fmt.Sprintf("not enough arguments,get:%d excepted:%d", len(args), len(_func.GetArguments()))) // todo not enough arguments
 		}
-		context := impl.context.(runtime.ScriptContext)
+		context := context.(runtime.ScriptContext)
 		context.PushRegisters(0, _func.GetMaxRegisterCount()+len(_func.GetLocalVars())+len(_func.GetArguments())+2)
 		defer context.PopRegisters()
 		registers := context.GetRegisters()
@@ -82,7 +82,7 @@ func (impl *Component) InvokeFunction(function, this interface{}, args ...interf
 		ret := registers[0].Get()
 		return ret
 	case runtime_t.NativeFunction:
-		return _func.NativeCall(this, args...)
+		return _func.NativeCall(context, this, args...)
 	default:
 		panic("")
 	}
@@ -270,7 +270,7 @@ vm_loop:
 					case script.Array:
 						*pa_ = target.GetElement(pc_.ToInt())
 					case script.Object:
-						*pa_ = target.ScriptGet(string(util.ToScriptString(pc_.Get())))
+						*pa_ = target.ScriptGet(string(util.ToScriptString(context, pc_.Get())))
 					}
 				default:
 					panic("")
@@ -284,7 +284,7 @@ vm_loop:
 					case script.Array:
 						target.SetElement(pb_.ToInt(), *pc_)
 					case script.Object:
-						target.ScriptSet(string(util.ToScriptString(pb_.Get())), *pc_)
+						target.ScriptSet(string(util.ToScriptString(context, pb_.Get())), *pc_)
 					}
 				default:
 					panic("")
@@ -407,13 +407,13 @@ vm_loop:
 							panic("")
 						}
 					case script.String:
-						pa_.Set(context.GetStringPrototype().(script.Object).ScriptGet("+").GetFunction().Invoke(vb_, util.ToScriptString(pc_.Get())))
+						pa_.Set(context.GetStringPrototype().(script.Object).ScriptGet("+").GetFunction().Invoke(context, vb_, util.ToScriptString(context, pc_.Get())))
 					case script.Object:
 						fn := vb_.ScriptGet("+")
 						if fn.IsNull() || fn.GetPointerType() != script.InterfaceTypeFunction {
 							panic("Can't find '+' operator")
 						}
-						pa_.Set(fn.GetFunction().Invoke(vb_, pc_.Get()))
+						pa_.Set(fn.GetFunction().Invoke(context, vb_, pc_.Get()))
 					default:
 						panic("")
 					}
@@ -497,7 +497,7 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet("-").GetFunction().Invoke(vb_, pb_.Get()))
+						pa_.Set(vb_.ScriptGet("-").GetFunction().Invoke(context, vb_, pb_.Get()))
 					default:
 						panic("")
 					}
@@ -581,7 +581,7 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet("*").GetFunction().Invoke(vb_, pb_.Get()))
+						pa_.Set(vb_.ScriptGet("*").GetFunction().Invoke(context, vb_, pb_.Get()))
 					default:
 						panic("")
 					}
@@ -666,7 +666,7 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet("/").GetFunction().Invoke(vb_, pb_.Get()))
+						pa_.Set(vb_.ScriptGet("/").GetFunction().Invoke(context, vb_, pb_.Get()))
 					default:
 						panic("")
 					}
@@ -710,7 +710,7 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet("%").GetFunction().Invoke(vb_, pb_.Get()))
+						pa_.Set(vb_.ScriptGet("%").GetFunction().Invoke(context, vb_, pb_.Get()))
 					default:
 						panic("")
 					}
@@ -839,7 +839,7 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet("<").GetFunction().Invoke(vb_, pb_.Get()))
+						pa_.Set(vb_.ScriptGet("<").GetFunction().Invoke(context, vb_, pb_.Get()))
 					default:
 						panic("")
 					}
@@ -923,7 +923,7 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet("<=").GetFunction().Invoke(vb_, pb_.Get()))
+						pa_.Set(vb_.ScriptGet("<=").GetFunction().Invoke(context, vb_, pb_.Get()))
 					default:
 						panic("")
 					}
@@ -1007,7 +1007,7 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet(">").GetFunction().Invoke(vb_, pb_.Get()))
+						pa_.Set(vb_.ScriptGet(">").GetFunction().Invoke(context, vb_, pb_.Get()))
 					default:
 						panic("")
 					}
@@ -1091,7 +1091,7 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet(">=").GetFunction().Invoke(vb_, pb_.Get()))
+						pa_.Set(vb_.ScriptGet(">=").GetFunction().Invoke(context, vb_, pb_.Get()))
 					default:
 						panic("")
 					}
@@ -1211,13 +1211,13 @@ vm_loop:
 									if vc_.GetScriptTypeId() == script.ScriptTypeNull {
 										pa_.SetBool(false)
 									} else {
-										pa_.Set(vb_.ScriptGet("==").GetFunction().Invoke(vb_, vc_))
+										pa_.Set(vb_.ScriptGet("==").GetFunction().Invoke(context, vb_, vc_))
 									}
 								default:
-									pa_.Set(vb_.ScriptGet("==").GetFunction().Invoke(vb_, vc_))
+									pa_.Set(vb_.ScriptGet("==").GetFunction().Invoke(context, vb_, vc_))
 								}
 							default:
-								pa_.Set(vb_.ScriptGet("==").GetFunction().Invoke(vb_, pc_.Get()))
+								pa_.Set(vb_.ScriptGet("==").GetFunction().Invoke(context, vb_, pc_.Get()))
 							}
 						} else {
 							switch pc_.GetType() {
@@ -1345,15 +1345,15 @@ vm_loop:
 								switch vc_ := pc_.GetInterface().(type) {
 								case script.Object:
 									if vc_.GetScriptTypeId() != script.ScriptTypeNull {
-										pa_.Set(vb_.ScriptGet("!=").GetFunction().Invoke(vb_, vc_))
+										pa_.Set(vb_.ScriptGet("!=").GetFunction().Invoke(context, vb_, vc_))
 									} else {
 										pa_.SetBool(true)
 									}
 								default:
-									pa_.Set(vb_.ScriptGet("!=").GetFunction().Invoke(vb_, vc_))
+									pa_.Set(vb_.ScriptGet("!=").GetFunction().Invoke(context, vb_, vc_))
 								}
 							default:
-								pa_.Set(vb_.ScriptGet("!=").GetFunction().Invoke(vb_, pc_.Get()))
+								pa_.Set(vb_.ScriptGet("!=").GetFunction().Invoke(context, vb_, pc_.Get()))
 							}
 						} else {
 							switch pc_.GetType() {
@@ -1459,11 +1459,11 @@ vm_loop:
 
 							switch f := callFunc.(type) {
 							case runtime_t.NativeFunction:
-								registers[regStart].Set(f.NativeCall(registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
+								registers[regStart].Set(f.NativeCall(context, registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
 							default:
 								fc := callFunc.GetNativeRuntimeFunction()
 								if fc != nil {
-									registers[regStart].Set(fc.NativeCall(registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
+									registers[regStart].Set(fc.NativeCall(context, registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
 								} else {
 									panic("Invalid native function call")
 								}
@@ -1499,7 +1499,7 @@ vm_loop:
 								impl.currentRegisters = registers[:regStart]
 								args := registers[regStart+2 : regStart+2+count]
 								context.PushRegisters(regStart, 1)
-								registers[regStart].Set(runtimeFunc.NativeCall(registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
+								registers[regStart].Set(runtimeFunc.NativeCall(context, registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
 								context.PopRegisters()
 							}
 						}

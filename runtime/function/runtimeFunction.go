@@ -32,11 +32,11 @@ type Component struct {
 }
 
 func (impl *Component) RegisterFunction(f uintptr) {
-	impl.functions.Store(^uintptr(f), struct{}{})
+	impl.functions.Store(^f, struct{}{})
 }
 
 func (impl *Component) UnregisterFunction(f uintptr) {
-	impl.functions.Delete(uintptr(f))
+	impl.functions.Delete(f)
 }
 
 func (impl *Component) GetAssembly() interface{} {

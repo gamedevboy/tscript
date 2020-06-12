@@ -37,17 +37,17 @@ func NewLibrary() *library {
 }
 
 func (l *library) init() {
-    l.Print = func(this interface{}, args ...interface{}) interface{} {
+    l.Print = func(context interface{}, this interface{}, args ...interface{}) interface{} {
         fmt.Print(args...)
         return this
     }
 
-    l.Println = func(this interface{}, args ...interface{}) interface{} {
+    l.Println = func(context interface{}, this interface{}, args ...interface{}) interface{} {
         fmt.Println(args...)
         return this
     }
 
-    l.ToInt64 = func(this interface{}, args ...interface{}) interface{} {
+    l.ToInt64 = func(context interface{}, this interface{}, args ...interface{}) interface{} {
         switch value := args[0].(type) {
         case script.Int:
             return script.Int64(value)
@@ -73,7 +73,7 @@ func (l *library) init() {
         }
     }
 
-    l.ToInt = func(this interface{}, args ...interface{}) interface{} {
+    l.ToInt = func(context interface{}, this interface{}, args ...interface{}) interface{} {
         switch value := args[0].(type) {
         case script.Int:
             return value
@@ -104,15 +104,15 @@ func (l *library) init() {
         }
     }
 
-    l.ToFloat = func(this interface{}, args ...interface{}) interface{} {
+    l.ToFloat = func(context interface{}, this interface{}, args ...interface{}) interface{} {
         return util.ToScriptFloat(args[0])
     }
 
-    l.SetPrototype = func(this interface{}, args ...interface{}) interface{} {
+    l.SetPrototype = func(context interface{}, this interface{}, args ...interface{}) interface{} {
         return script.NullValue
     }
 
-    l.TypeOf = func(_ interface{}, args ...interface{}) interface{} {
+    l.TypeOf = func(context interface{}, _ interface{}, args ...interface{}) interface{} {
         if len(args) < 1 {
             return script.String("")
         }

@@ -52,18 +52,18 @@ func toInt(a interface{}) script.Int {
 }
 
 func (l *library) init() {
-	l.ToInt = func(this interface{}, args ...interface{}) interface{} {
+	l.ToInt = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if len(args) < 1 {
 			return script.Null
 		}
 		return toInt(args[0])
 	}
 
-	l.Rand = func(this interface{}, args ...interface{}) interface{} {
+	l.Rand = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		return script.Float(rand.New(rand.NewSource(time.Now().UnixNano())).Float32())
 	}
 
-	l.Max = func(this interface{}, args ...interface{}) interface{} {
+	l.Max = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if len(args) < 1 {
 			return 0
 		}
@@ -78,7 +78,7 @@ func (l *library) init() {
 		return a1
 	}
 
-	l.MaxInt32 = func(this interface{}, args ...interface{}) interface{} {
+	l.MaxInt32 = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		return math.MaxInt32
 	}
 }

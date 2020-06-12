@@ -5,7 +5,7 @@ import (
 )
 
 type Function interface {
-    Invoke(interface{}, ...interface{}) interface{}
+    Invoke(context, this interface{}, args ...interface{}) interface{}
     SetThis(Value)
     GetThis() Value
 

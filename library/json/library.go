@@ -34,7 +34,7 @@ func NewLibrary() *library {
 }
 
 func (l *library) init() {
-    l.Encode = func(this interface{}, args ...interface{}) interface{} {
+    l.Encode = func(context interface{}, this interface{}, args ...interface{}) interface{} {
         if len(args) < 1 {
             return ""
         }
@@ -46,7 +46,7 @@ func (l *library) init() {
             return script.String(value.ToJsonString(script.InterfaceToValue(val)))
         }
     }
-    l.Decode = func(this interface{}, args ...interface{}) interface{} {
+    l.Decode = func(context interface{}, this interface{}, args ...interface{}) interface{} {
         r := script.Value{}
 
         if len(args) < 1 {

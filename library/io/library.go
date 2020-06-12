@@ -30,11 +30,11 @@ func NewLibrary() *library {
 }
 
 func (l *library) init() {
-    l.UnixNow = func(_ interface{}, _ ...interface{}) interface{} {
+    l.UnixNow = func(_ interface{}, _ interface{}, _ ...interface{}) interface{} {
         return script.Int64(time.Now().UTC().UnixNano() / 1000000)
     }
 
-    l.ReadAll = func(this interface{}, args ...interface{}) interface{} {
+    l.ReadAll = func(context interface{}, this interface{}, args ...interface{}) interface{} {
         if len(args) < 1 {
             return script.String("")
         }

@@ -48,11 +48,11 @@ func extract(args []interface{}) (format string, ok1 bool) {
 }
 
 func (l *library) init() {
-	l.Debug = func(this interface{}, args ...interface{}) interface{} {
+	l.Debug = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		ScriptLogger().Debug(args...)
 		return this
 	}
-	l.Debugf = func(this interface{}, args ...interface{}) interface{} {
+	l.Debugf = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if format, ok := extract(args); ok {
 			ScriptLogger().Debugf(format, args[1:]...)
 		} else {
@@ -61,11 +61,11 @@ func (l *library) init() {
 		return this
 	}
 
-	l.Info = func(this interface{}, args ...interface{}) interface{} {
+	l.Info = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		ScriptLogger().Info(args...)
 		return this
 	}
-	l.Infof = func(this interface{}, args ...interface{}) interface{} {
+	l.Infof = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if format, ok := extract(args); ok {
 			ScriptLogger().Infof(format, args[1:]...)
 		} else {
@@ -74,11 +74,11 @@ func (l *library) init() {
 		return this
 	}
 
-	l.Warning = func(this interface{}, args ...interface{}) interface{} {
+	l.Warning = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		ScriptLogger().Warning(args...)
 		return this
 	}
-	l.Warningf = func(this interface{}, args ...interface{}) interface{} {
+	l.Warningf = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if format, ok := extract(args); ok {
 			ScriptLogger().Warningf(format, args[1:]...)
 		} else {
@@ -87,11 +87,11 @@ func (l *library) init() {
 		return this
 	}
 
-	l.Error = func(this interface{}, args ...interface{}) interface{} {
+	l.Error = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		ScriptLogger().Error(args...)
 		return this
 	}
-	l.Errorf = func(this interface{}, args ...interface{}) interface{} {
+	l.Errorf = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if format, ok := extract(args); ok {
 			ScriptLogger().Errorf(format, args[1:]...)
 		} else {
@@ -100,11 +100,11 @@ func (l *library) init() {
 		return this
 	}
 
-	l.Fatal = func(this interface{}, args ...interface{}) interface{} {
+	l.Fatal = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		ScriptLogger().Fatal(args...)
 		return this
 	}
-	l.Fatalf = func(this interface{}, args ...interface{}) interface{} {
+	l.Fatalf = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if format, ok := extract(args); ok {
 			ScriptLogger().Fatalf(format, args[1:]...)
 		} else {
@@ -113,11 +113,11 @@ func (l *library) init() {
 		return this
 	}
 
-	l.Panic = func(this interface{}, args ...interface{}) interface{} {
+	l.Panic = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		ScriptLogger().Panic(args...)
 		return this
 	}
-	l.Panicf = func(this interface{}, args ...interface{}) interface{} {
+	l.Panicf = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if format, ok := extract(args); ok {
 			ScriptLogger().Panicf(format, args[1:]...)
 		} else {

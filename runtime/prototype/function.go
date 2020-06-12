@@ -18,24 +18,23 @@ func (impl *Function) GetFunctionPrototype() interface{} {
 func (impl *Function) InitPrototype() {
 	obj := impl.prototype.(script.Object)
 
-	obj.ScriptSet("call", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
+	obj.ScriptSet("call", function.NativeFunctionToValue(func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if len(args) < 1 {
-			return this.(script.Function).Invoke(nil)
+			return this.(script.Function).Invoke(context, nil)
 		}
 
-		return this.(script.Function).Invoke(args[0], args[1:]...)
+		return this.(script.Function).Invoke(context, args[0], args[1:]...)
 	}, impl.GetOwner()))
 
-	obj.ScriptSet("bind", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
+	obj.ScriptSet("bind", function.NativeFunctionToValue(func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if len(args) < 1 {
-			return this.(script.Function).Invoke(nil)
+			return this
 		}
 
 		_func := this.(script.Function)
 		if !_func.IsScriptFunction() {
 			return this
 		}
-		context := _func.GetContext()
 
 		f := &struct {
 			*function.Component

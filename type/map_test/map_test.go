@@ -77,7 +77,7 @@ func checkEnv(t *testing.T, cc *context.Component, fName string, invoker func(sc
 func testIntEqual(t *testing.T, cc *context.Component, m *_map.Component, f string, excepted int, args ...interface{}) {
 	ret := checkEnv(t, cc, f, func(tf script.Function) interface{} {
 		args = append([]interface{}{m}, args...)
-		return tf.Invoke(nil, args...)
+		return tf.Invoke(nil, nil, args...)
 	})
 	if ret != nil && int(ret.(script.Int)) != excepted {
 		t.Errorf("forEach:%s got:%d expected:%d", f, int(ret.(script.Int)), excepted)

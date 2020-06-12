@@ -21,7 +21,7 @@ func (impl *Object) GetObjectPrototype() interface{} {
 func (impl *Object) InitPrototype() {
     obj := impl.prototype.(script.Object)
 
-    obj.ScriptSet("toString", function.NativeFunctionToValue(func(this interface{}, _ ...interface{}) interface{} {
+    obj.ScriptSet("toString", function.NativeFunctionToValue(func(context interface{}, this interface{}, _ ...interface{}) interface{} {
         switch str := this.(type) {
         case fmt.Stringer:
             return script.String(str.String())
@@ -30,12 +30,12 @@ func (impl *Object) InitPrototype() {
         }
     },impl.GetOwner()))
 
-    obj.ScriptSet("setPrototype", function.NativeFunctionToValue(func(this interface{}, args ...interface{}) interface{} {
+    obj.ScriptSet("setPrototype", function.NativeFunctionToValue(func(context interface{}, this interface{}, args ...interface{}) interface{} {
         this.(runtime.Object).SetPrototype(script.InterfaceToValue(args[0]))
         return this
     },impl.GetOwner()))
 
-    obj.ScriptSet("getPrototype", function.NativeFunctionToValue(func(this interface{}, _ ...interface{}) interface{} {
+    obj.ScriptSet("getPrototype", function.NativeFunctionToValue(func(context interface{}, this interface{}, _ ...interface{}) interface{} {
         return this.(runtime.Object).GetPrototype()
     },impl.GetOwner()))
 }

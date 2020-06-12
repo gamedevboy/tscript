@@ -32,49 +32,49 @@ func NewLibrary() *library {
 }
 
 func (l *library) init() {
-	l.IsValid = func(this interface{}, args ...interface{}) interface{} {
+	l.IsValid = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if len(args) < 1 {
 			return false
 		}
 		return IsValid(string(args[0].(script.String)))
 	}
 
-	l.Canonical = func(this interface{}, args ...interface{}) interface{} {
+	l.Canonical = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if len(args) < 1 {
 			return ""
 		}
 		return Canonical(string(args[0].(script.String)))
 	}
 
-	l.MajorMinor = func(this interface{}, args ...interface{}) interface{} {
+	l.MajorMinor = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if len(args) < 1 {
 			return ""
 		}
 		return MajorMinor(string(args[0].(script.String)))
 	}
 
-	l.Prerelease = func(this interface{}, args ...interface{}) interface{} {
+	l.Prerelease = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if len(args) < 1 {
 			return ""
 		}
 		return Prerelease(string(args[0].(script.String)))
 	}
 
-	l.Build = func(this interface{}, args ...interface{}) interface{} {
+	l.Build = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if len(args) < 1 {
 			return ""
 		}
 		return Build(string(args[0].(script.String)))
 	}
 
-	l.Compare = func(this interface{}, args ...interface{}) interface{} {
+	l.Compare = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if len(args) < 2 {
 			return 0
 		}
 		return Compare(string(args[0].(script.String)), string(args[1].(script.String)))
 	}
 
-	l.Max = func(this interface{}, args ...interface{}) interface{} {
+	l.Max = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if len(args) < 1 {
 			return ""
 		}
@@ -84,7 +84,7 @@ func (l *library) init() {
 		return script.String(Max(string(args[0].(script.String)), string(args[1].(script.String))))
 	}
 
-	l.Major = func(this interface{}, args ...interface{}) interface{} {
+	l.Major = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if len(args) < 1 {
 			return 0
 		}

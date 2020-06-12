@@ -25,5 +25,5 @@ type Function interface {
 }
 
 type NativeFunction interface {
-	NativeCall(interface{}, ...interface{}) interface{}
+	NativeCall(interface{}, interface{}, ...interface{}) interface{}
 }

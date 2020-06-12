@@ -8,7 +8,7 @@ import (
 	"tklibs/script"
 )
 
-func ToScriptString(value interface{}) script.String {
+func ToScriptString(context, value interface{}) script.String {
 	switch dest := value.(type) {
 	case script.String:
 		return dest
@@ -29,7 +29,7 @@ func ToScriptString(value interface{}) script.String {
 			if funcValue.GetPointerType() == script.InterfaceTypeFunction {
 				_func := funcValue.GetFunction()
 				if _func != nil {
-					switch retValue := _func.Invoke(dest).(type) {
+					switch retValue := _func.Invoke(context, dest).(type) {
 					case script.String:
 						return retValue
 					default:

@@ -10,8 +10,8 @@ type ReflectFunction reflect.Value
 
 var _ runtime_t.NativeFunction = ReflectFunction{}
 
-func (impl ReflectFunction) NativeCall(this interface{}, args ...interface{}) interface{} {
-    callArgs := make([]reflect.Value, len(args)+1)
+func (impl ReflectFunction) NativeCall(context, this interface{}, args ...interface{}) interface{} {
+    callArgs := make([]reflect.Value, len(args)+2)
 
     callArgs[0] = reflect.ValueOf(this)
 
@@ -28,8 +28,8 @@ func (impl ReflectFunction) NativeCall(this interface{}, args ...interface{}) in
     return this
 }
 
-type FunctionType func(interface{}, ...interface{}) interface{}
+type FunctionType func(interface{}, interface{}, ...interface{}) interface{}
 
-func (fn FunctionType) NativeCall(this interface{}, args ...interface{}) interface{} {
-    return fn(this, args...)
+func (fn FunctionType) NativeCall(context, this interface{}, args ...interface{}) interface{} {
+    return fn(context, this, args...)
 }
