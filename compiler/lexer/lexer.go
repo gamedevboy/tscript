@@ -100,7 +100,7 @@ func convertStr(content []rune) []rune {
 	return ret
 }
 
-func (c *Component) ParseFromRunes(file string, content []rune, tokenList *list.List) *list.List {
+func (c *Component) ParseFromRunes(file string, useImport bool, content []rune, tokenList *list.List) *list.List {
 	cs := &contentState{content: content}
 	cs.file = file
 
@@ -124,7 +124,7 @@ parseLoop:
 			}
 		case token.TokenTypeIDENT:
 			v := t.GetValue()
-			if strings.IndexRune(v, '#') == 0 {
+			if strings.IndexRune(v, '#') == 0 && useImport {
 				switch v {
 				case "#import":
 					if len(cs.content) > 0 {
@@ -132,7 +132,7 @@ parseLoop:
 
 						filePath := t.GetValue() // todo check value type
 
-						tl, err := c.ParseFile(path.Join(path.Dir(file), filePath), tokenList)
+						tl, err := c.ParseFile(path.Join(path.Dir(file), filePath), useImport, tokenList)
 						if err != nil {
 							continue
 						}
@@ -517,7 +517,7 @@ scanLoop:
 	return token.CreateToken(retContent, currentTokenType, cs.line+1, cs.column+1, cs.file)
 }
 
-func (c *Component) ParseFile(fileName string, tokenList *list.List) (*list.List, error) {
+func (c *Component) ParseFile(fileName string, useImport bool, tokenList *list.List) (*list.List, error) {
 	for it := c.importFiles.Front(); it != nil; it = it.Next() {
 		if it.Value.(string) == fileName {
 			return tokenList, nil
@@ -531,5 +531,5 @@ func (c *Component) ParseFile(fileName string, tokenList *list.List) (*list.List
 		return tokenList, err
 	}
 
-	return c.ParseFromRunes(fileName, []rune(c.content), tokenList), nil
+	return c.ParseFromRunes(fileName, useImport, []rune(c.content), tokenList), nil
 }

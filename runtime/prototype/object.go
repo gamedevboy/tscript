@@ -48,7 +48,7 @@ func NewObjectPrototype(ctx interface{}) *Object {
     n := &struct {
         *object.Component
     }{}
-    n.Component = object.NewScriptObjectWithRuntimePrototype(n, ctx.(runtime.ScriptContext).GetRootRuntimeType(), nil, 2)
+    n.Component = object.NewScriptObjectWithRuntimePrototype(n, ctx.(runtime.ScriptContext).GetRootRuntimeType(), ctx,nil, 2)
     ret.prototype = n
     return ret
 }

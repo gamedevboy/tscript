@@ -8,4 +8,5 @@ type Object interface {
     SetByIndex(int, script.Value) *script.Value
     GetPrototype() script.Value
     SetPrototype(value script.Value)
+    GetContext() interface{}
 }

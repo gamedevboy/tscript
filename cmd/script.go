@@ -3,6 +3,7 @@ package main
 import (
     "bufio"
     "bytes"
+    "container/list"
     "flag"
     "fmt"
     "io/ioutil"
@@ -23,9 +24,10 @@ const (
 func main() {
     showAsm := flag.Bool("s", false, "show asm code")
     showToken := flag.Bool("token", false, "show token")
-    noExecute := flag.Bool("n", false, "no execute")
+    execute := flag.Bool("run", false, "run the script")
     write := flag.String("w", "", "write binary code to a file")
     useBinary := flag.Bool("b", false, "read binary code from a file")
+    format := flag.Bool("f", false, "format a file")
 
     flag.Parse()
     files := flag.Args()
@@ -50,7 +52,16 @@ func main() {
         for _, file := range files {
             scriptCompiler.AddFile(file)
         }
-        asm, tokenList, _ := scriptCompiler.Compile()
+
+        var asm interface{}
+        var tokenList *list.List
+
+        if *format {
+            asm, tokenList, _ = scriptCompiler.Format()
+        } else {
+            asm, tokenList, _ = scriptCompiler.Compile()
+        }
+
         asm.(script.Assembly).Save(bufio.NewWriter(buffer))
 
         if *showToken {
@@ -67,7 +78,7 @@ func main() {
         buffer = bytes.NewBuffer(buf)
     }
 
-    if len(*write) > 0 {
+    if len(*write) > 0 && !*format{
         ioutil.WriteFile(*write, buffer.Bytes(), os.ModePerm)
     }
 
@@ -85,16 +96,11 @@ func main() {
                 fmt.Sprint(len(_func.GetRefVars())),
                 fmt.Sprint(len(_func.GetMembers())))
 
-
-            //for i, name := range _func.GetMembers() {
-            //    fmt.Printf("[%v]Member: %v\n", i, name)
-            //}
-
             fmt.Println(_func.DumpString())
         }
     }
 
-    if !*noExecute {
+    if *execute {
         println("Begin to execute ...")
         scriptContext := &struct {
             *context.Component
@@ -110,5 +116,9 @@ func main() {
         startTime := time.Now()
         scriptContext.Run()
         fmt.Printf("Elasped time: %v ms", fmt.Sprint(time.Since(startTime).Nanoseconds()/1000000))
+    }
+
+    if *format {
+
     }
 }

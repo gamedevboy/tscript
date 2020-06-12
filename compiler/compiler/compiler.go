@@ -37,6 +37,14 @@ func (impl *Component) AddSource(code string) {
 }
 
 func (impl *Component) Compile() (interface{}, *list.List, error) {
+    return impl.compile(true)
+}
+
+func (impl *Component) Format() (interface{}, *list.List, error) {
+    return impl.compile(false)
+}
+
+func (impl *Component) compile(useImport bool) (interface{}, *list.List, error) {
     l := &struct {
         *lexer.Component
     }{}
@@ -49,7 +57,7 @@ func (impl *Component) Compile() (interface{}, *list.List, error) {
     for it := impl.fileList.Front(); it != nil; it = it.Next() {
         fileName := it.Value.(string)
 
-        tl, err := l.ParseFile(fileName, tokenList)
+        tl, err := l.ParseFile(fileName, useImport, tokenList)
         if err != nil {
             return nil, tokenList, err
         }
@@ -58,7 +66,7 @@ func (impl *Component) Compile() (interface{}, *list.List, error) {
     }
 
     for it := impl.sourceList.Front(); it != nil; it = it.Next() {
-        tokenList = l.ParseFromRunes("[SOURCE]", []rune(it.Value.(string)), tokenList)
+        tokenList = l.ParseFromRunes("[SOURCE]", useImport, []rune(it.Value.(string)),  tokenList)
     }
 
     asm := &struct {
@@ -93,7 +101,7 @@ func (impl *Component) Compile() (interface{}, *list.List, error) {
     }
 
     for i, f := range functions {
-        functions[i] = impl.compile(f)
+        functions[i] = impl.compileFunction(f)
     }
 
     return asm, tokenList, nil
@@ -219,7 +227,7 @@ func insertIntoStringPool(stringPool assembly.ConstPool, stringList *list.List) 
     }
 }
 
-func (impl *Component) compile(v interface{}) interface{} {
+func (impl *Component) compileFunction(v interface{}) interface{} {
     _func := v.(compiler.Function)
     _func.GetBlockStatement().(ast.Statement).Compile(v)
 

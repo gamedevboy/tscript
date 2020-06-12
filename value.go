@@ -279,7 +279,7 @@ func (value Value) ToString() string {
 }
 
 func (value Value) IsNull() bool {
-	return value.Get() == Null || value.pointer == nil
+	return value.pointer == nil || value.Get() == Null
 }
 
 func (value *Value) SetNull() {
