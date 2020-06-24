@@ -3,6 +3,7 @@ package expression
 import (
     "container/list"
     "fmt"
+    "strings"
 
     "tklibs/script"
     "tklibs/script/compiler"
@@ -17,6 +18,10 @@ type Component struct {
     debug.Component
     script.ComponentType
     expression interface{}
+}
+
+func (impl *Component) Format(ident int, formatBuilder *strings.Builder) {
+    impl.expression.(ast.Node).Format(ident, formatBuilder)
 }
 
 func (impl *Component) String() string {

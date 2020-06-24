@@ -2,6 +2,7 @@ package binary
 
 import (
 	"fmt"
+	"strings"
 
 	"tklibs/script"
 	"tklibs/script/compiler"
@@ -15,6 +16,27 @@ type Component struct {
 	script.ComponentType
 	left, right interface{}
 	opType      token.TokenType
+	paren       bool
+}
+
+func (impl *Component) SetParen(value bool) {
+	impl.paren = value
+}
+
+func (impl *Component) GetParen() bool {
+	return impl.paren
+}
+
+func (impl *Component) Format(ident int, formatBuilder *strings.Builder) {
+	if impl.paren {
+		formatBuilder.WriteString("(")
+	}
+	impl.left.(ast.Node).Format(ident, formatBuilder)
+	formatBuilder.WriteString(fmt.Sprintf(" %v ", impl.opType))
+	impl.right.(ast.Node).Format(ident, formatBuilder)
+	if impl.paren {
+		formatBuilder.WriteString(")")
+	}
 }
 
 func (impl *Component) GetLeft() interface{} {
@@ -191,5 +213,6 @@ func NewBinary(owner, left, right interface{}, opType token.TokenType) *Componen
 		left,
 		right,
 		opType,
+		false,
 	}
 }

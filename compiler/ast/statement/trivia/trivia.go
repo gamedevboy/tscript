@@ -2,6 +2,7 @@ package trivia
 
 import (
 	"container/list"
+	"strings"
 
 	"tklibs/script"
 	"tklibs/script/compiler"
@@ -20,10 +21,19 @@ func NewTrivia(owner interface{}) *Component {
 type Component struct {
 	debug.Component
 	script.ComponentType
+	content string
 }
 
-func (c *Component) String() string {
-	panic("implement me")
+func (c *Component) SetContent(content string) {
+	c.content = content
+}
+
+func (c *Component) GetContent() string {
+	return c.content
+}
+
+func (c *Component) Format(ident int, formatBuilder *strings.Builder) {
+	formatBuilder.WriteString(c.content)
 }
 
 func (c *Component) Compile(f interface{}) *list.Element {

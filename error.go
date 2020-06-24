@@ -35,3 +35,4 @@ func MakeError(filePath string, line int, format string, args ...interface{}) Er
         message:  fmt.Sprintf(format, args ...),
     }
 }
+

@@ -2,6 +2,7 @@ package _for
 
 import (
 	"container/list"
+	"strings"
 
 	"tklibs/script"
 	"tklibs/script/compiler"
@@ -23,8 +24,22 @@ type Component struct {
 	body      interface{}
 }
 
-func (impl *Component) String() string {
-	panic("implement me")
+func (impl *Component) Format(ident int, formatBuilder *strings.Builder) {
+	formatBuilder.WriteString("for (")
+	if impl.init != nil {
+		impl.init.(ast.Node).Format(ident, formatBuilder)
+	}
+	formatBuilder.WriteString("; ")
+	if impl.condition != nil {
+		impl.condition.(ast.Node).Format(ident, formatBuilder)
+	}
+	formatBuilder.WriteString("; ")
+	if impl.step != nil {
+		impl.step.(ast.Node).Format(ident, formatBuilder)
+	}
+	formatBuilder.WriteString(") {")
+	impl.body.(ast.Node).Format(ident+4, formatBuilder)
+	formatBuilder.WriteString("}")
 }
 
 var _ statement.For = &Component{}

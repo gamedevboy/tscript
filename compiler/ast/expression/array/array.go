@@ -1,6 +1,8 @@
 package array
 
 import (
+	"strings"
+
 	"tklibs/script"
 	"tklibs/script/compiler"
 	"tklibs/script/compiler/ast"
@@ -13,7 +15,7 @@ type Component struct {
 	argList interface{}
 }
 
-func (impl *Component) String() string {
+func (impl *Component) Format(ident int, formatBuilder *strings.Builder) {
 	panic("implement me")
 }
 

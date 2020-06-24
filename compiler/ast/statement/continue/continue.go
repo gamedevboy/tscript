@@ -2,6 +2,7 @@ package _continue
 
 import (
     "container/list"
+    "strings"
 
     "tklibs/script"
     "tklibs/script/compiler"
@@ -15,7 +16,7 @@ type Component struct {
     script.ComponentType
 }
 
-func (c *Component) String() string {
+func (c *Component) Format(ident int, formatBuilder *strings.Builder) {
     panic("implement me")
 }
 

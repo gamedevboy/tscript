@@ -283,7 +283,7 @@ parseLoop:
 			}{}
 			c.Component = _const.NewConst(c, script.String(t.GetValue()))
 			currentExpression, tokenIt = c, tokenIt.Next()
-		case token.TokenTypeINC, token.TokenTypeDEC:
+		case token.TokenTypeINC, token.TokenTypeDEC, token.TokenTypeELLIPSIS:
 			ce := expressionList.Back().Value
 			expressionList.Remove(expressionList.Back())
 
@@ -390,6 +390,9 @@ parseLoop:
 						currentExpression, tokenIt = f, p.GetOwner().(parser.FunctionParser).ParseFunction(f, tokenIt)
 					} else {
 						currentExpression, tokenIt = p.ParseExpression(tokenIt.Next())
+						if bin, ok := currentExpression.(expression.Binary); ok {
+							bin.SetParen(true)
+						}
 					}
 				}
 			}

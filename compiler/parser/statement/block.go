@@ -18,6 +18,7 @@ import (
 	_switch "tklibs/script/compiler/ast/statement/switch"
 	"tklibs/script/compiler/ast/statement/trivia"
 	"tklibs/script/compiler/ast/statement/while"
+	"tklibs/script/compiler/debug"
 	"tklibs/script/compiler/parser"
 	"tklibs/script/compiler/token"
 )
@@ -38,6 +39,9 @@ func (impl *BlockStatementParserComponent) ParseStatement(tokenIt *token.Iterato
 			*trivia.Component
 		}{}
 		tv.Component = trivia.NewTrivia(tv)
+		tv.SetLine(t.GetLine())
+		tv.SetFilePath(t.GetFilePath())
+		tv.SetContent(t.GetValue())
 		return tv, tokenIt.Next()
 	case token.TokenTypeIDENT:
 		switch t.GetValue() {
@@ -208,7 +212,15 @@ func (impl *BlockStatementParserComponent) ParseBlock(bs interface{}, tokenIt *t
 			fallthrough
 		default:
 			es, next := impl.ParseStatement(it)
+
 			if es != nil {
+				prev := it.Prev()
+				if prev != nil {
+					prevLine := prev.Value().(token.Token).GetLine()
+					curLine := it.Value().(token.Token).GetLine()
+					es.(debug.Info).SetSkipLine(curLine - prevLine - 1)
+				}
+
 				blockStatement.GetStatementList().PushBack(es)
 			}
 

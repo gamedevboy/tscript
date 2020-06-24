@@ -3,11 +3,13 @@ package call
 import (
 	"container/list"
 	"fmt"
+	"strings"
 
 	"tklibs/script"
 	"tklibs/script/compiler"
 	"tklibs/script/compiler/ast"
 	"tklibs/script/compiler/ast/expression"
+	"tklibs/script/compiler/token"
 	"tklibs/script/opcode"
 )
 
@@ -17,6 +19,16 @@ type Component struct {
 	argList    interface{}
 	isNew      bool
 	option     bool
+}
+
+func (impl *Component) Format(ident int, formatBuilder *strings.Builder) {
+	if impl.isNew {
+		formatBuilder.WriteString("new ")
+	}
+	impl.GetExpression().(ast.Node).Format(ident, formatBuilder)
+	formatBuilder.WriteString("(")
+	impl.GetArgList().(ast.Node).Format(ident, formatBuilder)
+	formatBuilder.WriteString(")")
 }
 
 var _ expression.Call = &Component{}
@@ -86,19 +98,28 @@ func call(f interface{}, r *compiler.Operand, _func compiler.Function, impl *Com
 
 	_func.ReleaseAllRegisters()
 
+	argLen := int16(argList.Len())
+
 	for it := argList.Front(); it != nil; it = it.Next() {
 		r := compiler.NewRegisterOperand(_func.AllocRegister(""))
 		_func.PushRegisters()
-		it.Value.(ast.Expression).Compile(f, r)
+
+		if u, ok := it.Value.(expression.Unary); ok && u.GetTokenType() == token.TokenTypeELLIPSIS && it.Next() == nil {
+			argLen = -argLen
+			u.GetExpression().(ast.Expression).Compile(f, r)
+		} else {
+			it.Value.(ast.Expression).Compile(f, r)
+		}
+
 		_func.PopRegisters()
 	}
 
 	if impl.isNew {
 		_func.AddInstructionABC(opcode.Call, opcode.Flow, rf, compiler.NewSmallIntOperand(regCount<<1+1),
-			compiler.NewSmallIntOperand(int16(argList.Len())))
+			compiler.NewSmallIntOperand(argLen))
 	} else {
 		_func.AddInstructionABC(opcode.Call, opcode.Flow, rf, compiler.NewSmallIntOperand(regCount<<1),
-			compiler.NewSmallIntOperand(int16(argList.Len())))
+			compiler.NewSmallIntOperand(argLen))
 	}
 
 	_func.PopRegisters()

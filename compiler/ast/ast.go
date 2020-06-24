@@ -1,5 +1,9 @@
 package ast
 
+import (
+	"strings"
+)
+
 type Node interface {
-	String() string
+	Format(ident int, formatBuilder *strings.Builder)
 }

@@ -1,87 +1,101 @@
 package decl
 
 import (
-    "container/list"
-    "fmt"
+	"container/list"
+	"fmt"
+	"strings"
 
-    "tklibs/script"
-    "tklibs/script/compiler"
-    "tklibs/script/compiler/ast"
-    "tklibs/script/compiler/ast/statement"
-    "tklibs/script/compiler/debug"
+	"tklibs/script"
+	"tklibs/script/compiler"
+	"tklibs/script/compiler/ast"
+	"tklibs/script/compiler/ast/expression"
+	"tklibs/script/compiler/ast/statement"
+	"tklibs/script/compiler/debug"
 )
 
 type Component struct {
-    debug.Component
-    script.ComponentType
-    name       string
-    expression interface{}
-    isGlobal bool
+	debug.Component
+	script.ComponentType
+	name       string
+	expression interface{}
+	isGlobal   bool
+}
+
+func (ds *Component) Format(ident int, formatBuilder *strings.Builder) {
+	if ds.isGlobal {
+		formatBuilder.WriteString("global")
+	} else {
+		if f, ok := ds.expression.(expression.Function); !(ok && len(f.GetName()) > 0) {
+			formatBuilder.WriteString(fmt.Sprintf("var %v = ", ds.name))
+		}
+	}
+
+	ds.expression.(ast.Expression).Format(ident, formatBuilder)
 }
 
 func (ds *Component) IsGlobal() bool {
-    return ds.isGlobal
+	return ds.isGlobal
 }
 
 func (ds *Component) SetGlobal(v bool) {
-    ds.isGlobal = v
+	ds.isGlobal = v
 }
 
 var _ statement.Decl = &Component{}
 
 func (ds *Component) GetName() string {
-    return ds.name
+	return ds.name
 }
 
 func (ds *Component) SetName(name string) {
-    ds.name = name
+	ds.name = name
 }
 
 func (ds *Component) GetExpression() interface{} {
-    return ds.expression
+	return ds.expression
 }
 
 func (ds *Component) SetExpression(expression interface{}) {
-    ds.expression = expression
+	ds.expression = expression
 }
 
 func (ds *Component) String() string {
-    if ds.expression != nil {
-        return fmt.Sprint("var ", ds.name, "=", ds.expression)
-    }
+	if ds.expression != nil {
+		return fmt.Sprint("var ", ds.name, "=", ds.expression)
+	}
 
-    return fmt.Sprint("var ", ds.name)
+	return fmt.Sprint("var ", ds.name)
 }
 
 func (ds *Component) Compile(f interface{}) *list.Element {
-    _func := f.(compiler.Function)
+	_func := f.(compiler.Function)
 
-    ret := _func.GetInstructionList().Back()
+	ret := _func.GetInstructionList().Back()
 
-    if ds.expression != nil {
-        if ds.isGlobal {
-            index := _func.GetIndexOfRefList(ds.name)
-            if index < 0 {
-                index = _func.GetRefList().Len()
-                _func.GetRefList().PushBack(ds.name)
-            }
-            ds.expression.(ast.Expression).Compile(f, compiler.NewRefOperand(int16(index)))
-        } else {
-            index := _func.GetIndexOfLocalList(ds.name)
-            ds.expression.(ast.Expression).Compile(f, compiler.NewRegisterOperand(_func.GetRegisterByLocalIndex(index)))
-        }
+	if ds.expression != nil {
+		if ds.isGlobal {
+			index := _func.GetIndexOfRefList(ds.name)
+			if index < 0 {
+				index = _func.GetRefList().Len()
+				_func.GetRefList().PushBack(ds.name)
+			}
+			ds.expression.(ast.Expression).Compile(f, compiler.NewRefOperand(int16(index)))
+		} else {
+			index := _func.GetIndexOfLocalList(ds.name)
+			ds.expression.(ast.Expression).Compile(f, compiler.NewRegisterOperand(_func.GetRegisterByLocalIndex(index)))
+		}
 
-        if ret == nil {
-            return nil
-        }
-        return ret.Next()
-    }
+		if ret == nil {
+			return nil
+		}
+		return ret.Next()
+	}
 
-    return ret
+	return ret
 }
 
 var _ statement.Decl = &Component{}
 
 func NewDecl(owner interface{}) *Component {
-    return &Component{ComponentType: script.MakeComponentType(owner)}
+	return &Component{ComponentType: script.MakeComponentType(owner)}
 }

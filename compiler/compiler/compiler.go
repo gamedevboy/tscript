@@ -41,7 +41,50 @@ func (impl *Component) Compile() (interface{}, *list.List, error) {
 }
 
 func (impl *Component) Format() (interface{}, *list.List, error) {
-    return impl.compile(false)
+    l := &struct {
+        *lexer.Component
+    }{}
+    l.Component = lexer.NewLexer(l)
+
+    p := parserComponent.NewParser()
+
+    tokenList := list.New()
+
+    for it := impl.fileList.Front(); it != nil; it = it.Next() {
+        fileName := it.Value.(string)
+
+        tl, err := l.ParseFile(fileName, true, tokenList)
+        if err != nil {
+            return nil, tokenList, err
+        }
+
+        tokenList = tl
+    }
+
+    for it := impl.sourceList.Front(); it != nil; it = it.Next() {
+        tokenList = l.ParseFromRunes("[SOURCE]", true, []rune(it.Value.(string)),  tokenList)
+    }
+
+    asm := &struct {
+        *assemblyImpl.Component
+    }{}
+
+    entryFunction := newCompilerFunction(asm)
+
+    bs := &struct {
+        *block.Component
+    }{}
+    bs.Component = block.NewBlock(bs)
+    bs.SetLine(1)
+    ef := entryFunction.(compiler.Function)
+    ef.SetName("global")
+    ef.SetBlockStatement(bs)
+    ef.SetScope(true)
+    tokenStart := tokenList.Front()
+
+    p.(parser.BlockParser).ParseBlock(bs, token.NewIterator(tokenStart))
+
+    return bs, tokenList, nil
 }
 
 func (impl *Component) compile(useImport bool) (interface{}, *list.List, error) {

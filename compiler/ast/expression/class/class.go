@@ -2,6 +2,7 @@ package class
 
 import (
     "container/list"
+    "strings"
 
     "tklibs/script"
     "tklibs/script/compiler"
@@ -32,6 +33,10 @@ type Component struct {
 }
 
 var _ expression.Class = &Component{}
+
+func (impl *Component) Format(ident int, formatBuilder *strings.Builder) {
+    panic("implement me")
+}
 
 func (impl *Component) SetName(name string) {
     impl.name = name

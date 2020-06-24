@@ -2,6 +2,7 @@ package _if
 
 import (
 	"container/list"
+	"strings"
 
 	"tklibs/script"
 	"tklibs/script/compiler"
@@ -21,7 +22,7 @@ type Component struct {
 	elseBody  interface{}
 }
 
-func (impl *Component) String() string {
+func (impl *Component) Format(ident int, formatBuilder *strings.Builder) {
 	panic("implement me")
 }
 

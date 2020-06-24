@@ -17,6 +17,49 @@ type CallInfo struct {
 	FuncName string
 }
 
+func GetStackInfo(sc runtime.ScriptContext) []CallInfo {
+	frames := sc.GetStackFrames()
+
+	frameLen := len(frames)
+	callInfos := make([]CallInfo, frameLen)
+
+	for  i, f := range frames {
+		frame := f.(stack.Frame)
+		rf := frame.GetFunction().(runtime_t.Function)
+		pc := sc.(runtime.ScriptInterpreter).GetPC()
+		debugInfo := rf.GetDebugInfoList()
+		debugInfoLen := len(debugInfo)
+		sourceIndex := -1
+		line := -1
+		for i, d := range debugInfo {
+			if d.PC > uint32(pc) {
+				if i > 0 {
+					line = int(debugInfo[i-1].Line)
+					sourceIndex = int(debugInfo[i-1].SourceIndex)
+				} else {
+					line = int(d.Line)
+					sourceIndex = int(d.SourceIndex)
+				}
+				break
+			}
+		}
+
+		if line == -1 {
+			line = int(debugInfo[debugInfoLen-1].Line)
+		}
+
+		if sourceIndex == -1 {
+			sourceIndex = int(debugInfo[debugInfoLen-1].SourceIndex)
+		}
+
+		callInfos[frameLen- i - 1].FilePath = rf.GetSourceNames()[sourceIndex]
+		callInfos[frameLen- i - 1].FuncName = rf.GetName()
+		callInfos[frameLen- i - 1].Line = line
+	}
+
+	return callInfos
+}
+
 func GetCallInfo(sc runtime.ScriptContext) *CallInfo {
 	frame := sc.GetCurrentFrame().(stack.Frame)
 	rf := frame.GetFunction().(runtime_t.Function)

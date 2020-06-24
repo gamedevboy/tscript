@@ -13,12 +13,12 @@ type Map struct {
     context interface{}
 }
 
-func (impl *Map) NativeCall(_, _ interface{}, args ...interface{}) interface{} {
+func (impl *Map) NativeCall(_, _ interface{}, args ...interface{}) (interface{}, error) {
     capSize := 0
     if len(args) > 0 {
         capSize = int(args[0].(script.Int))
     }
-    return impl.context.(runtime.ScriptContext).NewScriptMap(capSize)
+    return impl.context.(runtime.ScriptContext).NewScriptMap(capSize), nil
 }
 
 func (impl *Map) GetContext() interface{} {

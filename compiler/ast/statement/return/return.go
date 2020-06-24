@@ -2,6 +2,7 @@ package _return
 
 import (
     "container/list"
+    "strings"
 
     "tklibs/script"
     "tklibs/script/compiler"
@@ -17,8 +18,12 @@ type Component struct {
     expression interface{}
 }
 
-func (impl *Component) String() string {
-    panic("implement me")
+func (impl *Component) Format(ident int, formatBuilder *strings.Builder) {
+    formatBuilder.WriteString("return")
+    if impl.expression != nil {
+        formatBuilder.WriteString(" ")
+        impl.expression.(ast.Node).Format(ident, formatBuilder)
+    }
 }
 
 var _ statement.Return = &Component{}

@@ -14,7 +14,6 @@ const (
 	TokenTypeINT                 // 12345
 	TokenTypeFLOAT               // 123.45
 	TokenTypeSTRING              // "abc"
-	TokenTypeNULLISH             // ??
 	TokenTypeCOMMA               // ,
 	TokenTypeELLIPSIS            // ...
 	TokenTypeORASSIGN            // |=
@@ -28,6 +27,7 @@ const (
 	TokenTypeADDASSIGN           // +=
 	TokenTypeSUBASSIGN           // -=
 	TokenTypeASSIGN              // =
+	TokenTypeNULLISH             // ??
 	TokenTypeQUES                // ?
 	TokenTypeLOR                 // ||
 	TokenTypeLAND                // &&
@@ -211,6 +211,18 @@ func (t *Iterator) Next() *Iterator {
 	if next.Value.(Token).GetType() == TokenTypeCommet {
 		return itNext.Next()
 	}
+
+	return itNext
+}
+
+func (t *Iterator) NextToken() *Iterator {
+	next := t.it.Next()
+
+	if next == nil {
+		return nil
+	}
+
+	itNext := &Iterator{next}
 
 	return itNext
 }

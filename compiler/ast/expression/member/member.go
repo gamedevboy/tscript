@@ -2,6 +2,7 @@ package member
 
 import (
 	"fmt"
+	"strings"
 
 	"tklibs/script"
 	"tklibs/script/compiler"
@@ -14,6 +15,23 @@ type Component struct {
 	script.ComponentType
 	left, right interface{}
 	option      bool
+}
+
+func (impl *Component) Format(ident int, formatBuilder *strings.Builder) {
+	if impl.left != nil {
+		impl.left.(ast.Node).Format(ident, formatBuilder)
+		switch v := impl.right.(type) {
+		case string:
+			formatBuilder.WriteString(".")
+			formatBuilder.WriteString(v)
+		default:
+			formatBuilder.WriteString("[")
+			v.(ast.Node).Format(ident, formatBuilder)
+			formatBuilder.WriteString("]")
+		}
+	} else {
+		formatBuilder.WriteString(impl.right.(string))
+	}
 }
 
 func (impl *Component) WithOption() bool {

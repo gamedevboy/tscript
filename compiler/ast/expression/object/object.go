@@ -2,6 +2,7 @@ package object
 
 import (
     "sort"
+    "strings"
 
     "tklibs/script"
     "tklibs/script/compiler"
@@ -15,7 +16,7 @@ type Component struct {
     values map[string]interface{}
 }
 
-func (impl *Component) String() string {
+func (impl *Component) Format(ident int, formatBuilder *strings.Builder) {
     panic("implement me")
 }
 

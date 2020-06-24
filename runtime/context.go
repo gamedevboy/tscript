@@ -12,6 +12,7 @@ type ScriptContext interface {
     PopScope() interface{}
 
     GetCurrentFrame() interface{}
+    GetStackFrames() []interface{}
 
     GetRootRuntimeType() interface{}
 

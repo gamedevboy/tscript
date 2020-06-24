@@ -1,6 +1,8 @@
 package unary
 
 import (
+    "strings"
+
     "tklibs/script"
     "tklibs/script/compiler"
     "tklibs/script/compiler/ast"
@@ -15,6 +17,19 @@ type Component struct {
     script.ComponentType
     expression interface{}
     tokenType  token.TokenType
+}
+
+func (c *Component) GetExpression() interface{} {
+    return c.expression
+}
+
+func (c *Component) GetTokenType() token.TokenType {
+    return c.tokenType
+}
+
+func (c *Component) Format(ident int, formatBuilder *strings.Builder) {
+    c.expression.(ast.Node).Format(ident, formatBuilder)
+    formatBuilder.WriteString(c.tokenType.String())
 }
 
 func (c *Component) String() string {

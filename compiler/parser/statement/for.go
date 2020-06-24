@@ -46,6 +46,7 @@ func (impl *ForStatementParserComponent) ParseFor(f interface{}, tokenIt *token.
             *block.Component
         }{}
         body.Component = block.NewBlock(body)
+        body.SetLine(tokenIt.Value().(token.Token).GetLine())
         tokenIt = blockParser.ParseBlock(body, tokenIt.Next()).Next()
         fs.SetBody(body)
     default:

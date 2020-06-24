@@ -3,6 +3,7 @@ package _const
 import (
 	"fmt"
 	"math"
+	"strings"
 
 	"tklibs/script"
 	"tklibs/script/compiler"
@@ -13,6 +14,10 @@ import (
 type Component struct {
 	script.ComponentType
 	value interface{}
+}
+
+func (impl *Component) Format(ident int, formatBuilder *strings.Builder) {
+	formatBuilder.WriteString(fmt.Sprintf("%#v", impl.value))
 }
 
 func (impl *Component) String() string {

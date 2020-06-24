@@ -45,7 +45,7 @@ type contentState struct {
 	stringStack  []rune
 }
 
-func skipWhitespacesAndLines(cs *contentState) bool {
+func skipWhitespacesAndLines(cs *contentState) int {
 	i, contentLen := 0, len(cs.content)
 
 	for ; i < contentLen; i++ {
@@ -68,30 +68,34 @@ func skipWhitespacesAndLines(cs *contentState) bool {
 	}
 
 	if i == 0 {
-		return false
+		return i
 	}
 
 	cs.content = cs.content[i:]
-	return true
+	return i
 }
 
 func convertStr(content []rune) []rune {
 	j, contentLen := 0, len(content)
-	ret := make([]rune, contentLen-2)
+	ret := make([]rune, 0, contentLen)
 
 	for i := 1; i < contentLen-1; i++ {
 		if content[i] == '\\' && i < contentLen-2 {
 			i++
 			switch content[i] {
 			case 'n':
-				ret[j] = '\n'
+				ret = append(ret, '\n')
+			case '"':
+				ret = append(ret, '"')
+			case '\'':
+				ret = append(ret, '\'')
 			case '\\':
-				ret[j] = '\\'
+				ret = append(ret, '\\')
 			default:
 				panic("unsupported \\ operations")
 			}
 		} else {
-			ret[j] = content[i]
+			ret = append(ret, content[i])
 		}
 
 		j++
@@ -113,15 +117,15 @@ parseLoop:
 		switch tokenType {
 		case token.TokenTypeUnknown:
 			break parseLoop
-		case token.TokenTypeCommet:
-			lastToken := tokenList.Back()
-			if lastToken != nil {
-				lt := lastToken.Value.(token.Token)
-				if lt.GetLine() == t.GetLine() && lt.GetFilePath() == t.GetFilePath() {
-					lt.SetComment(t.GetValue())
-					continue
-				}
-			}
+		// case token.TokenTypeCommet:
+		// 	lastToken := tokenList.Back()
+		// 	if lastToken != nil {
+		// 		lt := lastToken.Value.(token.Token)
+		// 		if lt.GetLine() == t.GetLine() && lt.GetFilePath() == t.GetFilePath() {
+		// 			lt.SetComment(t.GetValue())
+		// 			continue
+		// 		}
+		// 	}
 		case token.TokenTypeIDENT:
 			v := t.GetValue()
 			if strings.IndexRune(v, '#') == 0 && useImport {
@@ -156,7 +160,7 @@ func parseToken(cs *contentState) token.Token {
 	currentTokenType := token.TokenTypeUnknown
 
 	for {
-		if !skipWhitespacesAndLines(cs) {
+		if skipWhitespacesAndLines(cs) == 0 {
 			break
 		}
 	}
@@ -173,6 +177,8 @@ scanLoop:
 		switch {
 		case currentTokenType == token.TokenTypeSTRING:
 			switch curRune {
+			case '\\':
+				i++
 			case '"', '\'':
 				topStringRune := cs.stringStack[len(cs.stringStack)-1]
 				if topStringRune == curRune {
@@ -350,6 +356,7 @@ scanLoop:
 					}
 				}
 
+				i--
 				break scanLoop
 			default:
 				break scanLoop

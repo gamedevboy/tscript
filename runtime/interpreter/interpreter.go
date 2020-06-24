@@ -56,7 +56,8 @@ func (impl *Component) InvokeNew(function, context interface{}, args ...interfac
 		ret := registers[0].Get()
 		return ret
 	case runtime_t.NativeFunction:
-		return _func.NativeCall(context, this, args...)
+		ret, _ := _func.NativeCall(context, this, args...)
+		return ret
 	default:
 		panic("")
 	}
@@ -82,15 +83,18 @@ func (impl *Component) InvokeFunction(function, context, this interface{}, args 
 		ret := registers[0].Get()
 		return ret
 	case runtime_t.NativeFunction:
-		return _func.NativeCall(context, this, args...)
+		ret, _ := _func.NativeCall(context, this, args...)
+		return ret
 	default:
 		panic("")
 	}
 }
 
 //noinspection GoNilness
-func (impl *Component) invoke(sf script.Function) {
+func (impl *Component) invoke(sf script.Function) (exception interface{}) {
 	_func := sf.GetScriptRuntimeFunction()
+
+	exception = nil
 
 	context := impl.context
 	registers := context.GetRegisters()
@@ -150,6 +154,8 @@ func (impl *Component) invoke(sf script.Function) {
 			switch e := err.(type) {
 			case script.Error:
 				panic(script.MakeError(fileName, line, "%v @ %v: %v", e, fileName, line))
+			case script.ScriptException:
+				exception = e.GetException()
 			default:
 				panic(script.MakeError(fileName, line, "script runtime error: [%v] @ %v:%v in %v", err, fileName, line, _func.GetName()))
 			}
@@ -1391,14 +1397,14 @@ vm_loop:
 			case opcode.Jump:
 				p := int(pb_.GetInt())
 				if p > 0 {
-					if !pa_.GetBool() {
+					if pa_.IsNull() || bool(!pa_.GetBool()) {
 						pc = p
 						ilPtr = ilStart + uintptr(pc*8)
 						il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
 						continue
 					}
 				} else {
-					if pa_.GetBool() {
+					if !pa_.IsNull() && bool(pa_.GetBool()) {
 						pc = -p
 						ilPtr = ilStart + uintptr(pc*8)
 						il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
@@ -1414,6 +1420,22 @@ vm_loop:
 					continue
 				}
 			case opcode.Call:
+				regStart := pb_.GetInt()
+				count := pc_.GetInt()
+
+				isNewCall := regStart&1 != 0
+				regStart = regStart >> 1
+
+				if count < 0 {
+					count = -count
+					start := int(regStart + 1 + count)
+					if array, ok := registers[start].Get().(script.Array); ok {
+						for i := 0; i < int(array.Len()); i++ {
+							registers[start+i] = array.GetElement(script.Int(i))
+						}
+					}
+				}
+
 				switch pa_.GetType() {
 				case script.ValueTypeInterface:
 					pai := pa_.Interface()
@@ -1421,10 +1443,9 @@ vm_loop:
 					switch pai.GetType() {
 					case script.InterfaceTypeFunction:
 						callFunc := pai.GetFunction()
-						regStart := pb_.GetInt()
-						count := pc_.GetInt()
-						isNewCall := regStart&1 != 0
-						regStart = regStart >> 1
+
+						_frame := frame.NewStackFrame(nil, _func)
+						context.PushFrame(_frame)
 
 						if callFunc.IsScriptFunction() {
 							runtimeFunc := callFunc.GetScriptRuntimeFunction()
@@ -1453,24 +1474,25 @@ vm_loop:
 							impl.currentPC = pc
 							impl.currentRegisters = registers[:regStart]
 							args := registers[regStart+2 : regStart+2+count]
-							_frame := frame.NewStackFrame(nil, _func)
-							context.PushFrame(_frame)
+
 							context.PushRegisters(regStart, 1)
 
 							switch f := callFunc.(type) {
 							case runtime_t.NativeFunction:
-								registers[regStart].Set(f.NativeCall(context, registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
+								ret, _ := f.NativeCall(context, registers[regStart+1].Get(), value.ToInterfaceSlice(args)...)
+								registers[regStart].Set(ret)
 							default:
 								fc := callFunc.GetNativeRuntimeFunction()
 								if fc != nil {
-									registers[regStart].Set(fc.NativeCall(context, registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
+									ret, _ := fc.NativeCall(context, registers[regStart+1].Get(), value.ToInterfaceSlice(args)...)
+									registers[regStart].Set(ret)
 								} else {
 									panic("Invalid native function call")
 								}
 							}
 							context.PopRegisters()
-							frame.FreeStackFrame(context.PopFrame().(*frame.Component))
 						}
+						frame.FreeStackFrame(context.PopFrame().(*frame.Component))
 					case script.InterfaceTypeAny:
 						if pai.IsNull() {
 							panic(fmt.Errorf("Cannot call on 'null' value "))
@@ -1484,8 +1506,6 @@ vm_loop:
 
 						callMethod := cm.Get()
 						if callFunc, ok := callMethod.(script.Function); ok {
-							regStart := pb_.GetInt()
-							count := pc_.GetInt()
 							switch runtimeFunc := callFunc.GetRuntimeFunction().(type) {
 							case runtime_t.Function:
 								registers = context.PushRegisters(regStart,
@@ -1499,7 +1519,8 @@ vm_loop:
 								impl.currentRegisters = registers[:regStart]
 								args := registers[regStart+2 : regStart+2+count]
 								context.PushRegisters(regStart, 1)
-								registers[regStart].Set(runtimeFunc.NativeCall(context, registers[regStart+1].Get(), value.ToInterfaceSlice(args)...))
+								ret, _ := runtimeFunc.NativeCall(context, registers[regStart+1].Get(), value.ToInterfaceSlice(args)...)
+								registers[regStart].Set(ret)
 								context.PopRegisters()
 							}
 						}
@@ -1609,6 +1630,8 @@ vm_loop:
 		il = (*instruction.Instruction)(unsafe.Pointer(ilPtr))
 		pc++
 	}
+
+	return
 }
 
 func freeScope(context runtime.ScriptContext) {

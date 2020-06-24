@@ -10,4 +10,6 @@ type Binary interface {
     GetLeft() interface{}
     GetRight() interface{}
     GetOpType() token.TokenType
+    SetParen(value bool)
+    GetParen() bool
 }

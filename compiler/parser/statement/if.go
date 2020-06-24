@@ -28,6 +28,7 @@ func (impl *IfStatementParserComponent) ParseIf(ifStatement interface{}, tokenIt
             *block.Component
         }{}
         body.Component = block.NewBlock(body)
+        body.SetLine(tokenIt.Value().(token.Token).GetLine())
         tokenIt = impl.GetOwner().(parser.BlockParser).ParseBlock(body, tokenIt.Next()).Next()
         is.SetBody(body)
     default:
@@ -45,6 +46,7 @@ func (impl *IfStatementParserComponent) ParseIf(ifStatement interface{}, tokenIt
                 *block.Component
             }{}
             elseBody.Component = block.NewBlock(elseBody)
+            elseBody.SetLine(tokenIt.Value().(token.Token).GetLine())
             tokenIt = impl.GetOwner().(parser.BlockParser).ParseBlock(elseBody, tokenIt.Next()).Next()
             is.SetElseBody(elseBody)
         default:

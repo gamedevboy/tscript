@@ -92,6 +92,12 @@ func InterfaceToValue(val interface{}) Value {
 	return value
 }
 
+func ToValue(val interface{}) Value {
+	value := Value{}
+	value.Set(val)
+	return value
+}
+
 func (value *Value) SetInterface(v interface{}) {
 	if v != nil {
 		value.pointer = &Interface{}

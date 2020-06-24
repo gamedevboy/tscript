@@ -18,12 +18,12 @@ type Array struct {
     context interface{}
 }
 
-func (a *Array) NativeCall(context, _ interface{}, args ...interface{}) interface{} {
+func (a *Array) NativeCall(context, _ interface{}, args ...interface{}) (interface{}, error) {
     capSize := 0
     if len(args) > 0 {
         capSize = int(args[0].(script.Int))
     }
-    return context.(runtime.ScriptContext).NewScriptArray(capSize)
+    return context.(runtime.ScriptContext).NewScriptArray(capSize), nil
 }
 
 func (a *Array) GetContext() interface{} {
@@ -199,6 +199,23 @@ func NewArrayPrototype(ctx interface{}) *Array {
 
         return script.String(strings.Join(a, string(args[0].(script.String))))
     },ctx))
+
+    // obj.ScriptSet("repeat", function.NativeFunctionToValue(func(context interface{}, this interface{}, args ...interface{}) interface{} {
+    //     if len(args) < 2 {
+    //         return this
+    //     }
+    //
+    //
+    //
+    //     context.(runtime.ScriptContext).NewScriptArray()
+    //
+    //
+    //     for i := script.Int(0); i < array.Len(); i++ {
+    //         a[i] = fmt.Sprint(array.GetElement(i).Get())
+    //     }
+    //
+    //     return script.String(strings.Join(a, string(args[0].(script.String))))
+    // },ctx))
 
     return obj
 }

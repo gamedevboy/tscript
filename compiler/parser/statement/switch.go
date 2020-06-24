@@ -57,6 +57,8 @@ func (s *SwitchStatementParserComponent) ParseSwitch(switchStatement interface{}
                 }
 
                 b.Component = block2.NewBlock(b)
+                curLine := tokenIt.Value().(token.Token).GetLine()
+                b.SetLine(curLine)
                 tokenIt = s.GetOwner().(parser.BlockParser).ParseBlock(b, next.Next())
                 c := &struct {
                     *_case.Component
@@ -64,6 +66,7 @@ func (s *SwitchStatementParserComponent) ParseSwitch(switchStatement interface{}
                 c.Component = _case.NewCase(c)
                 c.SetValue(val)
                 c.SetBlock(b)
+                c.SetLine(curLine)
                 ss.GetCaseList().PushBack(c)
             case "default":
                 tokenIt = tokenIt.Next()
@@ -78,6 +81,8 @@ func (s *SwitchStatementParserComponent) ParseSwitch(switchStatement interface{}
                     *block2.Component
                 }{}
                 b.Component = block2.NewBlock(b)
+                curLine := tokenIt.Value().(token.Token).GetLine()
+                b.SetLine(curLine)
                 tokenIt = s.GetOwner().(parser.BlockParser).ParseBlock(b, tokenIt)
                 ss.SetDefaultCase(b)
             default:

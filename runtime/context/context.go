@@ -214,6 +214,10 @@ func (impl *Component) GetCurrentFrame() interface{} {
 	return impl.frames[len(impl.frames)-1]
 }
 
+func (impl *Component) GetStackFrames() []interface{} {
+	return impl.frames
+}
+
 func (impl *Component) GetAssembly() interface{} {
 	return impl.assembly
 }
