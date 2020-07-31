@@ -22,17 +22,17 @@ type Component struct {
 	localVars        []string
 	refVars          []string
 	members          []string
-	name             string
 	sourceNames      []string
+	assembly         interface{}
+	name             string
+	functions        sync.Map
+	maxRegisterCount uint8
 	isScope          bool
 	captureThis      bool
-	maxRegisterCount int
-	assembly         interface{}
-	functions        sync.Map
 }
 
 func (impl *Component) RegisterFunction(f uintptr) {
-	impl.functions.Store(^f, struct{}{})
+	impl.functions.Store(f, struct{}{})
 }
 
 func (impl *Component) UnregisterFunction(f uintptr) {
@@ -53,7 +53,7 @@ func (impl *Component) CopyFrom(src runtime_t.Function) {
 	impl.sourceNames = src.GetSourceNames()
 	impl.isScope = src.IsScope()
 	impl.captureThis = src.IsCaptureThis()
-	impl.maxRegisterCount = src.GetMaxRegisterCount()
+	impl.maxRegisterCount = uint8(src.GetMaxRegisterCount())
 
 	impl.functions.Range(func(key, val interface{}) bool {
 		ptr := (*function.Component)(unsafe.Pointer(^(key.(uintptr))))
@@ -63,7 +63,7 @@ func (impl *Component) CopyFrom(src runtime_t.Function) {
 }
 
 func (impl *Component) GetMaxRegisterCount() int {
-	return impl.maxRegisterCount
+	return int(impl.maxRegisterCount)
 }
 
 func (impl *Component) GetDebugInfoList() []debug.Info {
@@ -235,6 +235,8 @@ func (impl *Component) DumpString() string {
 			switch il.Code {
 			case opcode.Call:
 				instStr = fmt.Sprintf("CALL \t%v, \t%v, \t%v", ra, rb, rc)
+			case opcode.JumpNull:
+				instStr = fmt.Sprintf("JMPN \t%v", rb)
 			case opcode.Jump:
 				if il.GetABx().B > 0 {
 					instStr = fmt.Sprintf("JEZ \t%v, \t%v", ra, il.GetABx().B)
@@ -268,7 +270,7 @@ func (impl *Component) DumpString() string {
 func NewFunctionComponent(owner, assembly interface{}, instructionCount int, debugInfoCount int, name string, sourceFiles []string,
 	localVars,
 	arguments, refVars,
-	members []string, isScope bool, captureThis bool, maxRegisterCount uint32) *Component {
+	members []string, isScope bool, captureThis bool, maxRegisterCount uint8) *Component {
 	return &Component{
 		ComponentType:    script.MakeComponentType(owner),
 		assembly:         assembly,
@@ -282,6 +284,6 @@ func NewFunctionComponent(owner, assembly interface{}, instructionCount int, deb
 		sourceNames:      sourceFiles,
 		isScope:          isScope,
 		captureThis:      captureThis,
-		maxRegisterCount: int(maxRegisterCount),
+		maxRegisterCount: maxRegisterCount,
 	}
 }

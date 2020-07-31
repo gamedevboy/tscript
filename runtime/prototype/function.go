@@ -39,7 +39,13 @@ func (impl *Function) InitPrototype() {
 		f := &struct {
 			*function.Component
 		}{}
-		f.Component = function.NewScriptFunction(f, _func.GetRuntimeFunction(), context)
+
+		if _func.IsScriptFunction() {
+			f.Component = function.NewScriptFunction(f, _func.GetScriptRuntimeFunction(), context)
+		} else {
+			f.Component = function.NewScriptFunction(f, _func.GetNativeRuntimeFunction(), context)
+		}
+
 		f.SetThis(script.InterfaceToValue(this))
 		f.Init()
 

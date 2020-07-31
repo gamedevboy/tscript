@@ -38,6 +38,23 @@ func (impl *Object) InitPrototype() {
     obj.ScriptSet("getPrototype", function.NativeFunctionToValue(func(context interface{}, this interface{}, _ ...interface{}) interface{} {
         return this.(runtime.Object).GetPrototype()
     },impl.GetOwner()))
+
+    obj.ScriptSet("forEach", function.NativeFunctionToValue(func(context interface{}, this interface{}, args ...interface{}) interface{} {
+        scriptObj := this.(runtime.Object)
+        rt := scriptObj.GetRuntimeTypeInfo().(runtime.TypeInfo)
+        f := args[0].(script.Function)
+
+        for i, name := range  rt.GetFieldNames() {
+            ret := f.Invoke(context, nil, script.String(*name), scriptObj.GetByIndex(i).Get(), i)
+            if ret != nil {
+                if r, ok := ret.(script.Bool); ok && r == false {
+                    return i
+                }
+            }
+        }
+
+        return this
+    },impl.GetOwner()))
 }
 
 func NewObjectPrototype(ctx interface{}) *Object {
@@ -48,7 +65,7 @@ func NewObjectPrototype(ctx interface{}) *Object {
     n := &struct {
         *object.Component
     }{}
-    n.Component = object.NewScriptObjectWithRuntimePrototype(n, ctx.(runtime.ScriptContext).GetRootRuntimeType(), ctx,nil, 2)
+    n.Component = object.NewScriptObjectWithRuntimePrototype(n, ctx.(runtime.ScriptContext).GetRootRuntimeType(), nil, 2)
     ret.prototype = n
     return ret
 }

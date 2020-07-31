@@ -15,26 +15,22 @@ func ToScriptString(context, value interface{}) script.String {
 	case script.Int:
 		return script.String(strconv.FormatInt(int64(int(dest)), 10))
 	case script.Float:
-		return script.String(strconv.FormatFloat(float64(dest), 'f',-1, 32))
+		return script.String(strconv.FormatFloat(float64(dest), 'f', -1, 32))
 	case script.Int64:
 		return script.String(strconv.FormatInt(int64(dest), 10))
 	case script.Float64:
-		return script.String(strconv.FormatFloat(float64(dest), 'f',-1, 64))
+		return script.String(strconv.FormatFloat(float64(dest), 'f', -1, 64))
 	case script.Object:
 		if dest.GetScriptTypeId() == script.ScriptTypeNull {
 			return "null"
 		} else {
 			funcValue := dest.ScriptGet("toString")
-
-			if funcValue.GetPointerType() == script.InterfaceTypeFunction {
-				_func := funcValue.GetFunction()
-				if _func != nil {
-					switch retValue := _func.Invoke(context, dest).(type) {
-					case script.String:
-						return retValue
-					default:
-						panic(fmt.Sprintf("Can not convert '%v'.toString() to String", value))
-					}
+			if _func, ok := funcValue.Get().(script.Function); ok && _func != nil {
+				switch retValue := _func.Invoke(context, dest).(type) {
+				case script.String:
+					return retValue
+				default:
+					panic(fmt.Sprintf("Can not convert '%v'.toString() to String", value))
 				}
 			}
 

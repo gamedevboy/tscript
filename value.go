@@ -18,7 +18,7 @@ const (
 type pointer = unsafe.Pointer
 
 type Value struct {
-	pointer *Interface
+	pointer *interface{}
 }
 
 func (value *Value) GetType() uint16 {
@@ -75,7 +75,7 @@ func (value *Value) Set(v interface{}) Value {
 	return *value
 }
 
-func (value Value) Interface() *Interface {
+func (value Value) Interface() *interface{} {
 	return value.pointer
 }
 
@@ -83,7 +83,7 @@ func (value Value) GetInterface() interface{} {
 	if value.pointer == nil {
 		return nil
 	}
-	return value.pointer.Get()
+	return *value.pointer
 }
 
 func InterfaceToValue(val interface{}) Value {
@@ -100,8 +100,7 @@ func ToValue(val interface{}) Value {
 
 func (value *Value) SetInterface(v interface{}) {
 	if v != nil {
-		value.pointer = &Interface{}
-		value.pointer.Set(v)
+		value.pointer = &v
 	} else {
 		value.pointer = nil
 	}
@@ -129,25 +128,9 @@ func (value *Value) GetBool() Bool {
 	return *(*Bool)(pointer(value))
 }
 
-func (value *Value) GetPointerType() uint64 {
-	if value == nil || value.pointer == nil {
-		return InterfaceTypeNull
-	}
-
-	return value.pointer.GetType()
-}
-
 func (value *Value) SetBool(v Bool) {
 	*(*Bool)(pointer(value)) = v
 	*(*uint32)(pointer(uintptr(pointer(value)) + 4)) = uint32(ValueTypeBool) << 16
-}
-
-func (value Value) GetFunction() Function {
-	if value.pointer == nil {
-		return nil
-	}
-
-	return value.pointer.GetFunction()
 }
 
 func (value Value) GetObject() Object {

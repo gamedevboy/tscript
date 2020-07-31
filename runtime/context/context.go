@@ -43,6 +43,8 @@ type Component struct {
 	*prototype.Object
 	*prototype.String
 
+	stringPool util.StringPool
+
 	arrayPrototype *prototype.Array
 	mapPrototype   *prototype.Map
 
@@ -56,6 +58,10 @@ type Component struct {
 	globalFields map[string]*script.Value
 
 	initialized bool
+}
+
+func (impl *Component) GetStringPool() util.StringPool {
+	return impl.stringPool
 }
 
 func (impl *Component) ReloadAssembly(assembly script.Assembly) error {
@@ -296,15 +302,13 @@ func NewScriptContext(owner, asm interface{}, stackSize int) *Component {
 		assembly:      asm,
 		registers:     make([]script.Value, stackSize),
 		globalFields:  make(map[string]*script.Value),
+		stringPool: util.NewStringPool(),
 	}
 
 	context.registerList = make([][]script.Value, 0, 1)
 	context.registerList = append(context.registerList, context.registers)
 
-	runtimeType := &struct {
-		*typeinfo.Component
-	}{}
-	runtimeType.Component = typeinfo.NewTypeComponent(runtimeType, util.NewStringPool())
+	runtimeType := typeinfo.NewTypeComponent(context)
 	context.rootRuntimeType = runtimeType
 
 	context.Object = prototype.NewObjectPrototype(context)

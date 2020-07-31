@@ -8,9 +8,9 @@ import (
 )
 
 type Component struct {
+    elements []script.Value
     script.ComponentType
     *object.Component
-    elements []script.Value
 }
 
 func (impl *Component) Clear() {

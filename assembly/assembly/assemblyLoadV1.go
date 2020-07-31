@@ -25,7 +25,7 @@ type functionDeclV1 struct {
     isScope             bool
     sourceFileNames     []string
     captureThis         bool
-    maxRegisterCount    uint32
+    maxRegisterCount    uint8
 }
 
 func loadV1(fh *assemblyFileHeader, impl *Component, reader *bufio.Reader) {

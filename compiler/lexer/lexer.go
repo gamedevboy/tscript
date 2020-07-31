@@ -356,7 +356,6 @@ scanLoop:
 					}
 				}
 
-				i--
 				break scanLoop
 			default:
 				break scanLoop

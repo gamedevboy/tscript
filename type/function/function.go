@@ -14,35 +14,28 @@ import (
 	"tklibs/script/type/object"
 )
 
-type ComopnentRef struct {
+type ref struct {
 	pointer uintptr
-	f       runtime_t.Function
+	fn      runtime_t.Function
 }
 
-func (comp *ComopnentRef) Dispose() {
-	if comp.pointer != 0 {
-		comp.f.UnregisterFunction(comp.pointer)
-	}
+func (comp *ref) Dispose() {
+	comp.fn.UnregisterFunction(comp.pointer)
 }
 
 type Component struct {
+	refs          []*script.Value
+	memberCaches  []*list.List
+	refNames      []string
+	scriptContext interface{}
+
 	script.ComponentType
 	*object.Component
-
-	_compRef *ComopnentRef
-
-	scriptContext   interface{}
-	runtimeFunction interface{}
+	this     script.Value
+	_compRef *ref
 
 	scriptRuntimeFunction runtime_t.Function
 	nativeRuntimeFunction runtime_t.NativeFunction
-
-	scriptFunction bool
-
-	refs         []*script.Value
-	memberCaches []*list.List
-	this         script.Value
-	refNames     []string
 }
 
 func (impl *Component) GetContext() interface{} {
@@ -50,7 +43,7 @@ func (impl *Component) GetContext() interface{} {
 }
 
 func (impl *Component) IsScriptFunction() bool {
-	return impl.scriptFunction
+	return impl.scriptRuntimeFunction != nil
 }
 
 func (impl *Component) GetScriptRuntimeFunction() runtime_t.Function {
@@ -62,10 +55,10 @@ func (impl *Component) GetNativeRuntimeFunction() runtime_t.NativeFunction {
 }
 
 func (impl *Component) Reload() {
-	if runtimeFunction, ok := impl.runtimeFunction.(runtime_t.Function); ok {
+	if impl.scriptRuntimeFunction != nil {
 		scriptContext := impl.scriptContext.(runtime.ScriptContext)
 
-		impl.memberCaches = make([]*list.List, len(runtimeFunction.GetMembers()))
+		impl.memberCaches = make([]*list.List, len(impl.scriptRuntimeFunction.GetMembers()))
 		for i := range impl.memberCaches {
 			impl.memberCaches[i] = list.New()
 		}
@@ -73,7 +66,7 @@ func (impl *Component) Reload() {
 		refs := impl.refs
 		refNames := impl.refNames
 
-		impl.refNames = runtimeFunction.GetRefVars()
+		impl.refNames = impl.scriptRuntimeFunction.GetRefVars()
 		refLength := len(impl.refNames)
 		impl.refs = make([]*script.Value, refLength)
 
@@ -156,9 +149,7 @@ func (impl *Component) GetFieldByMemberIndex(obj interface{}, index script.Int) 
 	case script.Map:
 		key := script.String(impl.getMemberNames()[index])
 		if target.ContainsKey(key) {
-			val := script.Value{}
-			val.Set(target.Get(key))
-			return val
+			return script.ToValue(target.Get(key))
 		}
 		return obj.(script.Object).ScriptGet(impl.getMemberNames()[index])
 	case script.Object:
@@ -187,34 +178,27 @@ func (impl *Component) SetFieldByMemberIndex(obj interface{}, index script.Int, 
 	}
 }
 
-func (impl *Component) GetRuntimeFunction() interface{} {
-	return impl.runtimeFunction
-}
-
 func (impl *Component) Invoke(context, this interface{}, args ...interface{}) interface{} {
 	return context.(runtime.ScriptInterpreter).InvokeFunction(impl.GetOwner(), context, this, args...)
 }
 
 func (impl *Component) New(context interface{}, args ...interface{}) interface{} {
-	switch runtimeFunction := impl.runtimeFunction.(type) {
-	case runtime_t.Function:
+	if impl.scriptRuntimeFunction != nil {
 		for index, value := range impl.refs {
 			if value.GetType() == script.ValueTypeInterface && value.GetInterface() == nil {
-				panic(fmt.Sprintf("Can not find ref value for '%v'", runtimeFunction.GetRefVars()[index]))
+				panic(fmt.Sprintf("Can not find ref value for '%v'", impl.scriptRuntimeFunction.GetRefVars()[index]))
 			}
 		}
-	default:
-		// native function can't invoke as new operator
 	}
 
 	return impl.scriptContext.(runtime.ScriptInterpreter).InvokeNew(impl.GetOwner(), context, args...)
 }
 
 func (impl *Component) Init() {
-	if runtimeFunction, ok := impl.runtimeFunction.(runtime_t.Function); ok {
+	if impl.scriptRuntimeFunction != nil {
 		scriptContext := impl.scriptContext.(runtime.ScriptContext)
 
-		impl.refNames = runtimeFunction.GetRefVars()
+		impl.refNames = impl.scriptRuntimeFunction.GetRefVars()
 		refLength := len(impl.refNames)
 		impl.refs = make([]*script.Value, refLength)
 
@@ -222,7 +206,7 @@ func (impl *Component) Init() {
 			scriptContext.GetRefByName(impl.refNames[i], &impl.refs[i])
 		}
 
-		impl.memberCaches = make([]*list.List, len(runtimeFunction.GetMembers()))
+		impl.memberCaches = make([]*list.List, len(impl.scriptRuntimeFunction.GetMembers()))
 		for i := range impl.memberCaches {
 			impl.memberCaches[i] = list.New()
 		}
@@ -230,30 +214,28 @@ func (impl *Component) Init() {
 }
 
 func (impl *Component) getMemberNames() []string {
-	return impl.runtimeFunction.(runtime_t.Function).GetMembers()
+	return impl.scriptRuntimeFunction.GetMembers()
 }
 
 func NewScriptFunction(owner, runtimeFunction, ctx interface{}) *Component {
 	ret := &Component{
-		ComponentType:   script.MakeComponentType(owner),
-		runtimeFunction: runtimeFunction,
-		scriptContext:   ctx,
-		Component:       object.NewScriptObject(owner, ctx, 0),
+		ComponentType: script.MakeComponentType(owner),
+		scriptContext: ctx,
+		Component:     object.NewScriptObject(owner, ctx, 0),
 	}
 
-	switch f := runtimeFunction.(type) {
+	switch _func := runtimeFunction.(type) {
 	case runtime_t.Function:
-		ret.scriptFunction = true
-		ret.scriptRuntimeFunction = f
-		f.RegisterFunction(uintptr(unsafe.Pointer(ret)))
-		ret._compRef = &ComopnentRef{
+		ret.scriptRuntimeFunction = _func
+		ret._compRef = &ref{
 			pointer: ^uintptr(unsafe.Pointer(ret)),
-			f:       f,
+			fn:      _func,
 		}
 
-		rt.SetFinalizer(ret._compRef, (*ComopnentRef).Dispose)
+		_func.RegisterFunction(ret._compRef.pointer)
+		rt.SetFinalizer(ret._compRef, (*ref).Dispose)
 	case runtime_t.NativeFunction:
-		ret.nativeRuntimeFunction = f
+		ret.nativeRuntimeFunction = _func
 	}
 
 	ret.SetPrototype(script.InterfaceToValue(ctx.(runtime.ScriptContext).GetFunctionPrototype()))

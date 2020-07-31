@@ -9,8 +9,6 @@ type Function interface {
     SetThis(Value)
     GetThis() Value
 
-    GetRuntimeFunction() interface{}
-
     IsScriptFunction() bool
 
     GetScriptRuntimeFunction() runtime_t.Function

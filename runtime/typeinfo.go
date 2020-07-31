@@ -1,10 +1,10 @@
 package runtime
 
 type TypeInfo interface {
-    AddChild(fieldName string) interface{}
-    RemoveChild(fieldName string) interface{}
+    AddChild(fieldName string) TypeInfo
+    RemoveChild(fieldName string) TypeInfo
     GetName() string
-    GetParent() interface{}
+    GetParent() TypeInfo
     GetFieldIndexByName(fieldName string) int
     GetFieldNames() []*string
 }

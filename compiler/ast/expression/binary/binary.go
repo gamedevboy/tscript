@@ -133,16 +133,18 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
 			return rr
 		}
 	case token.TokenTypeNULLISH:
-		if r == nil {
-			r = compiler.NewRegisterOperand(_func.AllocRegister(""))
-		}
-
-		impl.left.(ast.Expression).Compile(f, r)
-		jmp := _func.AddInstructionABx(opcode.JumpNull, opcode.Flow, r, compiler.NewIntOperand(0))
-		impl.right.(ast.Expression).Compile(f, r)
+		rv := compiler.NewRegisterOperand(_func.AllocRegister(""))
+		impl.left.(ast.Expression).Compile(f, rv)
+		jmp := _func.AddInstructionABx(opcode.JumpNull, opcode.Flow, rv, compiler.NewIntOperand(0))
+		impl.right.(ast.Expression).Compile(f, rv)
 		end := f.(compiler.Function).AddInstructionABx(opcode.Nop, opcode.Nop, compiler.NewSmallIntOperand(-1),
 			compiler.NewIntOperand(0))
 		jmp.Value.(*ast.Instruction).GetABx().B = end.Value.(*ast.Instruction).Index
+		if r != nil {
+			f.(compiler.Function).AddInstructionABx(opcode.Move, opcode.Memory, r, rv)
+			return r
+		}
+		return rv
 	default:
 		lr := impl.left.(ast.Expression).Compile(f, nil)
 

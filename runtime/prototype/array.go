@@ -161,7 +161,7 @@ func NewArrayPrototype(ctx interface{}) *Array {
         retArray := ret.(script.Array)
         v := script.Value{}
         for i := script.Int(0); i < array.Len(); i++ {
-            retArray.SetElement(i, v.Set(f.Invoke(context, nil, array.GetElement(i).Get())))
+            retArray.Push(v.Set(f.Invoke(context, nil, array.GetElement(i).Get())))
         }
         return ret
     },ctx))

@@ -7,15 +7,10 @@ import (
 )
 
 type Component struct {
+	fields []script.Value
 	script.ComponentType
-	fields          []script.Value
-	runtimeTypeInfo interface{}
-	context         interface{}
+	runtimeTypeInfo runtime.TypeInfo
 	prototype       script.Value
-}
-
-func (impl *Component) GetContext() interface{} {
-	return impl.context
 }
 
 func (impl *Component) GetPrototype() script.Value {
@@ -101,20 +96,18 @@ func (impl *Component) get(s string) script.Value {
 func NewScriptObject(owner, ctx interface{}, fieldCap int) *Component {
 	ret := &Component{
 		ComponentType:   script.MakeComponentType(owner),
-		runtimeTypeInfo: ctx.(runtime.ScriptContext).GetRootRuntimeType(),
+		runtimeTypeInfo: ctx.(runtime.ScriptContext).GetRootRuntimeType().(runtime.TypeInfo),
 		fields:          make([]script.Value, 0, fieldCap),
-		context:         ctx,
 	}
 	ret.SetPrototype(script.InterfaceToValue(ctx.(runtime.ScriptContext).GetObjectPrototype()))
 	return ret
 }
 
-func NewScriptObjectWithRuntimePrototype(owner, runtimeType, ctx, prototype interface{}, fieldCap int) *Component {
+func NewScriptObjectWithRuntimePrototype(owner, runtimeType, prototype interface{}, fieldCap int) *Component {
 	ret := &Component{
 		ComponentType:   script.MakeComponentType(owner),
-		runtimeTypeInfo: runtimeType,
+		runtimeTypeInfo: runtimeType.(runtime.TypeInfo),
 		fields:          make([]script.Value, 0, fieldCap),
-		context:         ctx,
 	}
 
 	ret.SetPrototype(script.InterfaceToValue(prototype))

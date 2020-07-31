@@ -1,69 +1,57 @@
 package object
 
 import (
-    "sort"
-    "strings"
+	"strings"
 
-    "tklibs/script"
-    "tklibs/script/compiler"
-    "tklibs/script/compiler/ast"
-    "tklibs/script/compiler/ast/expression"
-    "tklibs/script/opcode"
+	"tklibs/script"
+	"tklibs/script/compiler"
+	"tklibs/script/compiler/ast"
+	"tklibs/script/compiler/ast/expression"
+	"tklibs/script/opcode"
 )
 
 type Component struct {
-    script.ComponentType
-    values map[string]interface{}
+	script.ComponentType
+	values []expression.ObjectEntry
 }
 
 func (impl *Component) Format(ident int, formatBuilder *strings.Builder) {
-    panic("implement me")
+	panic("implement me")
 }
 
 func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Operand {
-    _func := f.(compiler.Function)
-    if r == nil {
-        r = compiler.NewRegisterOperand(_func.AllocRegister(""))
-        _func.AddInstructionABx(opcode.Object, opcode.Memory, r, compiler.NewIntOperand(script.Int(len(impl.values))))
-    } else {
-        n := compiler.NewRegisterOperand(_func.AllocRegister(""))
-        _func.AddInstructionABx(opcode.Object, opcode.Memory, n, compiler.NewIntOperand(script.Int(len(impl.values))))
-        _func.AddInstructionABx(opcode.Move, opcode.Memory, r, n)
-    }
+	_func := f.(compiler.Function)
+	if r == nil {
+		r = compiler.NewRegisterOperand(_func.AllocRegister(""))
+		_func.AddInstructionABx(opcode.Object, opcode.Memory, r, compiler.NewIntOperand(script.Int(len(impl.values))))
+	} else {
+		n := compiler.NewRegisterOperand(_func.AllocRegister(""))
+		_func.AddInstructionABx(opcode.Object, opcode.Memory, n, compiler.NewIntOperand(script.Int(len(impl.values))))
+		_func.AddInstructionABx(opcode.Move, opcode.Memory, r, n)
+	}
 
-    keys := make([]string, len(impl.values))
+	for _, value := range impl.values {
+		index := _func.GetIndexOfMemberList(value.Name)
+		if index == -1 {
+			index = _func.GetMemberList().Len()
+			_func.GetMemberList().PushBack(value.Name)
+		}
+		_func.AddInstructionABC(opcode.StoreField, opcode.Memory, r, compiler.NewSmallIntOperand(int16(index)),
+			value.Function.(ast.Expression).Compile(f, nil))
+	}
 
-    idx := 0
-    for varName := range impl.values {
-        keys[idx] = varName
-        idx++
-    }
-
-    sort.Strings(keys)
-
-    for _, varName := range keys {
-        v := impl.values[varName]
-        index := _func.GetIndexOfMemberList(varName)
-        if index == -1 {
-            index = _func.GetMemberList().Len()
-            _func.GetMemberList().PushBack(varName)
-        }
-        _func.AddInstructionABC(opcode.StoreField, opcode.Memory, r, compiler.NewSmallIntOperand(int16(index)),
-            v.(ast.Expression).Compile(f, nil))
-    }
-
-    return r
+	return r
 }
 
-func (impl *Component) GetKeyValueMap() map[string]interface{} {
-    return impl.values
+func (impl *Component) GetKeyValueMap() *[]expression.ObjectEntry {
+	return &impl.values
 }
 
 var _ expression.Object = &Component{}
 
 func NewObject(owner interface{}) *Component {
-    return &Component{
-        ComponentType: script.MakeComponentType(owner),
-        values:        make(map[string]interface{}),
-    }
+	return &Component{
+		ComponentType: script.MakeComponentType(owner),
+		values:        make([]expression.ObjectEntry, 0),
+	}
 }

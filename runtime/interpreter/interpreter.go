@@ -38,55 +38,57 @@ func (impl *Component) InvokeNew(function, context interface{}, args ...interfac
 	this := impl.context.NewScriptObject(0)
 	this.(runtime.Object).SetPrototype(script.InterfaceToValue(function))
 	sf := function.(script.Function)
-	switch _func := sf.GetRuntimeFunction().(type) {
-	case runtime_t.Function:
-		if len(args) < len(_func.GetArguments()) {
+	if sf.IsScriptFunction() {
+		runtimeFunction := sf.GetScriptRuntimeFunction()
+		if len(args) < len(runtimeFunction.GetArguments()) {
 			panic("") // todo not enough arguments
 		}
 		context := context.(runtime.ScriptContext)
-		context.PushRegisters(0, _func.GetMaxRegisterCount()+len(_func.GetLocalVars())+len(_func.GetArguments())+2)
+		context.PushRegisters(0, runtimeFunction.GetMaxRegisterCount()+
+			len(runtimeFunction.GetLocalVars())+
+			len(runtimeFunction.GetArguments())+2)
+
 		defer context.PopRegisters()
 		registers := context.GetRegisters()
 		defer registers[0].SetNull()
 		registers[1].Set(this)
-		for i := range _func.GetArguments() {
+		for i := range runtimeFunction.GetArguments() {
 			registers[2+i].Set(args[i])
 		}
 		impl.invoke(function.(script.Function))
 		ret := registers[0].Get()
 		return ret
-	case runtime_t.NativeFunction:
-		ret, _ := _func.NativeCall(context, this, args...)
+	} else {
+		ret, _ := sf.GetNativeRuntimeFunction().NativeCall(context, this, args...)
 		return ret
-	default:
-		panic("")
 	}
 }
 
 func (impl *Component) InvokeFunction(function, context, this interface{}, args ...interface{}) interface{} {
 	sf := function.(script.Function)
-	switch _func := sf.GetRuntimeFunction().(type) {
-	case runtime_t.Function:
-		if len(args) < len(_func.GetArguments()) {
-			panic(fmt.Sprintf("not enough arguments,get:%d excepted:%d", len(args), len(_func.GetArguments()))) // todo not enough arguments
+	if sf.IsScriptFunction() {
+		runtimeFunction := sf.GetScriptRuntimeFunction()
+		if len(args) < len(runtimeFunction.GetArguments()) {
+			panic(fmt.Sprintf("not enough arguments,get:%d excepted:%d", len(args),
+				len(runtimeFunction.GetArguments()))) // todo not enough arguments
 		}
 		context := context.(runtime.ScriptContext)
-		context.PushRegisters(0, _func.GetMaxRegisterCount()+len(_func.GetLocalVars())+len(_func.GetArguments())+2)
+		context.PushRegisters(0, runtimeFunction.GetMaxRegisterCount()+
+			len(runtimeFunction.GetLocalVars())+len(
+			runtimeFunction.GetArguments())+2)
 		defer context.PopRegisters()
 		registers := context.GetRegisters()
 		defer registers[0].SetNull()
 		registers[1].Set(this)
-		for i := range _func.GetArguments() {
+		for i := range runtimeFunction.GetArguments() {
 			registers[2+i].Set(args[i])
 		}
 		impl.invoke(function.(script.Function))
 		ret := registers[0].Get()
 		return ret
-	case runtime_t.NativeFunction:
-		ret, _ := _func.NativeCall(context, this, args...)
+	} else {
+		ret, _ := sf.GetNativeRuntimeFunction().NativeCall(context, this, args...)
 		return ret
-	default:
-		panic("")
 	}
 }
 
@@ -325,9 +327,8 @@ vm_loop:
 				f.Component = function.NewScriptFunction(f, _func.GetAssembly().(script.Assembly).
 					GetFunctionByMetaIndex(metaIndex),
 					context)
-				rf := f.GetRuntimeFunction().(runtime_t.Function)
 				f.Init()
-				if rf.IsCaptureThis() {
+				if f.GetScriptRuntimeFunction().IsCaptureThis() {
 					f.SetThis(registers[1])
 				}
 				pa_.SetInterface(f)
@@ -413,13 +414,13 @@ vm_loop:
 							panic("")
 						}
 					case script.String:
-						pa_.Set(context.GetStringPrototype().(script.Object).ScriptGet("+").GetFunction().Invoke(context, vb_, util.ToScriptString(context, pc_.Get())))
+						pa_.Set(context.GetStringPrototype().(script.Object).ScriptGet("+").
+							Get().(script.Function).Invoke(context, vb_, util.ToScriptString(context, pc_.Get())))
 					case script.Object:
-						fn := vb_.ScriptGet("+")
-						if fn.IsNull() || fn.GetPointerType() != script.InterfaceTypeFunction {
-							panic("Can't find '+' operator")
+						if fn, ok := vb_.ScriptGet("+").Get().(script.Function); ok && fn != nil {
+							pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
 						}
-						pa_.Set(fn.GetFunction().Invoke(context, vb_, pc_.Get()))
+						panic("Can't find '+' operator")
 					default:
 						panic("")
 					}
@@ -503,7 +504,10 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet("-").GetFunction().Invoke(context, vb_, pb_.Get()))
+						if fn, ok := vb_.ScriptGet("-").Get().(script.Function); ok && fn != nil {
+							pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
+						}
+						panic("Can't find '-' operator")
 					default:
 						panic("")
 					}
@@ -587,7 +591,10 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet("*").GetFunction().Invoke(context, vb_, pb_.Get()))
+						if fn, ok := vb_.ScriptGet("*").Get().(script.Function); ok && fn != nil {
+							pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
+						}
+						panic("Can't find '*' operator")
 					default:
 						panic("")
 					}
@@ -672,7 +679,10 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet("/").GetFunction().Invoke(context, vb_, pb_.Get()))
+						if fn, ok := vb_.ScriptGet("/").Get().(script.Function); ok && fn != nil {
+							pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
+						}
+						panic("Can't find '/' operator")
 					default:
 						panic("")
 					}
@@ -716,7 +726,10 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet("%").GetFunction().Invoke(context, vb_, pb_.Get()))
+						if fn, ok := vb_.ScriptGet("%").Get().(script.Function); ok && fn != nil {
+							pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
+						}
+						panic("Can't find '%' operator")
 					default:
 						panic("")
 					}
@@ -845,7 +858,10 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet("<").GetFunction().Invoke(context, vb_, pb_.Get()))
+						if fn, ok := vb_.ScriptGet("<").Get().(script.Function); ok && fn != nil {
+							pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
+						}
+						panic("Can't find '<' operator")
 					default:
 						panic("")
 					}
@@ -929,7 +945,10 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet("<=").GetFunction().Invoke(context, vb_, pb_.Get()))
+						if fn, ok := vb_.ScriptGet("<=").Get().(script.Function); ok && fn != nil {
+							pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
+						}
+						panic("Can't find '<=' operator")
 					default:
 						panic("")
 					}
@@ -1013,7 +1032,10 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet(">").GetFunction().Invoke(context, vb_, pb_.Get()))
+						if fn, ok := vb_.ScriptGet(">").Get().(script.Function); ok && fn != nil {
+							pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
+						}
+						panic("Can't find '>' operator")
 					default:
 						panic("")
 					}
@@ -1097,7 +1119,10 @@ vm_loop:
 							panic("")
 						}
 					case script.Object:
-						pa_.Set(vb_.ScriptGet(">=").GetFunction().Invoke(context, vb_, pb_.Get()))
+						if fn, ok := vb_.ScriptGet(">=").Get().(script.Function); ok && fn != nil {
+							pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
+						}
+						panic("Can't find '>=' operator")
 					default:
 						panic("")
 					}
@@ -1217,13 +1242,22 @@ vm_loop:
 									if vc_.GetScriptTypeId() == script.ScriptTypeNull {
 										pa_.SetBool(false)
 									} else {
-										pa_.Set(vb_.ScriptGet("==").GetFunction().Invoke(context, vb_, vc_))
+										if fn, ok := vb_.ScriptGet("==").Get().(script.Function); ok && fn != nil {
+											pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
+										}
+										panic("Can't find '==' operator")
 									}
 								default:
-									pa_.Set(vb_.ScriptGet("==").GetFunction().Invoke(context, vb_, vc_))
+									if fn, ok := vb_.ScriptGet(">=").Get().(script.Function); ok && fn != nil {
+										pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
+									}
+									panic("Can't find '==' operator")
 								}
 							default:
-								pa_.Set(vb_.ScriptGet("==").GetFunction().Invoke(context, vb_, pc_.Get()))
+								if fn, ok := vb_.ScriptGet("==").Get().(script.Function); ok && fn != nil {
+									pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
+								}
+								panic("Can't find '==' operator")
 							}
 						} else {
 							switch pc_.GetType() {
@@ -1251,7 +1285,7 @@ vm_loop:
 					case script.ValueTypeBool:
 						pa_.SetBool(pb_.GetBool() != pc_.GetBool())
 					default:
-						pa_.SetBool(false)
+						pa_.SetBool(true)
 					}
 				case script.ValueTypeInt:
 					switch pc_.GetType() {
@@ -1299,6 +1333,8 @@ vm_loop:
 								pa_.SetBool(vb_ != vc_)
 							case script.Float64:
 								pa_.SetBool(script.Float64(vb_) != vc_)
+							case script.Object:
+								pa_.SetBool(true)
 							default:
 								panic("")
 							}
@@ -1318,7 +1354,7 @@ vm_loop:
 							case script.Int64:
 								pa_.SetBool(vb_ != script.Float64(vc_))
 							case script.Object:
-								pa_.SetBool(false)
+								pa_.SetBool(true)
 							default:
 								panic("")
 							}
@@ -1351,15 +1387,24 @@ vm_loop:
 								switch vc_ := pc_.GetInterface().(type) {
 								case script.Object:
 									if vc_.GetScriptTypeId() != script.ScriptTypeNull {
-										pa_.Set(vb_.ScriptGet("!=").GetFunction().Invoke(context, vb_, vc_))
+										if fn, ok := vb_.ScriptGet("!=").Get().(script.Function); ok && fn != nil {
+											pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
+										}
+										panic("Can't find '!=' operator")
 									} else {
 										pa_.SetBool(true)
 									}
 								default:
-									pa_.Set(vb_.ScriptGet("!=").GetFunction().Invoke(context, vb_, vc_))
+									if fn, ok := vb_.ScriptGet("!=").Get().(script.Function); ok && fn != nil {
+										pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
+									}
+									panic("Can't find '!=' operator")
 								}
 							default:
-								pa_.Set(vb_.ScriptGet("!=").GetFunction().Invoke(context, vb_, pc_.Get()))
+								if fn, ok := vb_.ScriptGet("==").Get().(script.Function); ok && fn != nil {
+									pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
+								}
+								panic("Can't find '!=' operator")
 							}
 						} else {
 							switch pc_.GetType() {
@@ -1368,10 +1413,10 @@ vm_loop:
 								case script.Object:
 									pa_.SetBool(vc_.GetScriptTypeId() != script.ScriptTypeNull)
 								default:
-									pa_.SetBool(false)
+									pa_.SetBool(true)
 								}
 							default:
-								pa_.SetBool(false)
+								pa_.SetBool(true)
 							}
 						}
 					default:
@@ -1433,17 +1478,15 @@ vm_loop:
 						for i := 0; i < int(array.Len()); i++ {
 							registers[start+i] = array.GetElement(script.Int(i))
 						}
+
+						count += array.Len() - 1
 					}
 				}
 
 				switch pa_.GetType() {
 				case script.ValueTypeInterface:
-					pai := pa_.Interface()
-
-					switch pai.GetType() {
-					case script.InterfaceTypeFunction:
-						callFunc := pai.GetFunction()
-
+					switch callFunc := pa_.GetInterface().(type) {
+					case script.Function:
 						_frame := frame.NewStackFrame(nil, _func)
 						context.PushFrame(_frame)
 
@@ -1493,36 +1536,29 @@ vm_loop:
 							context.PopRegisters()
 						}
 						frame.FreeStackFrame(context.PopFrame().(*frame.Component))
-					case script.InterfaceTypeAny:
-						if pai.IsNull() {
-							panic(fmt.Errorf("Cannot call on 'null' value "))
-						}
+					case script.Object:
+						callMethod, ok := callFunc.(script.Object).ScriptGet("()").Get().(script.Function)
 
-						cm := pai.Get().(script.Object).ScriptGet("()")
-
-						if cm.IsNull() {
+						if callMethod == nil || !ok {
 							panic(fmt.Errorf("Cannot find call operator in object "))
 						}
 
-						callMethod := cm.Get()
-						if callFunc, ok := callMethod.(script.Function); ok {
-							switch runtimeFunc := callFunc.GetRuntimeFunction().(type) {
-							case runtime_t.Function:
-								registers = context.PushRegisters(regStart,
-									runtimeFunc.GetMaxRegisterCount()+
-										len(runtimeFunc.GetArguments())+
-										len(runtimeFunc.GetLocalVars())+
-										2)
-								impl.invoke(callFunc)
-								context.PopRegisters()
-							case runtime_t.NativeFunction:
-								impl.currentRegisters = registers[:regStart]
-								args := registers[regStart+2 : regStart+2+count]
-								context.PushRegisters(regStart, 1)
-								ret, _ := runtimeFunc.NativeCall(context, registers[regStart+1].Get(), value.ToInterfaceSlice(args)...)
-								registers[regStart].Set(ret)
-								context.PopRegisters()
-							}
+						if callMethod.IsScriptFunction() {
+							runtimeFunction := callMethod.GetScriptRuntimeFunction()
+							registers = context.PushRegisters(regStart,
+								runtimeFunction.GetMaxRegisterCount()+
+									len(runtimeFunction.GetArguments())+
+									len(runtimeFunction.GetLocalVars())+
+									2)
+							impl.invoke(callMethod)
+							context.PopRegisters()
+						} else {
+							impl.currentRegisters = registers[:regStart]
+							args := registers[regStart+2 : regStart+2+count]
+							context.PushRegisters(regStart, 1)
+							ret, _ := callMethod.GetNativeRuntimeFunction().NativeCall(context, registers[regStart+1].Get(), value.ToInterfaceSlice(args)...)
+							registers[regStart].Set(ret)
+							context.PopRegisters()
 						}
 					}
 				default:
@@ -1589,10 +1625,10 @@ vm_loop:
 						case script.Int64:
 							pa_.SetInt64(script.Int64(pb_.GetInt()) & vc_)
 						default:
-							panic("not support |")
+							panic("not support &")
 						}
 					default:
-						panic("not support |")
+						panic("not support &")
 					}
 				case script.ValueTypeBool:
 					switch pc_.GetType() {

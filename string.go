@@ -14,3 +14,9 @@ func (String) ScriptSet(string, Value) {
 func (String) GetScriptTypeId() ScriptTypeId {
     return ScriptTypeString
 }
+
+func (s String) ToValue() Value {
+    v := Value{}
+    v.SetInterface(s)
+    return v
+}

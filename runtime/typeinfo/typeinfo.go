@@ -1,42 +1,38 @@
 package typeinfo
 
 import (
-	"tklibs/script"
 	"tklibs/script/runtime"
-	"tklibs/script/runtime/util"
 )
 
 type Component struct {
-	script.ComponentType
-	parent     interface{}
-	children   map[*string]interface{}
-	fieldName  *string
-	fields     []*string
-	stringPool util.StringPool
+	fields        []*string
+	scriptContext runtime.ScriptContext
+	parent        runtime.TypeInfo
+	children      map[*string]runtime.TypeInfo
 }
 
 var _ runtime.TypeInfo = &Component{}
 
-func NewTypeComponent(owner interface{}, stringPool util.StringPool) *Component {
+func NewTypeComponent(scriptContext interface{}) *Component {
 	return &Component{
-		ComponentType: script.MakeComponentType(owner),
 		fields:        make([]*string, 0),
-		children:      make(map[*string]interface{}),
-		stringPool:    stringPool,
-		fieldName:     nil,
+		children:      make(map[*string]runtime.TypeInfo),
+		scriptContext: scriptContext.(runtime.ScriptContext),
 	}
 }
 
-func (impl *Component) GetParent() interface{} {
+func (impl *Component) GetParent() runtime.TypeInfo {
 	return impl.parent
 }
 
 func (impl *Component) GetName() string {
-	if impl.fieldName == nil {
-		return ""
+	fl := len(impl.fields)
+
+	if fl > 0 {
+		return *impl.fields[fl-1]
 	}
 
-	return *impl.fieldName
+	return ""
 }
 
 func (impl *Component) GetFieldIndexByName(fieldName string) int {
@@ -57,18 +53,14 @@ func (impl *Component) GetFieldValueByIndex(index int) interface{} {
 	return impl.fields
 }
 
-func (impl *Component) AddChild(fieldName string) interface{} {
-	fn := impl.stringPool.Insert(fieldName)
+func (impl *Component) AddChild(fieldName string) runtime.TypeInfo {
+	fn := impl.scriptContext.GetStringPool().Insert(fieldName)
 	if v, ok := impl.children[fn]; ok {
 		return v
 	}
 
-	newTypeInfo := &struct {
-		*Component
-	}{}
-	newTypeInfo.Component = NewTypeComponent(newTypeInfo, impl.stringPool)
-	newTypeInfo.fieldName = fn
-	newTypeInfo.parent = impl.GetOwner()
+	newTypeInfo := NewTypeComponent(impl.scriptContext)
+	newTypeInfo.parent = impl
 
 	newTypeInfo.fields = make([]*string, len(impl.fields), len(impl.fields)+1)
 	copy(newTypeInfo.fields, impl.fields)
@@ -79,19 +71,15 @@ func (impl *Component) AddChild(fieldName string) interface{} {
 	return newTypeInfo
 }
 
-func (impl *Component) RemoveChild(fieldName string) interface{} {
+func (impl *Component) RemoveChild(fieldName string) runtime.TypeInfo {
 	newFieldName := "-" + fieldName
-	nfn := impl.stringPool.Insert(newFieldName)
+	nfn := impl.scriptContext.GetStringPool().Insert(newFieldName)
 	if v, ok := impl.children[nfn]; ok {
 		return v
 	}
 
-	newTypeInfo := &struct {
-		*Component
-	}{}
-	newTypeInfo.Component = NewTypeComponent(newTypeInfo, impl.stringPool)
-	newTypeInfo.fieldName = nfn
-	newTypeInfo.parent = impl.GetOwner()
+	newTypeInfo := NewTypeComponent(impl.scriptContext)
+	newTypeInfo.parent = impl
 
 	for index, fn := range impl.fields {
 		if fn == nfn {

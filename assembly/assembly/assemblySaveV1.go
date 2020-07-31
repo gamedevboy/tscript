@@ -33,7 +33,7 @@ func saveV1(fh *assemblyFileHeader, impl *Component, writer *bufio.Writer) {
         fd.sourceFileNames = _func.GetSourceNames()
         fd.isScope = _func.IsScope()
         fd.captureThis = _func.GetCaptureThis()
-        fd.maxRegisterCount = uint32(_func.GetMaxRegisterCount())
+        fd.maxRegisterCount = uint8(_func.GetMaxRegisterCount())
 
         binary.Write(writer, binary.LittleEndian, fd.instructionCount)
         binary.Write(writer, binary.LittleEndian, fd.debugInfoCount)

@@ -2,6 +2,7 @@ package runtime
 
 import (
     "tklibs/script"
+    "tklibs/script/runtime/util"
 )
 
 type ScriptContext interface {
@@ -39,4 +40,5 @@ type ScriptContext interface {
     GetRegisters() []script.Value
     PushRegisters(regStart script.Int, length int) []script.Value
     PopRegisters()
+	GetStringPool() util.StringPool
 }

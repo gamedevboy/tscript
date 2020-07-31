@@ -1,10 +1,16 @@
 package util
 
+import (
+	"sync"
+)
+
 type StringPool interface {
 	Insert(value string) *string
 }
 
 var _ StringPool = &stringPool{}
+
+var globalPool = sync.Map{}
 
 type stringPool struct {
 	pool map[string]*string

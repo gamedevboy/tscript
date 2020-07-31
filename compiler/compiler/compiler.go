@@ -3,7 +3,6 @@ package compiler
 import (
     "container/list"
     "fmt"
-    "sort"
 
     "tklibs/script"
     "tklibs/script/assembly"
@@ -201,18 +200,8 @@ func (impl *Component) visitForFunctionScan(astNode, asm interface{}) {
     case statement.Return:
         impl.visitForFunctionScan(target.GetExpression(), asm)
     case expression.Object:
-        keys := make([]string, len(target.GetKeyValueMap()))
-
-        idx := 0
-        for name := range target.GetKeyValueMap() {
-            keys[idx] = name
-            idx++
-        }
-
-        sort.Strings(keys)
-
-        for _, name := range keys {
-            impl.visitForFunctionScan(target.GetKeyValueMap()[name], asm)
+        for _, name := range *target.GetKeyValueMap() {
+            impl.visitForFunctionScan(name.Function, asm)
         }
     case expression.Array:
         impl.visitForFunctionScan(target.GetArgListExpression(), asm)
