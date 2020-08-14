@@ -66,7 +66,7 @@ func (cp *String) CopyFrom(constPool assembly.ConstPool) {
 func (cp *String) Read(reader *bufio.Reader) {
     cp.clear()
 
-    var l uint32;
+    var l uint32
     binary.Read(reader, binary.LittleEndian, &l)
 
     cp.arrayPool = make([]interface{}, l)

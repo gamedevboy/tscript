@@ -54,7 +54,9 @@ func (impl *Component) CopyFrom(src runtime_t.Function) {
 	impl.isScope = src.IsScope()
 	impl.captureThis = src.IsCaptureThis()
 	impl.maxRegisterCount = uint8(src.GetMaxRegisterCount())
+}
 
+func (impl *Component) Update() {
 	impl.functions.Range(func(key, val interface{}) bool {
 		ptr := (*function.Component)(unsafe.Pointer(^(key.(uintptr))))
 		ptr.Reload()

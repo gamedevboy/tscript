@@ -20,6 +20,12 @@ type Component struct {
     functions []interface{}
 }
 
+func (impl *Component) Update() {
+    for _, f := range impl.functions {
+        f.(runtime_t.Function).Update()
+    }
+}
+
 var _ script.Assembly = &Component{}
 
 func (impl *Component) GetFunctionByMetaIndex(index script.Int) interface{} {
@@ -60,7 +66,6 @@ func (impl *Component) Load(reader *bufio.Reader) {
 }
 
 func (impl *Component) Reload(assembly script.Assembly) error {
-
     if len(impl.GetFunctions()) != len(assembly.GetFunctions()) {
         return fmt.Errorf("Can't reload assembly due to mismatch function count ")
     }

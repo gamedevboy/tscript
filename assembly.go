@@ -16,4 +16,5 @@ type Assembly interface {
     GetFunctionByMetaIndex(Int) interface{}
     GetFunctions() []interface{}
     Reload(assembly Assembly) error
+	Update()
 }

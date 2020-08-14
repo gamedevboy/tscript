@@ -22,6 +22,7 @@ type Function interface {
 	GetAssembly() interface{}
 	RegisterFunction(f uintptr)
 	UnregisterFunction(f uintptr)
+	Update()
 }
 
 type NativeFunction interface {
