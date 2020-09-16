@@ -37,12 +37,8 @@ func NewStringPrototype(ctx interface{}) *String {
             -1))
     }, ctx))
 
-    obj.ScriptSet("length", function.NativeFunctionToValue(func(context interface{}, this interface{}, _ ...interface{}) interface{} {
-        return script.Int(utf8.RuneCountInString(string(this.(script.String))))
-    }, ctx))
-
     obj.ScriptSet("indexOf", function.NativeFunctionToValue(func(context interface{}, this interface{}, args ...interface{}) interface{} {
-        index := strings.Index(string(this.(script.String)), string(this.(script.String)))
+        index := strings.Index(string(this.(script.String)), string(args[0].(script.String)))
         if index == - 1 {
             return script.Int(-1)
         }
@@ -50,8 +46,25 @@ func NewStringPrototype(ctx interface{}) *String {
         return script.Int(utf8.RuneCount(start))
     }, ctx))
 
+    obj.ScriptSet("split", function.NativeFunctionToValue(func(context interface{}, this interface{}, args ...interface{}) interface{} {
+        argLen := len(args)
+        if argLen < 1 {
+            return ctx.(runtime.ScriptContext).NewScriptArray(0)
+        }
+
+        substrings := strings.Split(string(this.(script.String)), string(args[0].(script.String)))
+        ret := ctx.(runtime.ScriptContext).NewScriptArray(len(substrings))
+        array := ret.(script.Array)
+
+        for _, substring := range substrings {
+            array.Push(script.ToValue(script.String(substring)))
+        }
+
+        return ret
+    }, ctx))
+
     obj.ScriptSet("lastIndexOf", function.NativeFunctionToValue(func(context interface{}, this interface{}, args ...interface{}) interface{} {
-        index := strings.LastIndex(string(this.(script.String)), string(this.(script.String)))
+        index := strings.LastIndex(string(this.(script.String)), string(args[0].(script.String)))
         if index == - 1 {
             return script.Int(-1)
         }

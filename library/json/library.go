@@ -174,6 +174,9 @@ func (l *library) init() {
 						panic(err)
 					}
 				case scanner.String:
+					if v, err := strconv.Unquote(val); err == nil {
+						return script.String(v)
+					}
 					return script.String(strings.Trim(val, "\""))
 				case scanner.Ident:
 					switch val {

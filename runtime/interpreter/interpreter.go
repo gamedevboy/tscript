@@ -277,6 +277,8 @@ vm_loop:
 						pa_.Set(target.Get(pc_.Get()))
 					case script.Array:
 						*pa_ = target.GetElement(pc_.ToInt())
+					case script.String:
+						pa_.SetInterface(script.String(target[pc_.ToInt()]))
 					case script.Object:
 						*pa_ = target.ScriptGet(string(util.ToScriptString(context, pc_.Get())))
 					}
