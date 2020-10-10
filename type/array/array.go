@@ -13,11 +13,27 @@ type Component struct {
     *object.Component
 }
 
+func (impl *Component) First() interface{} {
+    if len(impl.elements) == 0 {
+        return script.Null
+    }
+
+    return impl.elements[0].Get()
+}
+
+func (impl *Component) Last() interface{} {
+    if len(impl.elements) == 0 {
+        return script.Null
+    }
+
+    return impl.elements[len(impl.elements)-1].Get()
+}
+
 func (impl *Component) Clear() {
     impl.elements = make([]script.Value, 0)
 }
 
-func (impl *Component) GetSlice() interface{} {
+func (impl *Component) GetSlice() []script.Value {
     return impl.elements
 }
 
