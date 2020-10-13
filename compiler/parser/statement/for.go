@@ -40,6 +40,12 @@ func (impl *ForStatementParserComponent) ParseFor(f interface{}, tokenIt *token.
     fs.SetStep(step)
     tokenIt = next
 
+    if tokenIt.Value().(token.Token).GetType() != token.TokenTypeRPAREN {
+        panic("for statement expecting (")
+    }
+
+    tokenIt = tokenIt.Next()
+
     switch tokenIt.Value().(token.Token).GetType() {
     case token.TokenTypeLBRACE:
         body := &struct {

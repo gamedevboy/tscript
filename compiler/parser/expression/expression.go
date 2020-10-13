@@ -185,8 +185,10 @@ parseLoop:
 				a.Component = array.NewArrayExpression(a, al)
 				currentExpression, tokenIt = a, p.GetOwner().(parser.ArgListParser).ParseArgList(al, tokenIt.Next())
 			}
-		case token.TokenTypeRBRACK, token.TokenTypeRPAREN, token.TokenTypeSEMICOLON:
+		case token.TokenTypeRBRACK,  token.TokenTypeSEMICOLON:
 			tokenIt = tokenIt.Next()
+			break parseLoop
+		case token.TokenTypeRPAREN:
 			break parseLoop
 		case token.TokenTypeIDENT:
 			if opList.Len() < expressionList.Len() {
@@ -390,6 +392,7 @@ parseLoop:
 						currentExpression, tokenIt = f, p.GetOwner().(parser.FunctionParser).ParseFunction(f, tokenIt)
 					} else {
 						currentExpression, tokenIt = p.ParseExpression(tokenIt.Next())
+						tokenIt = tokenIt.Next()
 						if bin, ok := currentExpression.(expression.Binary); ok {
 							bin.SetParen(true)
 						}

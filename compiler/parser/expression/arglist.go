@@ -21,6 +21,10 @@ func (impl *ArgListExpressionParserComponent) ParseArgList(a interface{}, tokenI
             return nil
         }
 
+        if tokenIt.Value().(token.Token).GetType() == token.TokenTypeRPAREN {
+            return tokenIt.Next()
+        }
+
         e, next := impl.GetOwner().(parser.ExpressionParser).ParseExpression(tokenIt)
         if e != nil {
             a.(expression.ArgList).GetExpressionList().PushBack(e)
@@ -31,32 +35,14 @@ func (impl *ArgListExpressionParserComponent) ParseArgList(a interface{}, tokenI
         tokenIt = next
 
         if tokenIt != nil {
-            prev := tokenIt.Prev()
-            if prev.Value().(token.Token).GetType() == token.TokenTypeRPAREN {
-                tokenIt = prev
-            }
-
             t := tokenIt.Value().(token.Token)
 
             switch t.GetType() {
             case token.TokenTypeCOMMA:
                 tokenIt = tokenIt.Next()
                 continue
-            case token.TokenTypeRPAREN:
-                if _, ok := e.(expression.Call); ok {
-                    tokenIt = tokenIt.Next()
-
-                    if tokenIt != nil {
-                        switch tokenIt.Value().(token.Token).GetType() {
-                        case token.TokenTypeCOMMA:
-                            tokenIt = tokenIt.Next()
-                        default:
-                            return tokenIt
-                        }
-                    }
-                } else {
-                    return tokenIt.Next()
-                }
+            case token.TokenTypeRPAREN, token.TokenTypeRBRACK:
+                return tokenIt.Next()
             default:
                 return tokenIt
             }
