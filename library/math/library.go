@@ -15,7 +15,8 @@ type library struct {
 	ToInt,
 	MaxInt32,
 	Max,
-	Rand native.FunctionType
+	Rand,
+	Log native.FunctionType
 }
 
 func (*library) GetName() string {
@@ -61,6 +62,10 @@ func (l *library) init() {
 
 	l.Rand = func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		return script.Float(rand.New(rand.NewSource(time.Now().UnixNano())).Float32())
+	}
+
+	l.Log = func(context interface{}, this interface{}, args ...interface{}) interface{} {
+		return script.Float(math.Log(float64(args[1].(script.Float))) / math.Log(float64(args[0].(script.Float))))
 	}
 
 	l.Max = func(context interface{}, this interface{}, args ...interface{}) interface{} {

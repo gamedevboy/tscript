@@ -138,9 +138,9 @@ func (impl *Component) getFieldCache(obj interface{}, index script.Int) *fieldCa
 
 func (impl *Component) GetFieldByMemberIndex(obj interface{}, index script.Int) script.Value {
 	switch target := obj.(type) {
-	case script.Int:
+	case script.Int, script.Int64:
 		return impl.GetFieldByMemberIndex(impl.scriptContext.(runtime.ScriptContext).GetNumberPrototype(), index)
-	case script.Float:
+	case script.Float, script.Float64:
 		return impl.GetFieldByMemberIndex(impl.scriptContext.(runtime.ScriptContext).GetNumberPrototype(), index)
 	case script.Bool:
 		return impl.GetFieldByMemberIndex(impl.scriptContext.(runtime.ScriptContext).GetBoolPrototype(), index)

@@ -182,11 +182,11 @@ func NewArrayPrototype(ctx interface{}) *Array {
         ret := ctx.(runtime.ScriptContext).NewScriptArray(int(array.Len()))
         f := args[0].(script.Function)
         retArray := ret.(script.Array)
-        v := script.Value{}
+
         for i := script.Int(0); i < array.Len(); i++ {
             element := array.GetElement(i).Get()
             if f.Invoke(context, nil, element) == script.Bool(true) {
-                retArray.Push(v.Set(f.Invoke(context, nil, element)))
+                retArray.Push(array.GetElement(i))
             }
         }
         return ret
