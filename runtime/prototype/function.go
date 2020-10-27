@@ -20,7 +20,7 @@ func (impl *Function) InitPrototype() {
 
 	obj.ScriptSet("call", function.NativeFunctionToValue(func(context interface{}, this interface{}, args ...interface{}) interface{} {
 		if len(args) < 1 {
-			return this.(script.Function).Invoke(context, nil)
+			return this.(script.Function).Invoke(context, script.Null)
 		}
 
 		return this.(script.Function).Invoke(context, args[0], args[1:]...)

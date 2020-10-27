@@ -122,7 +122,7 @@ func NewArrayPrototype(ctx interface{}) *Array {
 
         for i := script.Int(0); i < array.Len(); i++ {
             element := array.GetElement(i).Get()
-            ret := f.Invoke(context, nil, element)
+            ret := f.Invoke(context, script.Null, element)
             if ret != nil {
                 if r, ok := ret.(script.Bool); ok {
                     if r {
@@ -140,7 +140,8 @@ func NewArrayPrototype(ctx interface{}) *Array {
         f := args[0].(script.Function)
 
         sort.Slice(array.GetSlice(), func(i, j int) bool {
-            ret := f.Invoke(context, nil, array.GetElement(script.Int(i)).Get(), array.GetElement(script.Int(j)).Get())
+            ret := f.Invoke(context, script.Null, array.GetElement(script.Int(i)).Get(),
+                array.GetElement(script.Int(j)).Get())
             return ret == script.Bool(true)
         })
 
@@ -153,7 +154,7 @@ func NewArrayPrototype(ctx interface{}) *Array {
 
         for i := script.Int(0); i < array.Len(); i++ {
             element := array.GetElement(i).Get()
-            ret := f.Invoke(context, nil, element)
+            ret := f.Invoke(context, script.Null, element)
             if ret != nil {
                 if r, ok := ret.(script.Bool); script.Bool(ok) && r {
                     return i
@@ -171,7 +172,7 @@ func NewArrayPrototype(ctx interface{}) *Array {
         retArray := ret.(script.Array)
         v := script.Value{}
         for i := script.Int(0); i < array.Len(); i++ {
-            retArray.Push(v.Set(f.Invoke(context, nil, array.GetElement(i).Get())))
+            retArray.Push(v.Set(f.Invoke(context, script.Null, array.GetElement(i).Get())))
         }
         return ret
     }, ctx))
@@ -185,7 +186,7 @@ func NewArrayPrototype(ctx interface{}) *Array {
 
         for i := script.Int(0); i < array.Len(); i++ {
             element := array.GetElement(i).Get()
-            if f.Invoke(context, nil, element) == script.Bool(true) {
+            if f.Invoke(context, script.Null, element) == script.Bool(true) {
                 retArray.Push(array.GetElement(i))
             }
         }
@@ -197,7 +198,7 @@ func NewArrayPrototype(ctx interface{}) *Array {
         f := args[0].(script.Function)
         i := script.Int(0)
         for ; i < array.Len(); i++ {
-            ret := f.Invoke(context, nil, array.GetElement(i).Get(), i)
+            ret := f.Invoke(context, script.Null, array.GetElement(i).Get(), i)
             if ret != nil {
                 if r, ok := ret.(script.Bool); ok && r == false {
                     return i

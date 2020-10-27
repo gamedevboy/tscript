@@ -100,7 +100,7 @@ func (impl *Component) invoke(sf script.Function) (exception interface{}) {
 
     context := impl.context
     registers := context.GetRegisters()
-    registers[0].SetNull()
+    registers[0] = script.NullValue
 
     defer func() {
         regPtr := uintptr(unsafe.Pointer(&registers[1]))
@@ -167,7 +167,7 @@ func (impl *Component) invoke(sf script.Function) (exception interface{}) {
     instList := _func.GetInstructionList()
     instCount := len(instList)
     if instCount == 0 {
-        registers[0].SetNull()
+        registers[0] = script.NullValue
         return
     }
 

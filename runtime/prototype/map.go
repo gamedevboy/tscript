@@ -79,7 +79,7 @@ func NewMapPrototype(ctx interface{}) *Map {
         f := args[0].(script.Function)
 
         return this.(script.Map).Foreach(func(key, value interface{}) bool {
-            ret := f.Invoke(context, nil, key, value)
+            ret := f.Invoke(context, script.Null, key, value)
             if r, ok := ret.(script.Bool); ok && r == false {
                 return false
             }
