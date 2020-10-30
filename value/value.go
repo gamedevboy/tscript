@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"tklibs/script"
@@ -61,7 +62,7 @@ func ToJsonString(value interface{}) string {
 	case script.Float64:
 		return fmt.Sprint(v)
 	case script.String:
-		return fmt.Sprintf("\"%v\"", v)
+		return strconv.Quote(string(v))
 	case script.Array:
 		sb := strings.Builder{}
 		sb.WriteRune('[')
