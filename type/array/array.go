@@ -9,7 +9,6 @@ import (
 
 type Component struct {
     elements []script.Value
-    script.ComponentType
     *object.Component
 }
 
@@ -40,12 +39,11 @@ func (impl *Component) GetSlice() []script.Value {
 var _ script.Array = &Component{}
 var _ script.Object = &Component{}
 
-func NewScriptArray(owner, ctx interface{}, capSize int) *Component {
+func NewScriptArray(ctx interface{}, capSize int) *Component {
     ret := &Component{
-        ComponentType: script.MakeComponentType(owner),
-        Component:     object.NewScriptObject(owner, ctx, 0),
         elements:      make([]script.Value, 0, capSize),
     }
+    ret.Component = object.NewScriptObject(ret, ctx, 0)
     ret.SetPrototype(script.InterfaceToValue(ctx.(runtime.ScriptContext).GetArrayPrototype()))
     return ret
 }

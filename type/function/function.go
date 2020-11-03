@@ -4,8 +4,6 @@ import (
 	"container/list"
 	"fmt"
 	"reflect"
-	rt "runtime"
-	"unsafe"
 
 	"tklibs/script"
 	"tklibs/script/runtime"
@@ -13,15 +11,6 @@ import (
 	"tklibs/script/runtime/runtime_t"
 	"tklibs/script/type/object"
 )
-
-type ref struct {
-	pointer uintptr
-	fn      runtime_t.Function
-}
-
-func (comp *ref) Dispose() {
-	comp.fn.UnregisterFunction(comp.pointer)
-}
 
 type Component struct {
 	refs          []*script.Value
@@ -32,7 +21,6 @@ type Component struct {
 	script.ComponentType
 	*object.Component
 	this     script.Value
-	_compRef *ref
 
 	scriptRuntimeFunction runtime_t.Function
 	nativeRuntimeFunction runtime_t.NativeFunction
@@ -52,40 +40,6 @@ func (impl *Component) GetScriptRuntimeFunction() runtime_t.Function {
 
 func (impl *Component) GetNativeRuntimeFunction() runtime_t.NativeFunction {
 	return impl.nativeRuntimeFunction
-}
-
-func (impl *Component) Reload() {
-	if impl.scriptRuntimeFunction != nil {
-		scriptContext := impl.scriptContext.(runtime.ScriptContext)
-
-		impl.memberCaches = make([]*list.List, len(impl.scriptRuntimeFunction.GetMembers()))
-		for i := range impl.memberCaches {
-			impl.memberCaches[i] = list.New()
-		}
-
-		refs := impl.refs
-		refNames := impl.refNames
-
-		impl.refNames = impl.scriptRuntimeFunction.GetRefVars()
-		refLength := len(impl.refNames)
-		impl.refs = make([]*script.Value, refLength)
-
-		for i := 0; i < refLength; i++ {
-			found := false
-
-			for k := 0; k < len(refs); k++ {
-				if refNames[k] == impl.refNames[i] {
-					impl.refs[i] = refs[k]
-					found = true
-					break
-				}
-			}
-
-			if !found {
-				scriptContext.GetRefByName(impl.refNames[i], &impl.refs[i])
-			}
-		}
-	}
 }
 
 func (impl *Component) SetThis(this script.Value) {
@@ -171,7 +125,11 @@ func (impl *Component) SetFieldByMemberIndex(obj interface{}, index script.Int, 
 	default:
 		offset := impl.getFieldCache(obj, index).offset
 		if offset > -1 {
-			obj.(runtime.Object).SetByIndex(offset, value)
+			obj := obj.(runtime.Object)
+			if obj.GetRuntimeTypeInfo().(runtime.TypeInfo).GetContext() != impl.scriptContext {
+				panic("cross context set")
+			}
+			obj.SetByIndex(offset, value)
 		} else {
 			obj.(script.Object).ScriptSet(impl.getMemberNames()[index], value)
 		}
@@ -227,13 +185,6 @@ func NewScriptFunction(owner, runtimeFunction, ctx interface{}) *Component {
 	switch _func := runtimeFunction.(type) {
 	case runtime_t.Function:
 		ret.scriptRuntimeFunction = _func
-		ret._compRef = &ref{
-			pointer: ^uintptr(unsafe.Pointer(ret)),
-			fn:      _func,
-		}
-
-		_func.RegisterFunction(ret._compRef.pointer)
-		rt.SetFinalizer(ret._compRef, (*ref).Dispose)
 	case runtime_t.NativeFunction:
 		ret.nativeRuntimeFunction = _func
 	}

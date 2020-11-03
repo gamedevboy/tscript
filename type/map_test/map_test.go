@@ -5,7 +5,6 @@ import (
 	"tklibs/script"
 	"tklibs/script/compiler/test"
 	"tklibs/script/runtime/context"
-	"tklibs/script/testing2"
 	_map "tklibs/script/type/map"
 )
 
@@ -64,7 +63,7 @@ func checkEnv(t *testing.T, cc *context.Component, fName string, invoker func(sc
 		t.Errorf("Failed:%s func invalid", fName)
 		return nil
 	} else {
-		tf := tv.GetFunction()
+		tf := tv.Get().(script.Function)
 		ret := invoker(tf)
 		if ret == nil || ret == script.NullValue {
 			t.Errorf("Failed:%s return nil", fName)
@@ -85,23 +84,20 @@ func testIntEqual(t *testing.T, cc *context.Component, m *_map.Component, f stri
 }
 
 func TestMap(t *testing.T) {
-	tm := &struct {
-		*_map.Component
-	}{}
-	tm.Component = _map.NewScriptMap(tm, cc, 0)
-	tm.Component.Set(script.String("k0"), script.Int(0))
+	tm := _map.NewScriptMap(cc, 0)
+	tm.Set(script.String("k0"), script.Int(0))
 
-	testIntEqual(t, cc, tm.Component, "forEach", int(tm.Component.Len()))
-	testIntEqual(t, cc, tm.Component, "length", int(tm.Component.Len()))
-	testIntEqual(t, cc, tm.Component, "get1", 0, "k0")
-	testIntEqual(t, cc, tm.Component, "get2", 0, "k0")
+	testIntEqual(t, cc, tm, "forEach", int(tm.Len()))
+	testIntEqual(t, cc, tm, "length", int(tm.Len()))
+	testIntEqual(t, cc, tm, "get1", 0, "k0")
+	testIntEqual(t, cc, tm, "get2", 0, "k0")
 	//testIntEqual(t, cc, tm.Component, "json_print", 0)
-	testIntEqual(t, cc, tm.Component, "setk1k2", 3)
-	testIntEqual(t, cc, tm.Component, "get1", 1, "k1")
-	testIntEqual(t, cc, tm.Component, "get2", 1, "k1")
-	testIntEqual(t, cc, tm.Component, "delete", 1, "k1")
-	testIntEqual(t, cc, tm.Component, "delete", 2, "k2")
-	testIntEqual(t, cc, tm.Component, "length", 1)
-	testIntEqual(t, cc, tm.Component, "containsKey", 1, "k0")
-	testIntEqual(t, cc, tm.Component, "containsKey", 0, "k1")
+	testIntEqual(t, cc, tm, "setk1k2", 3)
+	testIntEqual(t, cc, tm, "get1", 1, "k1")
+	testIntEqual(t, cc, tm, "get2", 1, "k1")
+	testIntEqual(t, cc, tm, "delete", 1, "k1")
+	testIntEqual(t, cc, tm, "delete", 2, "k2")
+	testIntEqual(t, cc, tm, "length", 1)
+	testIntEqual(t, cc, tm, "containsKey", 1, "k0")
+	testIntEqual(t, cc, tm, "containsKey", 0, "k1")
 }

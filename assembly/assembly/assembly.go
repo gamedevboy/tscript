@@ -3,12 +3,10 @@ package assembly
 import (
     "bufio"
     "encoding/binary"
-    "fmt"
 
     "tklibs/script"
     "tklibs/script/assembly"
     "tklibs/script/assembly/constpool"
-    "tklibs/script/runtime/runtime_t"
 )
 
 type Component struct {
@@ -18,12 +16,6 @@ type Component struct {
     stringConstPool assembly.ConstPool
 
     functions []interface{}
-}
-
-func (impl *Component) Update() {
-    for _, f := range impl.functions {
-        f.(runtime_t.Function).Update()
-    }
 }
 
 var _ script.Assembly = &Component{}
@@ -65,28 +57,6 @@ func (impl *Component) Load(reader *bufio.Reader) {
     loadV1(fh, impl, reader)
 }
 
-func (impl *Component) Reload(assembly script.Assembly) error {
-    if len(impl.GetFunctions()) != len(assembly.GetFunctions()) {
-        return fmt.Errorf("Can't reload assembly due to mismatch function count ")
-    }
-
-    impl.GetStringConstPool().CopyFrom(assembly.GetStringConstPool())
-    impl.GetIntConstPool().CopyFrom(assembly.GetIntConstPool())
-    impl.GetFloatConstPool().CopyFrom(assembly.GetFloatConstPool())
-
-    for i, f := range assembly.GetFunctions() {
-        dest := impl.functions[i].(runtime_t.Function)
-        src := f.(runtime_t.Function)
-
-        if dest.GetName() != src.GetName() {
-            panic("")
-        }
-
-        dest.CopyFrom(src)
-    }
-
-    return nil
-}
 
 func (impl *Component) Save(writer *bufio.Writer) {
     fh := &assemblyFileHeader{}

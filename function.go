@@ -14,7 +14,6 @@ type Function interface {
     GetScriptRuntimeFunction() runtime_t.Function
     GetNativeRuntimeFunction() runtime_t.NativeFunction
 
-    Reload()
     GetRefList() []*Value
 
     GetFieldByMemberIndex(obj interface{}, index Int) Value

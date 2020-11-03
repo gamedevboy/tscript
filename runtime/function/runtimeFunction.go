@@ -3,15 +3,12 @@ package function
 import (
 	"fmt"
 	"strings"
-	"sync"
-	"unsafe"
 
 	"tklibs/script"
 	"tklibs/script/debug"
 	"tklibs/script/instruction"
 	"tklibs/script/opcode"
 	"tklibs/script/runtime/runtime_t"
-	"tklibs/script/type/function"
 )
 
 type Component struct {
@@ -25,43 +22,13 @@ type Component struct {
 	sourceNames      []string
 	assembly         interface{}
 	name             string
-	functions        sync.Map
 	maxRegisterCount uint8
 	isScope          bool
 	captureThis      bool
 }
 
-func (impl *Component) RegisterFunction(f uintptr) {
-	impl.functions.Store(f, struct{}{})
-}
-
-func (impl *Component) UnregisterFunction(f uintptr) {
-	impl.functions.Delete(f)
-}
-
 func (impl *Component) GetAssembly() interface{} {
 	return impl.assembly
-}
-
-func (impl *Component) CopyFrom(src runtime_t.Function) {
-	impl.instructions = src.GetInstructionList()
-	impl.debugInfos = src.GetDebugInfoList()
-	impl.arguments = src.GetArguments()
-	impl.localVars = src.GetLocalVars()
-	impl.refVars = src.GetRefVars()
-	impl.members = src.GetMembers()
-	impl.sourceNames = src.GetSourceNames()
-	impl.isScope = src.IsScope()
-	impl.captureThis = src.IsCaptureThis()
-	impl.maxRegisterCount = uint8(src.GetMaxRegisterCount())
-}
-
-func (impl *Component) Update() {
-	impl.functions.Range(func(key, val interface{}) bool {
-		ptr := (*function.Component)(unsafe.Pointer(^(key.(uintptr))))
-		ptr.Reload()
-		return true
-	})
 }
 
 func (impl *Component) GetMaxRegisterCount() int {

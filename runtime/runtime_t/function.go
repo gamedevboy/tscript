@@ -18,11 +18,7 @@ type Function interface {
 	GetSourceNames() []string
 	IsCaptureThis() bool
 	GetMaxRegisterCount() int
-	CopyFrom(src Function)
 	GetAssembly() interface{}
-	RegisterFunction(f uintptr)
-	UnregisterFunction(f uintptr)
-	Update()
 }
 
 type NativeFunction interface {

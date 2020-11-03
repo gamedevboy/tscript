@@ -15,7 +15,7 @@ type ScriptContext interface {
     GetCurrentFrame() interface{}
     GetStackFrames() []interface{}
 
-    GetRootRuntimeType() interface{}
+    GetRootRuntimeType() TypeInfo
 
     NewScriptObject(fieldCap int) interface{}
     NewScriptArray(sizeCap int) interface{}
@@ -33,8 +33,6 @@ type ScriptContext interface {
 
     Run() interface{}
     RunWithAssembly(assembly interface{}) interface{}
-
-    ReloadAssembly(assembly script.Assembly) error
 
     GetRefByName(name string, valuePtr **script.Value)
     GetRegisters() []script.Value

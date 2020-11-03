@@ -11,6 +11,10 @@ type Component struct {
 	children      map[*string]runtime.TypeInfo
 }
 
+func (impl *Component) GetContext() runtime.ScriptContext {
+    return impl.scriptContext
+}
+
 var _ runtime.TypeInfo = &Component{}
 
 func NewTypeComponent(scriptContext interface{}) *Component {

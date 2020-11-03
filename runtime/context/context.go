@@ -50,7 +50,7 @@ type Component struct {
 
 	frames          []interface{}
 	scopes          []interface{}
-	rootRuntimeType interface{}
+	rootRuntimeType runtime.TypeInfo
 	assembly        interface{}
 	registers       []script.Value
 	registerList    [][]script.Value
@@ -64,14 +64,6 @@ func (impl *Component) GetStringPool() util.StringPool {
 	return impl.stringPool
 }
 
-func (impl *Component) ReloadAssembly(assembly script.Assembly) error {
-	err := impl.assembly.(script.Assembly).Reload(assembly)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 func (impl *Component) GetArrayPrototype() interface{} {
 	return impl.arrayPrototype
@@ -176,22 +168,14 @@ func (impl *Component) NewScriptObject(fieldCap int) interface{} {
 }
 
 func (impl *Component) NewScriptArray(sizeCap int) interface{} {
-	a := &struct {
-		*array.Component
-	}{}
-	a.Component = array.NewScriptArray(a, impl.GetOwner(), sizeCap)
-	return a
+	return array.NewScriptArray( impl.GetOwner(), sizeCap)
 }
 
 func (impl *Component) NewScriptMap(sizeCap int) interface{} {
-	m := &struct {
-		*_map.Component
-	}{}
-	m.Component = _map.NewScriptMap(m, impl.GetOwner(), sizeCap)
-	return m
+	return _map.NewScriptMap(impl.GetOwner(), sizeCap)
 }
 
-func (impl *Component) GetRootRuntimeType() interface{} {
+func (impl *Component) GetRootRuntimeType() runtime.TypeInfo {
 	return impl.rootRuntimeType
 }
 

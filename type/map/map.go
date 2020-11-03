@@ -7,9 +7,7 @@ import (
 )
 
 type Component struct {
-	script.ComponentType
 	*object.Component
-
 	values map[interface{}]interface{}
 }
 
@@ -63,13 +61,13 @@ func (*Component) GetScriptTypeId() script.ScriptTypeId {
 	return script.ScriptTypeMap
 }
 
-func NewScriptMap(owner, ctx interface{}, capSize int) *Component {
+func NewScriptMap(ctx interface{}, capSize int) *Component {
 	ret := &Component{
-		ComponentType: script.MakeComponentType(owner),
-		Component:     object.NewScriptObject(owner, ctx, 0),
 		values:        make(map[interface{}]interface{}, capSize),
 	}
 
+	ret.Component = object.NewScriptObject(ret, ctx, 0)
 	ret.SetPrototype(script.InterfaceToValue(ctx.(runtime.ScriptContext).GetMapPrototype()))
+
 	return ret
 }

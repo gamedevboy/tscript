@@ -7,4 +7,5 @@ type TypeInfo interface {
     GetParent() TypeInfo
     GetFieldIndexByName(fieldName string) int
     GetFieldNames() []*string
+    GetContext() ScriptContext
 }
