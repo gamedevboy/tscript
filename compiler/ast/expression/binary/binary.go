@@ -198,6 +198,12 @@ func (impl *Component) Compile(f interface{}, r *compiler.Operand) *compiler.Ope
 		case token.TokenTypeLOR:
 			rr := impl.right.(ast.Expression).Compile(f, nil)
 			_func.AddInstructionABC(opcode.LogicOr, opcode.Logic, r, lr, rr)
+		case token.TokenTypeSHL:
+			rr := impl.right.(ast.Expression).Compile(f, nil)
+			_func.AddInstructionABC(opcode.ShiftLeft, opcode.Math, r, lr, rr)
+		case token.TokenTypeSHR:
+			rr := impl.right.(ast.Expression).Compile(f, nil)
+			_func.AddInstructionABC(opcode.ShiftRight, opcode.Math, r, lr, rr)
 		}
 
 		if impl.opType.WithAssign() {

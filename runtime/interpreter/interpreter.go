@@ -288,7 +288,14 @@ vm_loop:
             case opcode.StoreElement:
                 switch pa_.GetType() {
                 case script.ValueTypeInterface:
-                    switch target := pa_.GetInterface().(type) {
+                    scriptObj := pa_.GetInterface()
+
+                    if runtimeObj, ok := scriptObj.(runtime.Object); ok && runtimeObj.GetRuntimeTypeInfo().
+                    (runtime.TypeInfo).GetContext() != context {
+                        panic("cross store element")
+                    }
+
+                    switch target := scriptObj.(type) {
                     case script.Map:
                         target.Set(pb_.Get(), pc_.Get())
                     case script.Array:
@@ -779,6 +786,92 @@ vm_loop:
                     case script.Float64:
                         pa_.SetInterface(-v)
                     }
+                }
+            case opcode.ShiftLeft:
+                switch pb_.GetType() {
+                case script.ValueTypeInt:
+                    switch pc_.GetType() {
+                    case script.ValueTypeInt:
+                        pa_.SetInt(pb_.GetInt() << pc_.GetInt())
+                    case script.ValueTypeInterface:
+                        switch vc_ := pc_.GetInterface().(type) {
+                        case script.Int64:
+                            pa_.SetInt64(script.Int64(pb_.GetInt()) << vc_)
+                        default:
+                            panic("")
+                        }
+                    default:
+                        panic("")
+                    }
+                case script.ValueTypeInterface:
+                    switch vb_ := pb_.GetInterface().(type) {
+                    case script.Int64:
+                        switch pc_.GetType() {
+                        case script.ValueTypeInterface:
+                            switch vc_ := pc_.GetInterface().(type) {
+                            case script.Int64:
+                                pa_.SetInt64(vb_ << vc_)
+                            default:
+                                panic("")
+                            }
+                        case script.ValueTypeInt:
+                            pa_.SetInt64(vb_ << script.Int64(pc_.GetInt()))
+                        default:
+                            panic("")
+                        }
+                    case script.Object:
+                        if fn, ok := vb_.ScriptGet("<<").Get().(script.Function); ok && fn != nil {
+                            pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
+                        }
+                        panic("Can't find '<<' operator")
+                    default:
+                        panic("")
+                    }
+                default:
+                    panic(fmt.Errorf("ShiftLeft can not support: %v: %v ", pb_.GetType(), pb_.Get()))
+                }
+            case opcode.ShiftRight:
+                switch pb_.GetType() {
+                case script.ValueTypeInt:
+                    switch pc_.GetType() {
+                    case script.ValueTypeInt:
+                        pa_.SetInt(pb_.GetInt() >> pc_.GetInt())
+                    case script.ValueTypeInterface:
+                        switch vc_ := pc_.GetInterface().(type) {
+                        case script.Int64:
+                            pa_.SetInt64(script.Int64(pb_.GetInt()) >> vc_)
+                        default:
+                            panic("")
+                        }
+                    default:
+                        panic("")
+                    }
+                case script.ValueTypeInterface:
+                    switch vb_ := pb_.GetInterface().(type) {
+                    case script.Int64:
+                        switch pc_.GetType() {
+                        case script.ValueTypeInterface:
+                            switch vc_ := pc_.GetInterface().(type) {
+                            case script.Int64:
+                                pa_.SetInt64(vb_ >> vc_)
+                            default:
+                                panic("")
+                            }
+                        case script.ValueTypeInt:
+                            pa_.SetInt64(vb_ >> script.Int64(pc_.GetInt()))
+                        default:
+                            panic("")
+                        }
+                    case script.Object:
+                        if fn, ok := vb_.ScriptGet(">>").Get().(script.Function); ok && fn != nil {
+                            pa_.Set(fn.Invoke(context, vb_, pc_.Get()))
+                        }
+                        panic("Can't find '<<' operator")
+                    default:
+                        panic("")
+                    }
+                default:
+                    panic(fmt.Errorf("ShiftRight can not support: %v: %v ", pb_.GetType(), pb_.Get()))
                 }
             }
         case opcode.Logic:

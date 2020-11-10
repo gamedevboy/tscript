@@ -62,7 +62,8 @@ const (
     Inc
     Dec
     Rem
-    Shift
+    ShiftLeft
+    ShiftRight
 )
 
 // Logic
