@@ -119,20 +119,22 @@ func (impl *Component) GetFieldByMemberIndex(obj interface{}, index script.Int) 
 }
 
 func (impl *Component) SetFieldByMemberIndex(obj interface{}, index script.Int, value script.Value) {
+    runtimeObj, ok := obj.(runtime.Object)
+
+    if ok && runtimeObj.GetRuntimeTypeInfo().(runtime.TypeInfo).GetContext() != impl.
+        scriptContext {
+        panic("cross context set")
+    }
+
     switch target := obj.(type) {
     case script.Map:
         target.Set(script.String(impl.getMemberNames()[index]), value.Get())
     default:
-        if runtimeObj, ok := obj.(runtime.Object); ok && runtimeObj.GetRuntimeTypeInfo().(runtime.TypeInfo).GetContext() == impl.
-            scriptContext {
-            offset := impl.getFieldCache(runtimeObj, index).offset
-            if offset > -1 {
-                runtimeObj.SetByIndex(offset, value)
-            } else {
-                runtimeObj.(script.Object).ScriptSet(impl.getMemberNames()[index], value)
-            }
+        offset := impl.getFieldCache(runtimeObj, index).offset
+        if offset > -1 {
+            runtimeObj.SetByIndex(offset, value)
         } else {
-            panic("cross context set")
+            runtimeObj.(script.Object).ScriptSet(impl.getMemberNames()[index], value)
         }
     }
 }
