@@ -7,7 +7,7 @@ import (
 
     "tklibs/script"
     "tklibs/script/runtime/native"
-    "tklibs/script/runtime/util"
+    "tklibs/script/value"
 )
 
 type library struct {
@@ -104,8 +104,8 @@ func (l *library) init() {
         }
     }
 
-    l.ToFloat = func(context interface{}, this interface{}, args ...interface{}) interface{} {
-        return util.ToScriptFloat(args[0])
+    l.ToFloat = func(_ interface{}, _ interface{}, args ...interface{}) interface{} {
+        return value.ToScriptFloat(args[0])
     }
 
     l.SetPrototype = func(context interface{}, this interface{}, args ...interface{}) interface{} {

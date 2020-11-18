@@ -12,7 +12,6 @@ import (
     "tklibs/script/runtime/runtime_t"
     "tklibs/script/runtime/scope"
     "tklibs/script/runtime/stack/frame"
-    "tklibs/script/runtime/util"
     "tklibs/script/type/function"
     "tklibs/script/value"
 )
@@ -280,7 +279,7 @@ vm_loop:
                     case script.String:
                         pa_.SetInterface(script.String(target[pc_.ToInt()]))
                     case script.Object:
-                        *pa_ = target.ScriptGet(string(util.ToScriptString(context, pc_.Get())))
+                        *pa_ = target.ScriptGet(string(value.ToScriptString(context, pc_.Get())))
                     }
                 default:
                     panic("")
@@ -301,7 +300,7 @@ vm_loop:
                     case script.Array:
                         target.SetElement(pb_.ToInt(), *pc_)
                     case script.Object:
-                        target.ScriptSet(string(util.ToScriptString(context, pb_.Get())), *pc_)
+                        target.ScriptSet(string(value.ToScriptString(context, pb_.Get())), *pc_)
                     }
                 default:
                     panic("")
@@ -424,7 +423,7 @@ vm_loop:
                         }
                     case script.String:
                         pa_.Set(context.GetStringPrototype().(script.Object).ScriptGet("+").
-                            Get().(script.Function).Invoke(context, vb_, util.ToScriptString(context, pc_.Get())))
+                            Get().(script.Function).Invoke(context, vb_, value.ToScriptString(context, pc_.Get())))
                     case script.Object:
                         if fn, ok := vb_.ScriptGet("+").Get().(script.Function); ok && fn != nil {
                             pa_.Set(fn.Invoke(context, vb_, pc_.Get()))

@@ -99,7 +99,7 @@ func (impl *Component) SetElement(index script.Int, value script.Value) {
 
 func (impl *Component) RemoveAt(index script.Int) script.Bool {
     if index < 0 || index >= script.Int(len(impl.elements)) {
-        return script.Bool(false)
+        return false
     }
     impl.elements = append(impl.elements[:index], impl.elements[index+1:]...)
     return true
