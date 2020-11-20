@@ -43,6 +43,8 @@ type Component struct {
 	*prototype.Object
 	*prototype.String
 
+	stringPool util.StringPool
+
 	arrayPrototype *prototype.Array
 	mapPrototype   *prototype.Map
 
@@ -58,11 +60,10 @@ type Component struct {
 	initialized bool
 }
 
-var stringPool = util.NewStringPool()
-
 func (impl *Component) GetStringPool() util.StringPool {
-	return stringPool
+	return impl.stringPool
 }
+
 
 func (impl *Component) GetArrayPrototype() interface{} {
 	return impl.arrayPrototype
@@ -285,6 +286,7 @@ func NewScriptContext(owner, asm interface{}, stackSize int) *Component {
 		assembly:      asm,
 		registers:     make([]script.Value, stackSize),
 		globalFields:  make(map[string]*script.Value),
+		stringPool: util.NewStringPool(),
 	}
 
 	context.registerList = make([][]script.Value, 0, 1)
