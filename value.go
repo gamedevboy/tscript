@@ -111,8 +111,8 @@ func (value *Value) GetInt() Int {
 }
 
 func (value *Value) SetInt(v Int) {
-	*(*Int)(pointer(value)) = v
 	*(*uint32)(pointer(uintptr(pointer(value)) + 4)) = uint32(ValueTypeInt) << 16
+	*(*Int)(pointer(value)) = v
 }
 
 func (value *Value) GetFloat() Float {
@@ -120,8 +120,8 @@ func (value *Value) GetFloat() Float {
 }
 
 func (value *Value) SetFloat(v Float) {
-	*(*Float)(pointer(value)) = v
 	*(*uint32)(pointer(uintptr(pointer(value)) + 4)) = uint32(ValueTypeFloat) << 16
+	*(*Float)(pointer(value)) = v
 }
 
 func (value *Value) GetBool() Bool {
@@ -129,8 +129,8 @@ func (value *Value) GetBool() Bool {
 }
 
 func (value *Value) SetBool(v Bool) {
-	*(*Bool)(pointer(value)) = v
 	*(*uint32)(pointer(uintptr(pointer(value)) + 4)) = uint32(ValueTypeBool) << 16
+	*(*Bool)(pointer(value)) = v
 }
 
 func (value Value) GetObject() Object {
