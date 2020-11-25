@@ -5,7 +5,7 @@ import (
 )
 
 type StringPool interface {
-	Insert(value string) *string
+	Insert(value string) string
 }
 
 var _ StringPool = &stringPool{}
@@ -13,21 +13,21 @@ var _ StringPool = &stringPool{}
 var globalPool = sync.Map{}
 
 type stringPool struct {
-	pool map[string]*string
+	pool map[string]string
 }
 
-func (s *stringPool) Insert(value string) *string {
+func (s *stringPool) Insert(value string) string {
 	if ret, ok := s.pool[value]; ok {
 		return ret
 	}
 
-	ret := &value
-	s.pool[value] = ret
-	return ret
+	s.pool[value] = value
+
+	return s.pool[value]
 }
 
 func NewStringPool() StringPool {
 	return &stringPool{
-		pool: make(map[string]*string),
+		pool: make(map[string]string),
 	}
 }

@@ -139,7 +139,7 @@ func (impl *Component) GetRefByName(name string, valuePtr **script.Value) {
 			val := new(script.Value)
 			*val = script.NullValue
 			*valuePtr = val
-			impl.globalFields[name] = val
+			impl.globalFields[impl.stringPool.Insert(name)] = val
 		} else {
 			*valuePtr = obj.GetByIndex(fieldIndex)
 		}
@@ -147,7 +147,7 @@ func (impl *Component) GetRefByName(name string, valuePtr **script.Value) {
 }
 
 func (impl *Component) ScriptSet(fieldName string, value script.Value) {
-	impl.globalFields[fieldName] = &value
+	impl.globalFields[impl.stringPool.Insert(fieldName)] = &value
 }
 
 func (impl *Component) ScriptGet(fieldName string) script.Value {

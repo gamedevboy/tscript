@@ -45,7 +45,7 @@ func (impl *Object) InitPrototype() {
         f := args[0].(script.Function)
 
         for i, name := range  rt.GetFieldNames() {
-            ret := f.Invoke(context, script.Null, script.String(*name), scriptObj.GetByIndex(i).Get(), i)
+            ret := f.Invoke(context, script.Null, script.String(name), scriptObj.GetByIndex(i).Get(), i)
             if ret != nil {
                 if r, ok := ret.(script.Bool); ok && r == false {
                     return i

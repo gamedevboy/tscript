@@ -6,6 +6,6 @@ type TypeInfo interface {
     GetName() string
     GetParent() TypeInfo
     GetFieldIndexByName(fieldName string) int
-    GetFieldNames() []*string
+    GetFieldNames() []string
     GetContext() ScriptContext
 }

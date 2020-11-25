@@ -5,10 +5,10 @@ import (
 )
 
 type Component struct {
-	fields        []*string
+	fields        []string
 	scriptContext runtime.ScriptContext
 	parent        runtime.TypeInfo
-	children      map[*string]runtime.TypeInfo
+	children      map[string]runtime.TypeInfo
 }
 
 func (impl *Component) GetContext() runtime.ScriptContext {
@@ -19,8 +19,8 @@ var _ runtime.TypeInfo = &Component{}
 
 func NewTypeComponent(scriptContext interface{}) *Component {
 	return &Component{
-		fields:        make([]*string, 0),
-		children:      make(map[*string]runtime.TypeInfo),
+		fields:        make([]string, 0),
+		children:      make(map[string]runtime.TypeInfo),
 		scriptContext: scriptContext.(runtime.ScriptContext),
 	}
 }
@@ -33,7 +33,7 @@ func (impl *Component) GetName() string {
 	fl := len(impl.fields)
 
 	if fl > 0 {
-		return *impl.fields[fl-1]
+		return impl.fields[fl-1]
 	}
 
 	return ""
@@ -41,7 +41,7 @@ func (impl *Component) GetName() string {
 
 func (impl *Component) GetFieldIndexByName(fieldName string) int {
 	for index, fn := range impl.fields {
-		if *fn == fieldName {
+		if fn == fieldName {
 			return index
 		}
 	}
@@ -49,7 +49,7 @@ func (impl *Component) GetFieldIndexByName(fieldName string) int {
 	return -1
 }
 
-func (impl *Component) GetFieldNames() []*string {
+func (impl *Component) GetFieldNames() []string {
 	return impl.fields
 }
 
@@ -66,7 +66,7 @@ func (impl *Component) AddChild(fieldName string) runtime.TypeInfo {
 	newTypeInfo := NewTypeComponent(impl.scriptContext)
 	newTypeInfo.parent = impl
 
-	newTypeInfo.fields = make([]*string, len(impl.fields), len(impl.fields)+1)
+	newTypeInfo.fields = make([]string, len(impl.fields), len(impl.fields)+1)
 	copy(newTypeInfo.fields, impl.fields)
 	newTypeInfo.fields = append(newTypeInfo.fields, fn)
 
@@ -87,7 +87,7 @@ func (impl *Component) RemoveChild(fieldName string) runtime.TypeInfo {
 
 	for index, fn := range impl.fields {
 		if fn == nfn {
-			newTypeInfo.fields = make([]*string, len(impl.fields)-1, len(impl.fields)-1)
+			newTypeInfo.fields = make([]string, len(impl.fields)-1, len(impl.fields)-1)
 			copy(newTypeInfo.fields[:index], impl.fields[:index])
 			copy(newTypeInfo.fields[index:], impl.fields[index+1:])
 			break

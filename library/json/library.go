@@ -129,7 +129,7 @@ func (l *library) init() {
                             panic(fmt.Errorf("excepting : not %v", s.TokenText()))
                         }
 	                    s, _ := strconv.Unquote(val)
-                        sm.Set(script.String(*scriptContext.GetStringPool().Insert(s)), scanValue())
+                        sm.Set(script.String(scriptContext.GetStringPool().Insert(s)), scanValue())
                     default:
                         switch val {
                         case "}":
