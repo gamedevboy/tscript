@@ -1,4 +1,4 @@
-// +build !check_cross_write
+// +build check_cross_write
 
 package interpreter
 
@@ -290,6 +290,11 @@ vm_loop:
                 switch pa_.GetType() {
                 case script.ValueTypeInterface:
                     scriptObj := pa_.GetInterface()
+
+                    if runtimeObj, ok := scriptObj.(runtime.Object); ok && runtimeObj.GetRuntimeTypeInfo().
+                    (runtime.TypeInfo).GetContext() != context {
+                        panic("cross store element")
+                    }
 
                     switch target := scriptObj.(type) {
                     case script.Map:
@@ -1771,3 +1776,4 @@ func NewScriptInterpreter(owner, context interface{}) *Component {
         context:       context.(runtime.ScriptContext),
     }
 }
+
