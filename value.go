@@ -147,6 +147,8 @@ func (value Value) String() string {
 		return strconv.FormatInt(int64(value.GetInt()), 10)
 	case ValueTypeFloat:
 		return strconv.FormatFloat(float64(value.GetFloat()), 'g', -1, 32)
+	case ValueTypeBool:
+		return fmt.Sprint(bool(value.GetBool()))
 	default:
 		switch val := value.GetInterface().(type) {
 		case String:
