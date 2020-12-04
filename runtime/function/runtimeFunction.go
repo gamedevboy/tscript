@@ -3,6 +3,7 @@ package function
 import (
     "fmt"
     "strings"
+    "text/tabwriter"
 
     "tklibs/script"
     "tklibs/script/debug"
@@ -82,7 +83,9 @@ func (impl *Component) String() string {
 }
 
 func (impl *Component) DumpString() string {
-    builder := strings.Builder{}
+    builder := &strings.Builder{}
+    tw := tabwriter.NewWriter(builder,8, 4, 4, ' ',  tabwriter.TabIndent)
+    tw.Write([]byte("PC:Line\t OP \tOP1 \tOP2 \tOP3\n"))
     debugPcIndex := 0
     debugInfoList := impl.GetDebugInfoList()
     for i, il := range impl.instructions {
@@ -233,8 +236,10 @@ func (impl *Component) DumpString() string {
             }
         }
 
-        builder.WriteString(fmt.Sprintf("%v:%v \t\t %v\n", i, debugInfoList[debugPcIndex].Line, instStr))
+        tw.Write([]byte(fmt.Sprintf("%v:%v\t %v\n", i, debugInfoList[debugPcIndex].Line, instStr)))
     }
+
+    tw.Flush()
 
     return builder.String()
 
