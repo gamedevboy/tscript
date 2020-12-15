@@ -12,7 +12,7 @@ func (impl *Component) SetFieldByMemberIndex(obj interface{}, index script.Int, 
 
     if ok && runtimeObj.GetRuntimeTypeInfo().(runtime.TypeInfo).GetContext() != impl.
         scriptContext {
-        panic("cross context set")
+        panic("cross context set field")
     }
 
     switch target := obj.(type) {

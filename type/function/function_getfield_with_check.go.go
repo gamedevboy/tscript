@@ -26,12 +26,14 @@ func (impl *Component) GetFieldByMemberIndex(obj interface{}, index script.Int) 
     case script.Object:
         runtimeObj, ok := obj.(runtime.Object)
 
-        if ok && runtimeObj.GetRuntimeTypeInfo().(runtime.TypeInfo).GetContext() == impl.
+        if ok && runtimeObj.GetRuntimeTypeInfo().(runtime.TypeInfo).GetContext() != impl.
             scriptContext {
-            offset := impl.getFieldCache(obj, index).offset
-            if offset > -1 {
-                return *obj.(runtime.Object).GetByIndex(offset)
-            }
+            panic("cross context get field")
+        }
+
+        offset := impl.getFieldCache(obj, index).offset
+        if offset > -1 {
+            return *obj.(runtime.Object).GetByIndex(offset)
         }
 
         return target.ScriptGet(impl.getMemberNames()[index])
