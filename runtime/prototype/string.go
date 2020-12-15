@@ -103,6 +103,16 @@ func NewStringPrototype(ctx interface{}) *String {
         return script.String(runes[startIndex : startIndex+count])
     }, ctx))
 
+    obj.ScriptSet("toLower", function.NativeFunctionToValue(func(context interface{}, this interface{},
+    args ...interface{}) interface{} {
+        return script.String(strings.ToLower(string(this.(script.String))))
+    }, ctx))
+
+    obj.ScriptSet("toUpper", function.NativeFunctionToValue(func(context interface{}, this interface{},
+        args ...interface{}) interface{} {
+        return script.String(strings.ToUpper(string(this.(script.String))))
+    }, ctx))
+
     obj.ScriptSet("+", function.NativeFunctionToValue(func(context interface{}, this interface{}, args ...interface{}) interface{} {
         argLen := len(args)
         if argLen < 1 {

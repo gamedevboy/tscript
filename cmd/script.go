@@ -91,13 +91,14 @@ func main() {
 		for _, inst := range executeAsm.GetFunctions() {
 			_func := inst.(runtime_t.Function)
 
-			fmt.Printf("%v \"%v\", local: %v, args: %v, refs: %v, members: %v\n",
+			fmt.Printf("%v \"%v\", local: %v, args: %v, refs: %v, members: %v, max registers: %v\n",
 				"Func:",
 				_func.GetName(),
 				fmt.Sprint(len(_func.GetLocalVars())),
 				fmt.Sprint(len(_func.GetArguments())),
 				fmt.Sprint(len(_func.GetRefVars())),
-				fmt.Sprint(len(_func.GetMembers())))
+				fmt.Sprint(len(_func.GetMembers())),
+				_func.GetMaxRegisterCount())
 
 			fmt.Println(_func.DumpString())
 		}
