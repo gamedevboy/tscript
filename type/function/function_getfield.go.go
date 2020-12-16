@@ -1,10 +1,14 @@
-// +build !check_cross_write
+// +build !check_cross_read
 
 package function
 
 import (
     "tklibs/script"
     "tklibs/script/runtime"
+)
+
+const (
+    CrossReadCheck = false
 )
 
 func (impl *Component) GetFieldByMemberIndex(obj interface{}, index script.Int) script.Value {

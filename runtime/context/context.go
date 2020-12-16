@@ -57,13 +57,13 @@ type Component struct {
 
 	globalFields map[string]*script.Value
 
-	initialized bool
+	initialized     bool
+	isProtectObject bool
 }
 
 func (impl *Component) GetStringPool() util.StringPool {
 	return impl.stringPool
 }
-
 
 func (impl *Component) GetArrayPrototype() interface{} {
 	return impl.arrayPrototype
@@ -71,6 +71,14 @@ func (impl *Component) GetArrayPrototype() interface{} {
 
 func (impl *Component) GetMapPrototype() interface{} {
 	return impl.mapPrototype
+}
+
+func (impl *Component) IsProtectObject() bool {
+	return impl.isProtectObject
+}
+
+func (impl *Component) SetProtectObject(value bool) {
+	impl.isProtectObject = value
 }
 
 var _ runtime.ScriptContext = &Component{}

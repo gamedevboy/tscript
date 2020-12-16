@@ -39,4 +39,6 @@ type ScriptContext interface {
     PushRegisters(regStart script.Int, length int) []script.Value
     PopRegisters()
 	GetStringPool() util.StringPool
+    IsProtectObject() bool
+    SetProtectObject(value bool)
 }

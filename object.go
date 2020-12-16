@@ -5,3 +5,8 @@ type Object interface {
     ScriptSet(string, Value)
     ScriptGet(string) Value
 }
+
+type MemoryBlock interface {
+    Size() int
+    Children() []MemoryBlock
+}

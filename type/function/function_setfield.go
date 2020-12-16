@@ -7,6 +7,10 @@ import (
     "tklibs/script/runtime"
 )
 
+const (
+    CrossWriteCheck = false
+)
+
 func (impl *Component) SetFieldByMemberIndex(obj interface{}, index script.Int, value script.Value) {
     runtimeObj, _ := obj.(runtime.Object)
 

@@ -12,6 +12,9 @@ import (
     "tklibs/script/type/object"
 )
 
+var _ script.Object = &Component{}
+var _ script.MemoryBlock = &Component{}
+
 type Component struct {
     refs          []*script.Value
     memberCaches  []*list.List
@@ -24,6 +27,14 @@ type Component struct {
 
     scriptRuntimeFunction runtime_t.Function
     nativeRuntimeFunction runtime_t.NativeFunction
+}
+
+func (impl *Component) Size() int {
+    return 0
+}
+
+func (impl *Component) Children() []script.MemoryBlock {
+    return nil
 }
 
 func (impl *Component) GetContext() interface{} {

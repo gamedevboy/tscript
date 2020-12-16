@@ -1,10 +1,14 @@
-// +build check_cross_write
+// +build check_cross_read
 
 package function
 
 import (
     "tklibs/script"
     "tklibs/script/runtime"
+)
+
+const (
+    CrossReadCheck = true
 )
 
 func (impl *Component) GetFieldByMemberIndex(obj interface{}, index script.Int) script.Value {
@@ -24,11 +28,11 @@ func (impl *Component) GetFieldByMemberIndex(obj interface{}, index script.Int) 
         }
         return obj.(script.Object).ScriptGet(impl.getMemberNames()[index])
     case script.Object:
-        runtimeObj, ok := obj.(runtime.Object)
-
-        if ok && runtimeObj.GetRuntimeTypeInfo().(runtime.TypeInfo).GetContext() != impl.
-            scriptContext {
-            panic("cross context get field")
+        if runtimeObj, ok := obj.(runtime.Object); ok {
+            context := runtimeObj.GetRuntimeTypeInfo().(runtime.TypeInfo).GetContext()
+            if ok && context != impl.scriptContext && context.IsProtectObject() {
+                panic("cross context get field")
+            }
         }
 
         offset := impl.getFieldCache(obj, index).offset
