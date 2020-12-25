@@ -12,7 +12,7 @@ import (
 type library struct {
     context interface{}
     UnixNow,
-    ReadAll native.FunctionType
+    ReadAll, WriteAll native.FunctionType
 }
 
 func (*library) GetName() string {
@@ -47,5 +47,20 @@ func (l *library) init() {
         }
 
         return script.String("")
+    }
+
+    l.WriteAll = func(context interface{}, this interface{}, args ...interface{}) interface{} {
+        if len(args) < 2 {
+            return script.String("")
+        }
+
+        if file, err := os.Create(string(args[0].(script.String))); err == nil {
+            defer file.Close()
+            if n, err := file.WriteString(string(args[1].(script.String))); err == nil {
+                return script.Int(n)
+            }
+        }
+
+        return script.Int(-1)
     }
 }
