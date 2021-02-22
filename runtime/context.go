@@ -1,44 +1,48 @@
 package runtime
 
 import (
-    "tklibs/script"
-    "tklibs/script/runtime/util"
+	"tklibs/script"
+	"tklibs/script/runtime/util"
 )
 
+type ScriptMemroryInfo = map[string]interface{}
+
 type ScriptContext interface {
-    PushFrame(frame interface{})
-    PopFrame() interface{}
+	PushFrame(frame interface{})
+	PopFrame() interface{}
 
-    PushScope(interface{})
-    PopScope() interface{}
+	PushScope(interface{})
+	PopScope() interface{}
 
-    GetCurrentFrame() interface{}
-    GetStackFrames() []interface{}
+	GetCurrentFrame() interface{}
+	GetStackFrames() []interface{}
 
-    GetRootRuntimeType() TypeInfo
+	MemoryInfo() ScriptMemroryInfo
 
-    NewScriptObject(fieldCap int) interface{}
-    NewScriptArray(sizeCap int) interface{}
-    NewScriptMap(sizeCap int) interface{}
+	GetRootRuntimeType() TypeInfo
 
-    GetFunctionPrototype() interface{}
-    GetNumberPrototype() interface{}
-    GetObjectPrototype() interface{}
-    GetStringPrototype() interface{}
-    GetBoolPrototype() interface{}
-    GetArrayPrototype() interface{}
-    GetMapPrototype() interface{}
+	NewScriptObject(fieldCap int) interface{}
+	NewScriptArray(sizeCap int) interface{}
+	NewScriptMap(sizeCap int) interface{}
 
-    GetAssembly() interface{}
+	GetFunctionPrototype() interface{}
+	GetNumberPrototype() interface{}
+	GetObjectPrototype() interface{}
+	GetStringPrototype() interface{}
+	GetBoolPrototype() interface{}
+	GetArrayPrototype() interface{}
+	GetMapPrototype() interface{}
 
-    Run() interface{}
-    RunWithAssembly(assembly interface{}) interface{}
+	GetAssembly() interface{}
 
-    GetRefByName(name string, valuePtr **script.Value)
-    GetRegisters() []script.Value
-    PushRegisters(regStart script.Int, length int) []script.Value
-    PopRegisters()
+	Run() interface{}
+	RunWithAssembly(assembly interface{}) interface{}
+
+	GetRefByName(name string, valuePtr **script.Value)
+	GetRegisters() []script.Value
+	PushRegisters(regStart script.Int, length int) []script.Value
+	PopRegisters()
 	GetStringPool() util.StringPool
-    IsProtectObject() bool
-    SetProtectObject(value bool)
+	IsProtectObject() bool
+	SetProtectObject(value bool)
 }

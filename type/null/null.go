@@ -10,7 +10,16 @@ type scriptNull struct {
 	script.ComponentType
 }
 
+func (n *scriptNull) MemorySize() int {
+	return 0
+}
+
+func (n *scriptNull) Visit(memoryMap map[interface{}]int, f func(block script.MemoryBlock)) {
+}
+
 var _ script.Object = &scriptNull{}
+
+var _ script.MemoryBlock = &scriptNull{}
 
 func (*scriptNull) GetScriptTypeId() script.ScriptTypeId {
 	return script.ScriptTypeNull

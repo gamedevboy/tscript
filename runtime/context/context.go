@@ -83,6 +83,28 @@ func (impl *Component) SetProtectObject(value bool) {
 
 var _ runtime.ScriptContext = &Component{}
 var _ script.Function = &Component{}
+var _ script.MemoryBlock = &Component{}
+
+func (impl *Component) Size() int {
+	return 0
+}
+
+func (impl *Component) Visit(memoryMap map[interface{}]int, f func(block script.MemoryBlock)) {
+	if _, ok := memoryMap[impl]; ok {
+		return
+	}
+
+	memoryMap[impl] = impl.MemorySize()
+	f(impl)
+
+	impl.Component.Visit(memoryMap, f)
+
+	for _, value := range impl.globalFields {
+		if ms, ok := value.Get().(script.MemoryBlock); ok {
+			ms.Visit(memoryMap, f)
+		}
+	}
+}
 
 func (impl *Component) PushRegisters(regStart script.Int, length int) []script.Value {
 	if len(impl.registers[regStart:]) < length {
@@ -176,7 +198,7 @@ func (impl *Component) NewScriptObject(fieldCap int) interface{} {
 }
 
 func (impl *Component) NewScriptArray(sizeCap int) interface{} {
-	return array.NewScriptArray( impl.GetOwner(), sizeCap)
+	return array.NewScriptArray(impl.GetOwner(), sizeCap)
 }
 
 func (impl *Component) NewScriptMap(sizeCap int) interface{} {
@@ -288,13 +310,53 @@ func (impl *Component) RegisterLibrary(library library.RuntimeLibrary) {
 	}
 }
 
+func (impl *Component) MemoryInfo() runtime.ScriptMemroryInfo {
+	memSize := 0
+
+	objCount := 0
+	mapCount := 0
+	arrayCount := 0
+	funcCount := 0
+
+	visit := func(mb script.MemoryBlock) {
+		memSize += mb.MemorySize()
+
+		switch mb.(type) {
+		case script.Map:
+			mapCount++
+		case script.Array:
+			arrayCount++
+		case script.Function:
+			funcCount++
+		case script.Int:
+		case script.Int64:
+		case script.Float:
+		case script.Float64:
+		case script.String:
+		case script.Bool:
+		case script.Object:
+			objCount++
+		}
+	}
+
+	impl.Visit(make(map[interface{}]int), visit)
+
+	return runtime.ScriptMemroryInfo{
+		"mapCount":    mapCount,
+		"arrayCount":  arrayCount,
+		"funcCount":   funcCount,
+		"objectCount": objCount,
+		"memorySize":  memSize,
+	}
+}
+
 func NewScriptContext(owner, asm interface{}, stackSize int) *Component {
 	context := &Component{
 		ComponentType: script.MakeComponentType(owner),
 		assembly:      asm,
 		registers:     make([]script.Value, stackSize),
 		globalFields:  make(map[string]*script.Value),
-		stringPool: util.NewStringPool(),
+		stringPool:    util.NewStringPool(),
 	}
 
 	context.registerList = make([][]script.Value, 0, 1)

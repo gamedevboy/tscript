@@ -24,6 +24,32 @@ func (impl *Component) Get(key interface{}) interface{} {
 
 var _ script.Object = &Component{}
 var _ script.Map = &Component{}
+var _ script.MemoryBlock = &Component{}
+
+func (impl *Component) MemorySize() int {
+	return 0
+}
+
+func (impl *Component) Visit(memoryMap map[interface{}]int, f func(block script.MemoryBlock)) {
+	if _, ok := memoryMap[impl]; ok {
+		return
+	}
+
+	memoryMap[impl] = impl.MemorySize()
+	f(impl)
+
+	impl.Component.Visit(memoryMap, f)
+
+	for key, value := range impl.values {
+		if ms, ok := key.(script.MemoryBlock); ok {
+			ms.Visit(memoryMap, f)
+		}
+
+		if ms, ok := value.(script.MemoryBlock); ok {
+			ms.Visit(memoryMap, f)
+		}
+	}
+}
 
 func (impl *Component) Delete(key interface{}) {
 	delete(impl.values, key)
@@ -63,7 +89,7 @@ func (*Component) GetScriptTypeId() script.ScriptTypeId {
 
 func NewScriptMap(ctx interface{}, capSize int) *Component {
 	ret := &Component{
-		values:        make(map[interface{}]interface{}, capSize),
+		values: make(map[interface{}]interface{}, capSize),
 	}
 
 	ret.Component = object.NewScriptObject(ret, ctx, 0)

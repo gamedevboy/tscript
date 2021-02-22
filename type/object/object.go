@@ -6,11 +6,32 @@ import (
 	_ "tklibs/script/type/null"
 )
 
+var _ script.MemoryBlock = &Component{}
+
 type Component struct {
 	fields []script.Value
 	script.ComponentType
 	runtimeTypeInfo runtime.TypeInfo
 	prototype       script.Value
+}
+
+func (impl *Component) MemorySize() int {
+	return 0
+}
+
+func (impl *Component) Visit(memoryMap map[interface{}]int, f func(block script.MemoryBlock)) {
+	if _, ok := memoryMap[impl]; ok {
+		return
+	}
+
+	memoryMap[impl] = impl.MemorySize()
+	f(impl)
+
+	for _, field := range impl.fields {
+		if ms, ok := field.Get().(script.MemoryBlock); ok {
+			ms.Visit(memoryMap, f)
+		}
+	}
 }
 
 func (impl *Component) GetPrototype() script.Value {
